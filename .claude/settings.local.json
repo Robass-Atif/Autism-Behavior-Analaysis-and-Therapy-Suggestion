@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm init -y)"
+      "Bash(npm init -y)",
+      "Bash(curl:*)"
     ]
   }
 }

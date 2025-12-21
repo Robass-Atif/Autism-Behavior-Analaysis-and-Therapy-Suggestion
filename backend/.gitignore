@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# Claude
+.claude/
+
 # Logs
 logs
 *.log
