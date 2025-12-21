@@ -1,98 +1,369 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend API Documentation
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Role-based authentication backend using Node.js, Express, and MongoDB Atlas.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Setup
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+### 1. Install Dependencies
 
 ```bash
-$ npm install
+cd backend
+npm install
 ```
 
-## Compile and run the project
+### 2. Configure Environment Variables
+
+Edit the `.env` file with your MongoDB Atlas credentials:
+
+```env
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=7d
+PORT=5000
+NODE_ENV=development
+```
+
+### 3. Run the Server
 
 ```bash
-# development
-$ npm run start
+# Development mode (with hot reload)
+npm run dev
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Production mode
+npm start
 ```
 
-## Run tests
+---
 
+## API Endpoints
+
+Base URL: `http://localhost:5000/api`
+
+### Health Check
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Check if server is running |
+
+---
+
+### Authentication Routes
+
+#### 1. Sign Up (Register)
+
+**Endpoint:** `POST /api/auth/signup`
+
+**Access:** Public
+
+**Request Body:**
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "user"  // Optional: "user" | "admin" | "moderator" (default: "user")
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "_id": "user_id",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "user",
+    "token": "jwt_token_here"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "message": "User already exists with this email"
+}
+```
+
+---
+
+#### 2. Sign In (Login)
+
+**Endpoint:** `POST /api/auth/signin`
+
+**Access:** Public
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "_id": "user_id",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "user",
+    "token": "jwt_token_here"
+  }
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "success": false,
+  "message": "Invalid email or password"
+}
+```
+
+---
+
+#### 3. Get Current User
+
+**Endpoint:** `GET /api/auth/me`
+
+**Access:** Private (Requires Authentication)
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "user_id",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "user",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### Admin Only Routes
+
+#### 4. Get All Users
+
+**Endpoint:** `GET /api/auth/users`
+
+**Access:** Private (Admin Only)
+
+**Headers:**
+```
+Authorization: Bearer <admin_jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "_id": "user_id_1",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "user",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "_id": "user_id_2",
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "role": "admin",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+#### 5. Update User Role
+
+**Endpoint:** `PUT /api/auth/users/:id/role`
+
+**Access:** Private (Admin Only)
+
+**Headers:**
+```
+Authorization: Bearer <admin_jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "role": "moderator"  // "user" | "admin" | "moderator"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "User role updated successfully",
+  "data": {
+    "_id": "user_id",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "moderator",
+    "isActive": true
+  }
+}
+```
+
+---
+
+#### 6. Delete User
+
+**Endpoint:** `DELETE /api/auth/users/:id`
+
+**Access:** Private (Admin Only)
+
+**Headers:**
+```
+Authorization: Bearer <admin_jwt_token>
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "User deleted successfully"
+}
+```
+
+---
+
+## User Roles
+
+| Role | Permissions |
+|------|-------------|
+| `user` | Can access their own profile (`/me`) |
+| `moderator` | Same as user (can be extended for moderation features) |
+| `admin` | Full access: view all users, update roles, delete users |
+
+---
+
+## Error Responses
+
+### Validation Error (400)
+```json
+{
+  "success": false,
+  "errors": [
+    {
+      "type": "field",
+      "msg": "Email is required",
+      "path": "email",
+      "location": "body"
+    }
+  ]
+}
+```
+
+### Unauthorized (401)
+```json
+{
+  "success": false,
+  "message": "Not authorized, no token provided"
+}
+```
+
+### Forbidden (403)
+```json
+{
+  "success": false,
+  "message": "Role 'user' is not authorized to access this route"
+}
+```
+
+### Not Found (404)
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+### Server Error (500)
+```json
+{
+  "success": false,
+  "message": "Server error"
+}
+```
+
+---
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── config/
+│   │   └── db.js           # MongoDB connection
+│   ├── controllers/
+│   │   └── authController.js   # Auth logic
+│   ├── middleware/
+│   │   └── auth.js         # JWT & role middleware
+│   ├── models/
+│   │   └── User.js         # User schema
+│   ├── routes/
+│   │   └── authRoutes.js   # API routes
+│   ├── utils/
+│   │   └── generateToken.js    # JWT generator
+│   └── server.js           # Entry point
+├── .env                    # Environment variables
+├── .env.example            # Example env file
+├── package.json
+└── README.md
+```
+
+---
+
+## Testing with cURL
+
+### Sign Up
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+curl -X POST http://localhost:5000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Sign In
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+curl -X POST http://localhost:5000/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john@example.com","password":"password123"}'
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Get Current User
+```bash
+curl -X GET http://localhost:5000/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Get All Users (Admin)
+```bash
+curl -X GET http://localhost:5000/api/auth/users \
+  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
+```
