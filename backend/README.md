@@ -1,6 +1,26 @@
-# Backend API Documentation
+# ASD Therapy Platform - Backend API
 
-Role-based authentication backend using Node.js, Express, and MongoDB Atlas.
+Multi-role authentication backend using **NestJS**, **MongoDB**, and **JWT** for the ASD Therapy Platform.
+
+## Features
+
+- **Multi-Role Registration**: Therapist, Caregiver, and Admin sign-up flows
+- **Email Verification**: Secure email verification for all users
+- **Admin Approval Workflow**: Therapists and Admins require admin approval
+- **Invitation System**: Therapists can invite Caregivers via unique codes
+- **File Upload**: License certificates and digital signatures
+- **Two-Factor Authentication**: Optional 2FA for enhanced security
+- **Role-Based Access Control**: Protected routes based on user roles
+- **Swagger API Documentation**: Interactive API docs at `/api/docs`
+
+## Tech Stack
+
+- **NestJS** - Progressive Node.js framework
+- **MongoDB** - Database with Mongoose ODM
+- **Passport JWT** - Authentication
+- **class-validator** - Request validation
+- **Nodemailer** - Email service
+- **Multer** - File uploads
 
 ## Setup
 
@@ -13,357 +33,173 @@ npm install
 
 ### 2. Configure Environment Variables
 
-Edit the `.env` file with your MongoDB Atlas credentials:
+Copy `.env.example` to `.env` and update the values:
 
 ```env
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+# MongoDB
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
+
+# JWT
+JWT_SECRET=your-super-secret-key
 JWT_EXPIRES_IN=7d
+
+# Server
 PORT=5000
 NODE_ENV=development
+
+# Email (SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+EMAIL_FROM=noreply@asdtherapy.com
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+
+# File Uploads
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=5242880
+
+# Admin Domains
+ALLOWED_ADMIN_DOMAINS=asdtherapy.com
 ```
 
 ### 3. Run the Server
 
 ```bash
-# Development mode (with hot reload)
-npm run dev
+# Development
+npm run start:dev
 
-# Production mode
-npm start
+# Production
+npm run build
+npm run start:prod
 ```
 
----
+## API Documentation
+
+Once the server is running, access Swagger docs at:
+```
+http://localhost:5000/api/docs
+```
 
 ## API Endpoints
 
-Base URL: `http://localhost:5000/api`
-
 ### Health Check
-
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/health` | Check if server is running |
+| GET | `/api/health` | Server health check |
 
----
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register/therapist` | Register as therapist |
+| POST | `/api/auth/register/caregiver` | Register as caregiver |
+| POST | `/api/auth/register/admin` | Register as admin |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/verify-email` | Verify email with token |
+| POST | `/api/auth/forgot-password` | Request password reset |
+| POST | `/api/auth/reset-password` | Reset password |
+| POST | `/api/auth/resend-verification` | Resend verification email |
+| GET | `/api/auth/me` | Get current user (Protected) |
 
-### Authentication Routes
+### Users (Admin Only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/users` | Get all users |
+| GET | `/api/users/pending-approvals` | Get pending approvals |
+| GET | `/api/users/:id` | Get user by ID |
+| PUT | `/api/users/:id/approve` | Approve user |
+| PUT | `/api/users/:id/reject` | Reject user |
+| PUT | `/api/users/:id/status` | Update user status |
+| DELETE | `/api/users/:id` | Delete user |
 
-#### 1. Sign Up (Register)
+### Invitations (Therapist Only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/invitations` | Create invitation |
+| GET | `/api/invitations` | Get my invitations |
+| GET | `/api/invitations/validate/:code` | Validate invitation code |
+| POST | `/api/invitations/:id/resend` | Resend invitation |
+| DELETE | `/api/invitations/:id` | Revoke invitation |
 
-**Endpoint:** `POST /api/auth/signup`
-
-**Access:** Public
-
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "role": "user"  // Optional: "user" | "admin" | "moderator" (default: "user")
-}
-```
-
-**Success Response (201):**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "_id": "user_id",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "user",
-    "token": "jwt_token_here"
-  }
-}
-```
-
-**Error Response (400):**
-```json
-{
-  "success": false,
-  "message": "User already exists with this email"
-}
-```
-
----
-
-#### 2. Sign In (Login)
-
-**Endpoint:** `POST /api/auth/signin`
-
-**Access:** Public
-
-**Request Body:**
-```json
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "_id": "user_id",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "user",
-    "token": "jwt_token_here"
-  }
-}
-```
-
-**Error Response (401):**
-```json
-{
-  "success": false,
-  "message": "Invalid email or password"
-}
-```
-
----
-
-#### 3. Get Current User
-
-**Endpoint:** `GET /api/auth/me`
-
-**Access:** Private (Requires Authentication)
-
-**Headers:**
-```
-Authorization: Bearer <jwt_token>
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "user_id",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "user",
-    "createdAt": "2024-01-01T00:00:00.000Z"
-  }
-}
-```
-
----
-
-### Admin Only Routes
-
-#### 4. Get All Users
-
-**Endpoint:** `GET /api/auth/users`
-
-**Access:** Private (Admin Only)
-
-**Headers:**
-```
-Authorization: Bearer <admin_jwt_token>
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "count": 2,
-  "data": [
-    {
-      "_id": "user_id_1",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "role": "user",
-      "isActive": true,
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "_id": "user_id_2",
-      "name": "Admin User",
-      "email": "admin@example.com",
-      "role": "admin",
-      "isActive": true,
-      "createdAt": "2024-01-01T00:00:00.000Z"
-    }
-  ]
-}
-```
-
----
-
-#### 5. Update User Role
-
-**Endpoint:** `PUT /api/auth/users/:id/role`
-
-**Access:** Private (Admin Only)
-
-**Headers:**
-```
-Authorization: Bearer <admin_jwt_token>
-```
-
-**Request Body:**
-```json
-{
-  "role": "moderator"  // "user" | "admin" | "moderator"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "User role updated successfully",
-  "data": {
-    "_id": "user_id",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "moderator",
-    "isActive": true
-  }
-}
-```
-
----
-
-#### 6. Delete User
-
-**Endpoint:** `DELETE /api/auth/users/:id`
-
-**Access:** Private (Admin Only)
-
-**Headers:**
-```
-Authorization: Bearer <admin_jwt_token>
-```
-
-**Success Response (200):**
-```json
-{
-  "success": true,
-  "message": "User deleted successfully"
-}
-```
-
----
+### File Uploads (Protected)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/upload/license` | Upload license certificate |
+| POST | `/api/upload/signature` | Upload digital signature |
+| GET | `/api/upload/:type/:filename` | Get uploaded file |
 
 ## User Roles
 
-| Role | Permissions |
-|------|-------------|
-| `user` | Can access their own profile (`/me`) |
-| `moderator` | Same as user (can be extended for moderation features) |
-| `admin` | Full access: view all users, update roles, delete users |
+| Role | Description | Approval Required |
+|------|-------------|-------------------|
+| `therapist` | Clinical professionals | Yes (Admin approval) |
+| `caregiver` | Parents/Guardians | No |
+| `admin` | System administrators | Yes (Super Admin approval) |
+| `super_admin` | Full system access | Initial setup only |
 
----
+## Registration Flows
 
-## Error Responses
+### Therapist Registration
+1. Fill registration form with credentials
+2. Upload license certificate
+3. Email verification
+4. Admin approval
+5. Access dashboard
 
-### Validation Error (400)
-```json
-{
-  "success": false,
-  "errors": [
-    {
-      "type": "field",
-      "msg": "Email is required",
-      "path": "email",
-      "location": "body"
-    }
-  ]
-}
-```
+### Caregiver Registration
+1. Register directly or via therapist invitation
+2. Email verification
+3. Access dashboard immediately
 
-### Unauthorized (401)
-```json
-{
-  "success": false,
-  "message": "Not authorized, no token provided"
-}
-```
-
-### Forbidden (403)
-```json
-{
-  "success": false,
-  "message": "Role 'user' is not authorized to access this route"
-}
-```
-
-### Not Found (404)
-```json
-{
-  "success": false,
-  "message": "User not found"
-}
-```
-
-### Server Error (500)
-```json
-{
-  "success": false,
-  "message": "Server error"
-}
-```
-
----
+### Admin Registration
+1. Requires approval code from Super Admin
+2. Organizational email required
+3. Mandatory 2FA setup
+4. Security questions required
+5. Email verification
+6. Super Admin approval
 
 ## Project Structure
 
 ```
 backend/
 ├── src/
-│   ├── config/
-│   │   └── db.js           # MongoDB connection
-│   ├── controllers/
-│   │   └── authController.js   # Auth logic
-│   ├── middleware/
-│   │   └── auth.js         # JWT & role middleware
-│   ├── models/
-│   │   └── User.js         # User schema
-│   ├── routes/
-│   │   └── authRoutes.js   # API routes
-│   ├── utils/
-│   │   └── generateToken.js    # JWT generator
-│   └── server.js           # Entry point
-├── .env                    # Environment variables
-├── .env.example            # Example env file
-├── package.json
-└── README.md
+│   ├── common/
+│   │   ├── decorators/       # Custom decorators
+│   │   └── enums/            # Enums (roles, status, etc.)
+│   ├── modules/
+│   │   ├── auth/             # Authentication module
+│   │   │   ├── dto/          # Data transfer objects
+│   │   │   ├── guards/       # JWT & Role guards
+│   │   │   └── strategies/   # Passport strategies
+│   │   ├── users/            # Users module
+│   │   │   ├── dto/          # User DTOs
+│   │   │   └── schemas/      # Mongoose schemas
+│   │   ├── email/            # Email service
+│   │   ├── invitation/       # Invitation system
+│   │   └── upload/           # File upload service
+│   ├── app.module.ts         # Root module
+│   ├── health.controller.ts  # Health check
+│   └── main.ts               # Entry point
+├── uploads/                   # Uploaded files
+├── .env                       # Environment variables
+├── nest-cli.json             # NestJS CLI config
+├── tsconfig.json             # TypeScript config
+└── package.json
 ```
 
----
+## Account Statuses
 
-## Testing with cURL
+| Status | Description |
+|--------|-------------|
+| `pending_verification` | Email not verified |
+| `pending_approval` | Awaiting admin approval |
+| `active` | Account fully active |
+| `suspended` | Account suspended |
+| `deactivated` | Account deactivated |
 
-### Sign Up
-```bash
-curl -X POST http://localhost:5000/api/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
-```
+## License
 
-### Sign In
-```bash
-curl -X POST http://localhost:5000/api/auth/signin \
-  -H "Content-Type: application/json" \
-  -d '{"email":"john@example.com","password":"password123"}'
-```
-
-### Get Current User
-```bash
-curl -X GET http://localhost:5000/api/auth/me \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Get All Users (Admin)
-```bash
-curl -X GET http://localhost:5000/api/auth/users \
-  -H "Authorization: Bearer ADMIN_JWT_TOKEN"
-```
+MIT
