@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
 import { User } from './user.schema';
 import { TherapistTitle, LicenseType } from '../../../common/enums/role.enum';
 
