@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
 import { User } from './user.schema';
 import { AdminLevel, TwoFactorMethod } from '../../../common/enums/role.enum';
 
@@ -72,3 +73,20 @@ export class Admin extends User {
 }
 
 export const AdminSchema = SchemaFactory.createForClass(Admin);
+
+// Hash password before saving
+AdminSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Compare password method
+AdminSchema.methods.comparePassword = async function (
+  candidatePassword: string,
+): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
