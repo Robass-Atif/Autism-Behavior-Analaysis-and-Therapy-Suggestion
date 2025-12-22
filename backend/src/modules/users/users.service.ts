@@ -21,10 +21,32 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ email: email.toLowerCase() }).select('+password');
+    const normalizedEmail = email.toLowerCase();
+
+    // Search in all user collections
+    let user = await this.therapistModel.findOne({ email: normalizedEmail }).select('+password');
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.caregiverModel.findOne({ email: normalizedEmail }).select('+password');
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.adminModel.findOne({ email: normalizedEmail }).select('+password');
+    if (user) return user as unknown as UserDocument;
+
+    return this.userModel.findOne({ email: normalizedEmail }).select('+password');
   }
 
   async findById(id: string): Promise<UserDocument | null> {
+    // Search in all user collections
+    let user = await this.therapistModel.findById(id);
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.caregiverModel.findById(id);
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.adminModel.findById(id);
+    if (user) return user as unknown as UserDocument;
+
     return this.userModel.findById(id);
   }
 
@@ -45,7 +67,7 @@ export class UsersService {
     return !!user;
   }
 
-  async createTherapist(data: Partial<Therapist>): Promise<TherapistDocument> {
+  async createTherapist(data: Partial<Therapist> & { email: string }): Promise<TherapistDocument> {
     const exists = await this.emailExists(data.email);
     if (exists) {
       throw new ConflictException('Email already registered');
@@ -61,7 +83,7 @@ export class UsersService {
     return therapist.save();
   }
 
-  async createCaregiver(data: Partial<Caregiver>): Promise<CaregiverDocument> {
+  async createCaregiver(data: Partial<Caregiver> & { email: string }): Promise<CaregiverDocument> {
     const exists = await this.emailExists(data.email);
     if (exists) {
       throw new ConflictException('Email already registered');
@@ -77,7 +99,7 @@ export class UsersService {
     return caregiver.save();
   }
 
-  async createAdmin(data: Partial<Admin>): Promise<AdminDocument> {
+  async createAdmin(data: Partial<Admin> & { email: string }): Promise<AdminDocument> {
     const exists = await this.emailExists(data.email);
     if (exists) {
       throw new ConflictException('Email already registered');

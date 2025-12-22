@@ -1,3 +1,4 @@
+
 # ASD Therapy Platform - API Documentation
 
 ## Table of Contents

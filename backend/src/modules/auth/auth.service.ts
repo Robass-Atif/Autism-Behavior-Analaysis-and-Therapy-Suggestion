@@ -60,6 +60,7 @@ export class AuthService {
         otherLicenseType: dto.credentials.otherLicenseType,
         issuingAuthority: dto.credentials.issuingAuthority,
         licenseExpiryDate: new Date(dto.credentials.licenseExpiryDate),
+        isLicenseVerified: false,
       },
       organization: dto.organization,
       references: dto.references,
@@ -142,10 +143,10 @@ export class AuthService {
       invitationCode: dto.invitationCode,
       invitedBy: invitedBy as any,
       emergencyContact: dto.emergencyContact,
-      notificationPreferences: dto.notificationPreferences || {
-        emailNotifications: true,
-        smsNotifications: false,
-        recordingReminders: true,
+      notificationPreferences: {
+        emailNotifications: dto.notificationPreferences?.emailNotifications ?? true,
+        smsNotifications: dto.notificationPreferences?.smsNotifications ?? false,
+        recordingReminders: dto.notificationPreferences?.recordingReminders ?? true,
       },
       termsAccepted: dto.termsAccepted,
       privacyPolicyAccepted: dto.privacyPolicyAccepted,
