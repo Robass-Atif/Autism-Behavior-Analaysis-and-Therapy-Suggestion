@@ -1,0 +1,22 @@
+{
+  "model_type": "2D",
+  "sequence_input_size": 150,
+  "demographic_input_size": 2,
+  "hidden_size": 128,
+  "num_layers": 2,
+  "dropout": 0.4,
+  "num_outputs": 4,
+  "max_sequence_length": 100,
+  "task_types": {
+    "severity": "classification",
+    "social_affect": "regression",
+    "rrb": "regression",
+    "comparison_score": "classification"
+  },
+  "num_classes": {
+    "severity": 2,
+    "comparison_score": 10
+  },
+  "export_date": "2025-12-25 16:16:26",
+  "best_val_loss": 0.6005696527601228
+}
