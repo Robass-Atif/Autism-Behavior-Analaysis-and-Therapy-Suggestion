@@ -1,98 +1,205 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# ASD Therapy Platform - Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Multi-role authentication backend using **NestJS**, **MongoDB**, and **JWT** for the ASD Therapy Platform.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- **Multi-Role Registration**: Therapist, Caregiver, and Admin sign-up flows
+- **Email Verification**: Secure email verification for all users
+- **Admin Approval Workflow**: Therapists and Admins require admin approval
+- **Invitation System**: Therapists can invite Caregivers via unique codes
+- **File Upload**: License certificates and digital signatures
+- **Two-Factor Authentication**: Optional 2FA for enhanced security
+- **Role-Based Access Control**: Protected routes based on user roles
+- **Swagger API Documentation**: Interactive API docs at `/api/docs`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **NestJS** - Progressive Node.js framework
+- **MongoDB** - Database with Mongoose ODM
+- **Passport JWT** - Authentication
+- **class-validator** - Request validation
+- **Nodemailer** - Email service
+- **Multer** - File uploads
 
-```bash
-$ npm install
-```
+## Setup
 
-## Compile and run the project
+### 1. Install Dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cd backend
+npm install
 ```
 
-## Run tests
+### 2. Configure Environment Variables
+
+Copy `.env.example` to `.env` and update the values:
+
+```env
+# MongoDB
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>/<database>
+
+# JWT
+JWT_SECRET=your-super-secret-key
+JWT_EXPIRES_IN=7d
+
+# Server
+PORT=5000
+NODE_ENV=development
+
+# Email (SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+EMAIL_FROM=noreply@asdtherapy.com
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+
+# File Uploads
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=5242880
+
+# Admin Domains
+ALLOWED_ADMIN_DOMAINS=asdtherapy.com
+```
+
+### 3. Run the Server
 
 ```bash
-# unit tests
-$ npm run test
+# Development
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Production
+npm run build
+npm run start:prod
 ```
 
-## Deployment
+## API Documentation
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+Once the server is running, access Swagger docs at:
+```
+http://localhost:5000/api/docs
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## API Endpoints
 
-## Resources
+### Health Check
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Server health check |
 
-Check out a few resources that may come in handy when working with NestJS:
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register/therapist` | Register as therapist |
+| POST | `/api/auth/register/caregiver` | Register as caregiver |
+| POST | `/api/auth/register/admin` | Register as admin |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/verify-email` | Verify email with token |
+| POST | `/api/auth/forgot-password` | Request password reset |
+| POST | `/api/auth/reset-password` | Reset password |
+| POST | `/api/auth/resend-verification` | Resend verification email |
+| GET | `/api/auth/me` | Get current user (Protected) |
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Users (Admin Only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/users` | Get all users |
+| GET | `/api/users/pending-approvals` | Get pending approvals |
+| GET | `/api/users/:id` | Get user by ID |
+| PUT | `/api/users/:id/approve` | Approve user |
+| PUT | `/api/users/:id/reject` | Reject user |
+| PUT | `/api/users/:id/status` | Update user status |
+| DELETE | `/api/users/:id` | Delete user |
 
-## Support
+### Invitations (Therapist Only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/invitations` | Create invitation |
+| GET | `/api/invitations` | Get my invitations |
+| GET | `/api/invitations/validate/:code` | Validate invitation code |
+| POST | `/api/invitations/:id/resend` | Resend invitation |
+| DELETE | `/api/invitations/:id` | Revoke invitation |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### File Uploads (Protected)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/upload/license` | Upload license certificate |
+| POST | `/api/upload/signature` | Upload digital signature |
+| GET | `/api/upload/:type/:filename` | Get uploaded file |
 
-## Stay in touch
+## User Roles
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Role | Description | Approval Required |
+|------|-------------|-------------------|
+| `therapist` | Clinical professionals | Yes (Admin approval) |
+| `caregiver` | Parents/Guardians | No |
+| `admin` | System administrators | Yes (Super Admin approval) |
+| `super_admin` | Full system access | Initial setup only |
+
+## Registration Flows
+
+### Therapist Registration
+1. Fill registration form with credentials
+2. Upload license certificate
+3. Email verification
+4. Admin approval
+5. Access dashboard
+
+### Caregiver Registration
+1. Register directly or via therapist invitation
+2. Email verification
+3. Access dashboard immediately
+
+### Admin Registration
+1. Requires approval code from Super Admin
+2. Organizational email required
+3. Mandatory 2FA setup
+4. Security questions required
+5. Email verification
+6. Super Admin approval
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── common/
+│   │   ├── decorators/       # Custom decorators
+│   │   └── enums/            # Enums (roles, status, etc.)
+│   ├── modules/
+│   │   ├── auth/             # Authentication module
+│   │   │   ├── dto/          # Data transfer objects
+│   │   │   ├── guards/       # JWT & Role guards
+│   │   │   └── strategies/   # Passport strategies
+│   │   ├── users/            # Users module
+│   │   │   ├── dto/          # User DTOs
+│   │   │   └── schemas/      # Mongoose schemas
+│   │   ├── email/            # Email service
+│   │   ├── invitation/       # Invitation system
+│   │   └── upload/           # File upload service
+│   ├── app.module.ts         # Root module
+│   ├── health.controller.ts  # Health check
+│   └── main.ts               # Entry point
+├── uploads/                   # Uploaded files
+├── .env                       # Environment variables
+├── nest-cli.json             # NestJS CLI config
+├── tsconfig.json             # TypeScript config
+└── package.json
+```
+
+## Account Statuses
+
+| Status | Description |
+|--------|-------------|
+| `pending_verification` | Email not verified |
+| `pending_approval` | Awaiting admin approval |
+| `active` | Account fully active |
+| `suspended` | Account suspended |
+| `deactivated` | Account deactivated |
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT

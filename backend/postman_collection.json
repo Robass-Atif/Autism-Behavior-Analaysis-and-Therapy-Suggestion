@@ -1,0 +1,923 @@
+{
+  "info": {
+    "_postman_id": "asd-therapy-backend-api",
+    "name": "ASD Therapy Platform - Backend API",
+    "description": "Multi-role authentication API for Therapists, Caregivers, and Admins with email verification, file uploads, and invitation system.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "therapistToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the server is running"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Registration",
+      "item": [
+        {
+          "name": "Register Therapist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data._id) {",
+                  "    pm.collectionVariables.set('userId', jsonData.data._id);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates pending verification', function () {",
+                  "    pm.expect(jsonData.data.accountStatus).to.eql('pending_verification');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Dr. John Smith\",\n  \"professionalTitle\": \"Clinical Psychologist\",\n  \"email\": \"john.smith@clinic.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"credentials\": {\n    \"licenseNumber\": \"PSY-12345\",\n    \"licenseType\": \"Clinical Psychologist License\",\n    \"issuingAuthority\": \"State Board of Psychology\",\n    \"licenseExpiryDate\": \"2025-12-31\"\n  },\n  \"organization\": {\n    \"organizationName\": \"ABC Therapy Center\",\n    \"department\": \"Child Psychology\",\n    \"workAddress\": \"123 Medical Plaza, Suite 456\",\n    \"city\": \"New York\",\n    \"stateProvince\": \"NY\",\n    \"zipPostalCode\": \"10001\",\n    \"country\": \"USA\"\n  },\n  \"password\": \"SecurePass@123\",\n  \"confirmPassword\": \"SecurePass@123\",\n  \"termsAccepted\": true,\n  \"hipaaAccepted\": true,\n  \"privacyPolicyAccepted\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/therapist",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "therapist"]
+            },
+            "description": "Register a new therapist with professional credentials"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Caregiver",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data._id) {",
+                  "    pm.collectionVariables.set('userId', jsonData.data._id);",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Mary Johnson\",\n  \"email\": \"mary.johnson@email.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"preferredLanguage\": \"English\",\n  \"relationshipType\": \"Parent\",\n  \"password\": \"SecurePass@123\",\n  \"confirmPassword\": \"SecurePass@123\",\n  \"emergencyContact\": {\n    \"name\": \"Robert Johnson\",\n    \"phone\": \"+1987654321\",\n    \"relationship\": \"Spouse\"\n  },\n  \"termsAccepted\": true,\n  \"privacyPolicyAccepted\": true,\n  \"videoRecordingConsentAccepted\": true,\n  \"notificationPreferences\": {\n    \"emailNotifications\": true,\n    \"smsNotifications\": false,\n    \"recordingReminders\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/caregiver",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "caregiver"]
+            },
+            "description": "Register a new caregiver (parent/guardian)"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Caregiver (with Invitation Code)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jane Wilson\",\n  \"email\": \"jane.wilson@email.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"preferredLanguage\": \"English\",\n  \"relationshipType\": \"Parent\",\n  \"password\": \"SecurePass@123\",\n  \"confirmPassword\": \"SecurePass@123\",\n  \"invitationCode\": \"ABC12345\",\n  \"termsAccepted\": true,\n  \"privacyPolicyAccepted\": true,\n  \"videoRecordingConsentAccepted\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/caregiver",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "caregiver"]
+            },
+            "description": "Register caregiver using therapist invitation code"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Admin User\",\n  \"email\": \"admin@asdtherapy.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"employeeId\": \"EMP-001\",\n  \"adminLevel\": \"system_admin\",\n  \"organizationName\": \"ASD Therapy Platform\",\n  \"department\": \"IT Department\",\n  \"password\": \"VerySecure@Pass123!\",\n  \"confirmPassword\": \"VerySecure@Pass123!\",\n  \"twoFactorMethod\": \"authenticator\",\n  \"securityQuestions\": [\n    {\n      \"question\": \"What was your first pet's name?\",\n      \"answer\": \"Fluffy\"\n    },\n    {\n      \"question\": \"What city were you born in?\",\n      \"answer\": \"New York\"\n    },\n    {\n      \"question\": \"What is your mother's maiden name?\",\n      \"answer\": \"Smith\"\n    }\n  ],\n  \"accessJustification\": \"System administrator for platform maintenance.\",\n  \"adminCodeOfConductAccepted\": true,\n  \"systemAccessPolicyAccepted\": true,\n  \"securityResponsibilityAccepted\": true,\n  \"hipaaAccepted\": true,\n  \"approvingSuperAdminEmail\": \"superadmin@asdtherapy.com\",\n  \"approvalCode\": \"SA-APPROVE-2024\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "admin"]
+            },
+            "description": "Register a new admin (requires Super Admin approval code)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    pm.collectionVariables.set('userId', jsonData.data._id);",
+                  "    ",
+                  "    if (jsonData.data.role === 'admin' || jsonData.data.role === 'super_admin') {",
+                  "        pm.collectionVariables.set('adminToken', jsonData.data.token);",
+                  "    }",
+                  "    if (jsonData.data.role === 'therapist') {",
+                  "        pm.collectionVariables.set('therapistToken', jsonData.data.token);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has token', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.smith@clinic.com\",\n  \"password\": \"SecurePass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-email?token=your-verification-token-here",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "your-verification-token-here"
+                }
+              ]
+            },
+            "description": "Verify email using token from email"
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.smith@clinic.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "Request password reset email"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"newPassword\": \"NewSecure@Pass123\",\n  \"confirmPassword\": \"NewSecure@Pass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "description": "Reset password using token from email"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Verification Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.smith@clinic.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/resend-verification",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "resend-verification"]
+            },
+            "description": "Resend email verification link"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('email');",
+                  "    pm.expect(jsonData.data).to.have.property('role');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get current logged in user profile"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management (Admin Only)",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Get all users (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users by Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?role=therapist",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "therapist"
+                }
+              ]
+            },
+            "description": "Get users filtered by role"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Approvals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/pending-approvals",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "pending-approvals"]
+            },
+            "description": "Get users pending approval"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Get specific user by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Approve User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "approve"]
+            },
+            "description": "Approve user registration"
+          },
+          "response": []
+        },
+        {
+          "name": "Reject User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Invalid license credentials provided\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "reject"]
+            },
+            "description": "Reject user registration with reason"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "status"]
+            },
+            "description": "Update user account status"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Delete user account"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Invitations (Therapist Only)",
+      "item": [
+        {
+          "name": "Create Invitation (with Email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapistToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"therapistName\": \"Dr. John Smith\",\n  \"recipientEmail\": \"caregiver@email.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/invitations",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations"]
+            },
+            "description": "Create invitation and send email"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Invitation (Code Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapistToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"therapistName\": \"Dr. John Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/invitations",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations"]
+            },
+            "description": "Create invitation code without sending email"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Invitations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapistToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/invitations",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations"]
+            },
+            "description": "Get all invitations created by therapist"
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Invitation Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/invitations/validate/ABC12345",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations", "validate", "ABC12345"]
+            },
+            "description": "Validate an invitation code (public endpoint)"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend Invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapistToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/invitations/:invitationId/resend",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations", ":invitationId", "resend"],
+              "variable": [
+                {
+                  "key": "invitationId",
+                  "value": "invitation-id-here"
+                }
+              ]
+            },
+            "description": "Resend invitation email and extend expiration"
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Invitation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{therapistToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/invitations/:invitationId",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations", ":invitationId"],
+              "variable": [
+                {
+                  "key": "invitationId",
+                  "value": "invitation-id-here"
+                }
+              ]
+            },
+            "description": "Revoke an unused invitation"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "File Uploads",
+      "item": [
+        {
+          "name": "Upload License Certificate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "License certificate (PDF, JPG, PNG - max 5MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/license",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload", "license"]
+            },
+            "description": "Upload license certificate file"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Digital Signature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Digital signature image"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/signature",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload", "signature"]
+            },
+            "description": "Upload digital signature"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Uploaded File",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/upload/licenses/:filename",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload", "licenses", ":filename"],
+              "variable": [
+                {
+                  "key": "filename",
+                  "value": "license_xxx.pdf"
+                }
+              ]
+            },
+            "description": "Retrieve uploaded file"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Register - Missing Required Fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/therapist",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "therapist"]
+            },
+            "description": "Test validation - missing required fields"
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Weak Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"phoneNumber\": \"+1234567890\",\n  \"preferredLanguage\": \"English\",\n  \"relationshipType\": \"Parent\",\n  \"password\": \"weak\",\n  \"confirmPassword\": \"weak\",\n  \"termsAccepted\": true,\n  \"privacyPolicyAccepted\": true,\n  \"videoRecordingConsentAccepted\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register/caregiver",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register", "caregiver"]
+            },
+            "description": "Test password validation"
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Invalid Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"wrong@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Test invalid login credentials"
+          },
+          "response": []
+        },
+        {
+          "name": "Protected Route - No Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Test accessing protected route without token"
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Route - Non-Admin User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Test accessing admin route with non-admin token"
+          },
+          "response": []
+        },
+        {
+          "name": "Therapist Route - Non-Therapist User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"therapistName\": \"Test\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/invitations",
+              "host": ["{{baseUrl}}"],
+              "path": ["invitations"]
+            },
+            "description": "Test creating invitation with non-therapist token"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

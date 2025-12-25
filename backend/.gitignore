@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# Claude
+.claude/
+
 # Logs
 logs
 *.log
@@ -54,3 +57,7 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Uploads directory
+/uploads/*
+!/uploads/.gitkeep
