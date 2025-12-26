@@ -73,7 +73,7 @@ class PoseEstimationService:
         json_output_dir = tempfile.mkdtemp()
         
         try:
-            # Run OpenPose
+            # Run OpenPose from its root directory
             cmd = [
                 openpose_bin,
                 "--image_dir", frames_dir,
@@ -84,7 +84,8 @@ class PoseEstimationService:
             ]
             
             logger.info(f"Executing: {' '.join(cmd)}")
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+            # IMPORTANT: Run from OpenPose root directory
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, cwd=self.openpose_dir)
             
             if result.returncode != 0:
                 logger.error(f"OpenPose error: {result.stderr}")
