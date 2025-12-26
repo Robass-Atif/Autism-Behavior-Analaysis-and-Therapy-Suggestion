@@ -1,0 +1,8 @@
+{
+  "name": " Autism Therapy Support System",
+  "description": "A comprehensive AI-powered platform for autism therapy management, video analysis, and reporting.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
