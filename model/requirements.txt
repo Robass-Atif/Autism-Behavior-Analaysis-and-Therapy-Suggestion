@@ -25,9 +25,10 @@ Pillow==10.1.0
 
 # Video Processing
 opencv-python==4.8.1.78
-opencv-contrib-python==4.8.1.78
 
-# 3D Pose Estimation (ROMP)
+# Pose Estimation
+Cython>=0.29.0
+mediapipe>=0.10.0
 romp
 
 # Monitoring

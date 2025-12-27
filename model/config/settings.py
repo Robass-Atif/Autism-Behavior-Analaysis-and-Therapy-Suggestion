@@ -26,16 +26,17 @@ class Settings(BaseSettings):
     MODEL_3D_PATH: str = str(BASE_DIR / "3d model")
     MAX_SEQUENCE_LENGTH: int = 100
     
+    # Feature Flags
+    ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "true").lower() in ("true", "1", "yes")
+    
     # Video Processing Settings
-    OPENPOSE_DIR: Optional[str] = os.getenv("OPENPOSE_DIR", None)  # Path to OpenPose installation
-    ROMP_MODEL_PATH: Optional[str] = os.getenv("ROMP_MODEL_PATH", None)  # Path to ROMP model
     VIDEO_FPS: int = 30  # Target FPS for video processing
     MAX_VIDEO_SIZE_MB: int = 500  # Maximum video file size in MB
     MAX_VIDEO_DURATION_SEC: int = 300  # Maximum video duration in seconds (5 minutes)
     
     # Input Validation Thresholds
     MAX_BONE_LENGTH_VARIATION: float = 0.3  # 30%
-    MAX_MOVEMENT_VELOCITY: float = 5.0
+    MAX_MOVEMENT_VELOCITY: float = 50.0  # Increased for MediaPipe pixel coordinates
     MIN_KEYPOINT_CONFIDENCE: float = 0.3
     MAX_JOINT_ANGLE: float = 180.0
     

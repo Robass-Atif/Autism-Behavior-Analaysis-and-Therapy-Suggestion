@@ -1,13 +1,12 @@
 """
-Service for pose estimation using OpenPose (2D) and ROMP (3D)
+Service for pose estimation using MediaPipe (2D) and ROMP (3D)
 """
 import cv2
 import numpy as np
 import logging
 import os
-import tempfile
-import subprocess
-import json
+import json 
+import warnings 
 from pathlib import Path
 from typing import Optional, Tuple
 import sys
@@ -25,32 +24,35 @@ class PoseEstimationService:
         Initialize pose estimation service
         
         Args:
-            openpose_dir: Path to OpenPose installation
+            openpose_dir: Deprecated - kept for compatibility
             romp_model_path: Path to ROMP model (optional)
         """
-        self.openpose_dir = openpose_dir
-        self.romp_model_path = romp_model_path
-        
-        # Check OpenPose availability
-        self.openpose_available = False
-        if openpose_dir and os.path.exists(openpose_dir):
-            self.openpose_available = True
-            logger.info(f"✅ OpenPose available at: {openpose_dir}")
-        else:
-            logger.warning("⚠️  OpenPose not configured. 2D pose estimation will not work.")
+        # Check MediaPipe availability
+        self.mediapipe_available = False
+        try:
+            import mediapipe as mp
+            from mediapipe.tasks import python
+            from mediapipe.tasks.python import vision
+            self.mp = mp
+            self.mp_vision = vision
+            self.mediapipe_available = True
+            logger.info(f"✅ MediaPipe {mp.__version__} available for 2D pose estimation")
+        except (ImportError, AttributeError) as e:
+            logger.warning(f"⚠️  MediaPipe not available: {e}. 2D pose estimation will not work. Install: pip install mediapipe")
         
         # Check ROMP availability
+        # Note: The package is installed as 'simple-romp' but imports as 'romp'
         self.romp_available = False
         try:
             import romp
             self.romp_available = True
-            logger.info("✅ ROMP available for 3D pose estimation")
+            logger.info("✅ Simple-ROMP available for 3D pose estimation")
         except ImportError:
-            logger.warning("⚠️  ROMP not installed. 3D pose estimation will not work.")
+            logger.warning("⚠️  Simple-ROMP not installed. 3D pose estimation will not work. Install: pip install simple-romp")
     
     def estimate_2d_poses(self, frames_dir: str, output_dir: str) -> int:
         """
-        Extract 2D poses using OpenPose
+        Extract 2D poses using MediaPipe
         
         Args:
             frames_dir: Directory containing frame images
@@ -59,147 +61,303 @@ class PoseEstimationService:
         Returns:
             Number of poses extracted
         """
-        if not self.openpose_available:
-            raise RuntimeError("OpenPose not available. Please install and configure OPENPOSE_DIR.")
+        if not self.mediapipe_available:
+            raise RuntimeError("MediaPipe not available. Install: pip install mediapipe")
         
         os.makedirs(output_dir, exist_ok=True)
         
-        logger.info("🔄 Running OpenPose for 2D pose estimation...")
+        logger.info("🔄 Running MediaPipe for 2D pose estimation...")
         
-        # OpenPose command
-        openpose_bin = os.path.join(self.openpose_dir, "bin", "OpenPoseDemo.exe")
+        # Get frame files
+        frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith(('.jpg', '.png'))])
         
-        # Temporary directory for JSON output
-        json_output_dir = tempfile.mkdtemp()
+        if not frame_files:
+            logger.warning("No frame files found in directory")
+            return 0
         
-        try:
-            # Run OpenPose from its root directory
-            cmd = [
-                openpose_bin,
-                "--image_dir", frames_dir,
-                "--write_json", json_output_dir,
-                "--display", "0",
-                "--render_pose", "0",
-                "--model_pose", "COCO"
-            ]
+        # Download pose landmarker model if needed
+        model_path = self._get_pose_landmarker_model()
+        
+        # Initialize MediaPipe Pose Landmarker (0.10.x API)
+        from mediapipe.tasks.python import BaseOptions
+        
+        base_options = BaseOptions(model_asset_path=model_path)
+        options = self.mp_vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            running_mode=self.mp_vision.RunningMode.IMAGE,
+            min_pose_detection_confidence=0.5,
+            min_pose_presence_confidence=0.5,
+            min_tracking_confidence=0.5
+        )
+        
+        with self.mp_vision.PoseLandmarker.create_from_options(options) as pose:
             
-            logger.info(f"Executing: {' '.join(cmd)}")
-            # IMPORTANT: Run from OpenPose root directory
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, cwd=self.openpose_dir)
-            
-            if result.returncode != 0:
-                logger.error(f"OpenPose error: {result.stderr}")
-                raise RuntimeError(f"OpenPose failed: {result.stderr}")
-            
-            # Convert JSON to NPZ
-            json_files = sorted([f for f in os.listdir(json_output_dir) if f.endswith('.json')])
-            
-            for idx, json_file in enumerate(json_files):
-                json_path = os.path.join(json_output_dir, json_file)
+            for idx, frame_file in enumerate(frame_files):
+                frame_path = os.path.join(frames_dir, frame_file)
                 
-                with open(json_path, 'r') as f:
-                    data = json.load(f)
+                try:
+                    # Read frame
+                    frame = cv2.imread(frame_path)
+                    if frame is None:
+                        logger.warning(f"Failed to read frame: {frame_file}")
+                        coords_2d = np.zeros((24, 2))
+                    else:
+                        # Convert to RGB
+                        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        
+                        # Ensure frame is contiguous in memory
+                        frame_rgb = np.ascontiguousarray(frame_rgb)
+                        
+                        # Create MediaPipe Image
+                        mp_image = self.mp.Image(
+                            image_format=self.mp.ImageFormat.SRGB,
+                            data=frame_rgb
+                        )
+                        
+                        # Process with MediaPipe
+                        results = pose.detect(mp_image)
+                        
+                        if results.pose_landmarks and len(results.pose_landmarks) > 0:
+                            # Convert MediaPipe landmarks to COCO 24 format
+                            coords_2d = self._convert_mediapipe_to_coco24(
+                                results.pose_landmarks[0],  # First person
+                                frame.shape[1],  # width
+                                frame.shape[0]   # height
+                            )
+                        else:
+                            # No person detected
+                            logger.debug(f"No pose detected in frame {idx}")
+                            coords_2d = np.zeros((24, 2))
                 
-                # Extract keypoints
-                if 'people' in data and len(data['people']) > 0:
-                    person = data['people'][0]
-                    keypoints = np.array(person['pose_keypoints_2d']).reshape(-1, 3)
-                    
-                    # Convert COCO 18 to COCO 25 and take first 24
-                    coords_2d = self._convert_coco18_to_coco25(keypoints[:, :2])
-                    coords_2d = coords_2d[:24, :]  # Take first 24 keypoints
-                else:
-                    # No person detected
+                except Exception as e:
+                    logger.warning(f"Error processing frame {idx} ({frame_file}): {e}")
                     coords_2d = np.zeros((24, 2))
                 
                 # Save as NPZ
                 npz_path = os.path.join(output_dir, f"frame_{idx:05d}.npz")
                 np.savez(npz_path, coordinates=coords_2d[np.newaxis, :, :])
-            
-            logger.info(f"✅ Extracted 2D poses for {len(json_files)} frames")
-            return len(json_files)
         
-        finally:
-            # Cleanup
-            import shutil
-            shutil.rmtree(json_output_dir, ignore_errors=True)
+        logger.info(f"✅ Extracted 2D poses for {len(frame_files)} frames")
+        return len(frame_files)
+    
+    def _get_pose_landmarker_model(self) -> str:
+        """
+        Download MediaPipe pose landmarker model if not present
+        
+        Returns:
+            Path to the model file
+        """
+        model_dir = Path(__file__).parent.parent / "models" / "mediapipe"
+        model_dir.mkdir(parents=True, exist_ok=True)
+        
+        model_path = model_dir / "pose_landmarker_heavy.task"
+        
+        if not model_path.exists():
+            logger.info("📥 Downloading MediaPipe pose landmarker model...")
+            try:
+                import urllib.request
+                model_url = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task"
+                
+                urllib.request.urlretrieve(model_url, str(model_path))
+                logger.info(f"✅ Model downloaded to {model_path}")
+            except Exception as e:
+                logger.error(f"Failed to download model: {e}")
+                raise RuntimeError(f"Failed to download MediaPipe model: {e}")
+        
+        return str(model_path)
     
     def estimate_3d_poses(self, frames_dir: str, output_dir: str) -> int:
         """
-        Extract 3D poses using ROMP
-        
+        Extract 3D poses using Simple-ROMP
+
         Args:
             frames_dir: Directory containing frame images
             output_dir: Directory to save .npz files with 3D coordinates
-        
+
         Returns:
             Number of poses extracted
         """
+        import os
+        import numpy as np
+        import warnings
+        from pathlib import Path
+
         if not self.romp_available:
             raise RuntimeError("ROMP not available. Install: pip install simple-romp")
-        
+
         os.makedirs(output_dir, exist_ok=True)
-        
-        logger.info("🔄 Running ROMP for 3D pose estimation...")
-        
-        import romp
-        from romp import ROMP
-        
-        # Initialize ROMP
-        model = ROMP(mode='image')
-        
+
+        logger.info("🔄 Running Simple-ROMP for 3D pose estimation...")
+
         # Get frame files
-        frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith(('.jpg', '.png'))])
-        
-        for idx, frame_file in enumerate(frame_files):
+        frame_files = sorted(
+            f for f in os.listdir(frames_dir)
+            if f.lower().endswith((".jpg", ".png"))
+        )
+
+        if not frame_files:
+            logger.warning("No frame files found in directory")
+            return 0
+
+        # -------------------------------
+        # Initialize Simple-ROMP model
+        # -------------------------------
+        try:
+            warnings.filterwarnings("ignore", category=FutureWarning)
+
+            import romp
+            
+            # Use default settings from simple-romp
+            settings = romp.main.default_settings
+            settings.mode = 'image'
+            
+            # Initialize ROMP model
+            romp_model = romp.ROMP(settings)
+
+            logger.info("✅ Simple-ROMP model loaded successfully")
+
+        except Exception as e:
+            logger.exception("Failed to initialize Simple-ROMP")
+            raise RuntimeError(f"ROMP initialization failed: {e}")
+
+        # -------------------------------
+        # Run inference on frames
+        # -------------------------------
+        pose_count = 0
+
+        for frame_file in frame_files:
             frame_path = os.path.join(frames_dir, frame_file)
-            
-            # Read frame
-            frame = cv2.imread(frame_path)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            # Run ROMP
+
             try:
-                outputs = model(frame_rgb)
-                
-                if outputs is not None and len(outputs) > 0:
-                    person_output = outputs[0]
+                # Read image in BGR format as required by ROMP
+                image = cv2.imread(frame_path)
+                if image is None:
+                    logger.warning(f"Failed to read image: {frame_file}")
+                    continue
                     
-                    # Extract 3D joints
-                    if 'j3d' in person_output:
-                        joints_3d = person_output['j3d']
-                        coords_3d = self._convert_smpl_to_coco24(joints_3d)
-                    else:
-                        coords_3d = np.zeros((24, 3))
+                results = romp_model(image)
+                
+                if results is None:
+                    logger.warning(f"No person detected in {frame_file}")
+                    continue
+
+                # ROMP outputs contain 'smpl_thetas', 'smpl_betas', 'cam', 'verts', 'joints', etc.
+                # 'joints' contains 2D/3D position of 71 joints
+                joints = results.get('joints', None) if isinstance(results, dict) else getattr(results, 'joints', None)
+                verts = results.get('verts', None) if isinstance(results, dict) else getattr(results, 'verts', None)
+
+                if joints is None:
+                    logger.warning(f"No 3D joints detected in {frame_file}")
+                    continue
+                
+                # Convert ROMP 71 joints to COCO 24 format for compatibility with model
+                # ROMP joints shape: (num_people, 71, 3) - take first 24 SMPL joints
+                if len(joints.shape) == 3:
+                    # Multiple people detected, take first person
+                    joints_24 = joints[0, :24, :]  # First 24 are SMPL joints
+                elif len(joints.shape) == 2:
+                    joints_24 = joints[:24, :]
                 else:
-                    coords_3d = np.zeros((24, 3))
+                    logger.warning(f"Unexpected joints shape in {frame_file}: {joints.shape}")
+                    continue
+                
+                # Convert to COCO 24 format expected by the model
+                coords_3d = self._convert_smpl_to_coco24(joints_24)
+                
+                output_path = os.path.join(
+                    output_dir,
+                    Path(frame_file).stem + ".npz"
+                )
+
+                # Save with 'coordinates' key to match load_npz_sequence_3d expectation
+                np.savez(
+                    output_path,
+                    coordinates=coords_3d[np.newaxis, :, :],  # Add batch dimension (1, 24, 3)
+                )
+
+                pose_count += 1
+
             except Exception as e:
-                logger.warning(f"ROMP failed for frame {idx}: {e}")
-                coords_3d = np.zeros((24, 3))
+                logger.warning(f"Failed processing frame {frame_file}: {e}")
+                continue
+
+        logger.info(f"✅ 3D pose extraction completed. Total poses: {pose_count}")
+        return pose_count
+
+
+    def _convert_mediapipe_to_coco24(self, landmarks, width: int, height: int) -> np.ndarray:
+        """
+        Convert MediaPipe 33 landmarks to COCO 24 keypoints format
+        
+        MediaPipe indices: https://google.github.io/mediapipe/solutions/pose.html
+        COCO 24 format matches the 2D model training format
+        """
+        coco_24 = np.zeros((24, 2))
+        
+        try:
+            # MediaPipe to COCO mapping
+            mp_to_coco = {
+                0: 0,   # Nose
+                1: 1,   # Neck (approximate from shoulders)
+                2: 12,  # Right Shoulder
+                3: 14,  # Right Elbow
+                4: 16,  # Right Wrist
+                5: 11,  # Left Shoulder
+                6: 13,  # Left Elbow
+                7: 15,  # Left Wrist
+                8: 24,  # Right Hip
+                9: 26,  # Right Knee
+                10: 28, # Right Ankle
+                11: 23, # Left Hip
+                12: 25, # Left Knee
+                13: 27, # Left Ankle
+                14: 5,  # Right Eye (inner)
+                15: 2,  # Left Eye (inner)
+                16: 8,  # Right Ear
+                17: 7,  # Left Ear
+                18: None,  # Pelvis (computed)
+                19: None,  # Thorax (computed)
+                20: None,  # Upper Neck (computed)
+                21: None,  # Head Top (computed)
+                22: 32, # Right Foot (toe)
+                23: 31, # Left Foot (toe)
+            }
             
-            # Save as NPZ
-            npz_path = os.path.join(output_dir, f"frame_{idx:05d}.npz")
-            np.savez(npz_path, coordinates=coords_3d[np.newaxis, :, :])
+            # Extract landmarks with bounds checking
+            for coco_idx, mp_idx in mp_to_coco.items():
+                if mp_idx is not None and mp_idx < len(landmarks):
+                    lm = landmarks[mp_idx]
+                    # Clamp coordinates to image bounds
+                    x = np.clip(lm.x * width, 0, width - 1)
+                    y = np.clip(lm.y * height, 0, height - 1)
+                    coco_24[coco_idx] = [x, y]
+            
+            # Compute derived keypoints
+            # Neck (1) - midpoint between shoulders
+            if np.any(coco_24[2]) and np.any(coco_24[5]):
+                coco_24[1] = (coco_24[2] + coco_24[5]) / 2
+            
+            # Pelvis (18) - midpoint between hips
+            if np.any(coco_24[8]) and np.any(coco_24[11]):
+                coco_24[18] = (coco_24[8] + coco_24[11]) / 2
+            
+            # Thorax (19) - midpoint between neck and pelvis
+            if np.any(coco_24[1]) and np.any(coco_24[18]):
+                coco_24[19] = (coco_24[1] + coco_24[18]) / 2
+            
+            # Upper Neck (20) - slightly above neck
+            if np.any(coco_24[1]) and np.any(coco_24[0]):
+                coco_24[20] = coco_24[1] + (coco_24[0] - coco_24[1]) * 0.5
+            
+            # Head Top (21) - above nose
+            if np.any(coco_24[0]):
+                head_top_y = max(0, coco_24[0][1] - 20)
+                coco_24[21] = np.array([coco_24[0][0], head_top_y])
         
-        logger.info(f"✅ Extracted 3D poses for {len(frame_files)} frames")
-        return len(frame_files)
-    
-    def _convert_coco18_to_coco25(self, keypoints_18: np.ndarray) -> np.ndarray:
-        """Convert COCO 18 keypoints to COCO 25 format"""
-        keypoints_25 = np.zeros((25, 2))
+        except Exception as e:
+            logger.warning(f"Error converting MediaPipe landmarks to COCO24: {e}")
         
-        # Copy existing 18 keypoints
-        keypoints_25[:18, :] = keypoints_18[:18, :]
-        
-        # Compute additional keypoints
-        keypoints_25[18] = (keypoints_18[8] + keypoints_18[11]) / 2  # MidHip
-        keypoints_25[19] = (keypoints_18[2] + keypoints_18[5]) / 2   # Chest
-        keypoints_25[20] = keypoints_18[1]                            # Upper Neck
-        keypoints_25[21] = keypoints_18[0] + np.array([0, -20])      # Head Top
-        keypoints_25[22] = keypoints_18[10]                           # Right foot
-        keypoints_25[23] = keypoints_18[13]                           # Left foot
-        
-        return keypoints_25
+        return coco_24
     
     def _convert_smpl_to_coco24(self, smpl_joints: np.ndarray) -> np.ndarray:
         """Convert SMPL joints to COCO 24 keypoints"""
