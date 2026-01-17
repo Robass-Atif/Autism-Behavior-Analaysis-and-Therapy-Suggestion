@@ -22,8 +22,12 @@ FastAPI server for ADOS (Autism Diagnostic Observation Schedule) prediction usin
 ### Setup
 
 1. **Install dependencies**:
+Download openpose-1.7.0-binaries-win64-gpu-python3.7-flir-3d.zip from https://github.com/CMU-Perceptual-Computing-Lab/openpose/releases
+Extract the downloaded zip file
+Run the following commands in the server root directory:
 ```bash
-cd ados_server
+python -m venv venv
+venv\Scripts\Activate
 pip install -r requirements.txt
 ```
 
@@ -34,6 +38,7 @@ SECRET_KEY=your-super-secret-key-change-this
 RATE_LIMIT_PER_MINUTE=10
 MIN_PREDICTION_CONFIDENCE=0.6
 LOG_LEVEL=INFO
+OPENPOSE_DIR=path/to/extracted-openpose-dir
 ```
 
 3. **Verify model files**:

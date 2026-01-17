@@ -48,10 +48,7 @@ app.add_middleware(
 
 # Initialize services
 video_service = VideoProcessingService()
-pose_service = PoseEstimationService(
-    openpose_dir=settings.OPENPOSE_DIR,
-    romp_model_path=settings.ROMP_MODEL_PATH
-)
+pose_service = PoseEstimationService()
 prediction_service = PredictionService(settings)
 
 # =====================
@@ -117,7 +114,8 @@ async def health_check():
         "timestamp": datetime.utcnow().isoformat(),
         "models_loaded": {
             "2D": model_2d_exists,
-            "3D": model_3d_exists
+            "3D": model_3d_exists if settings.ENABLE_3D_PROCESSING else "disabled",
+            "3d_processing_enabled": settings.ENABLE_3D_PROCESSING
         }
     }
 
@@ -235,7 +233,7 @@ async def predict(
             # Step 2: Extract 2D poses
             npz_2d_dir = temp_dir / "npz_2d"
             npz_2d_dir.mkdir()
-            
+    
             logger.info("🦴 Step 2/5: Extracting 2D poses (OpenPose)...")
             try:
                 num_poses_2d = pose_service.estimate_2d_poses(
@@ -249,22 +247,27 @@ async def predict(
                     detail=f"2D pose estimation failed: {e}. Ensure OpenPose is installed and configured."
                 )
             
-            # Step 3: Extract 3D poses
+            # Step 3: Extract 3D poses (if enabled)
             npz_3d_dir = temp_dir / "npz_3d"
-            npz_3d_dir.mkdir()
+            num_poses_3d = 0
             
-            logger.info("🦴 Step 3/5: Extracting 3D poses (ROMP)...")
-            try:
-                num_poses_3d = pose_service.estimate_3d_poses(
-                    str(frames_dir),
-                    str(npz_3d_dir)
-                )
-            except Exception as e:
-                logger.error(f"3D pose estimation failed: {e}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"3D pose estimation failed: {e}. Ensure ROMP is installed (pip install simple-romp)."
-                )
+            if settings.ENABLE_3D_PROCESSING:
+                npz_3d_dir.mkdir()
+                
+                logger.info("🦴 Step 3/5: Extracting 3D poses (ROMP)...")
+                try:
+                    num_poses_3d = pose_service.estimate_3d_poses(
+                        str(frames_dir),
+                        str(npz_3d_dir)
+                    )
+                except Exception as e:
+                    logger.error(f"3D pose estimation failed: {e}")
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"3D pose estimation failed: {e}. Ensure ROMP is installed (pip install simple-romp)."
+                    )
+            else:
+                logger.info("⏭️  Step 3/5: Skipping 3D pose extraction (disabled)")
             
             # Step 4 & 5: Run predictions with both models
             logger.info("🧠 Step 4/5: Running preprocessing and model inference...")
@@ -280,14 +283,17 @@ async def predict(
             logger.info("✅ Step 5/5: Complete!")
             
             # Add processing info
-            results["processing_info"] = {
+            processing_info = {
                 "input_type": "video",
                 "video_duration_seconds": duration,
                 "original_fps": fps,
                 "frames_extracted": num_frames,
                 "poses_2d_extracted": num_poses_2d,
-                "poses_3d_extracted": num_poses_3d
+                "3d_processing_enabled": settings.ENABLE_3D_PROCESSING
             }
+            if settings.ENABLE_3D_PROCESSING:
+                processing_info["poses_3d_extracted"] = num_poses_3d
+            results["processing_info"] = processing_info
             
         else:
             # ===== ZIP FILE WORKFLOW (Legacy support) =====

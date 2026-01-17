@@ -80,21 +80,25 @@ class PredictionService:
             logger.error(f"❌ 2D model prediction failed: {e}")
             results["predictions_2d"] = {"error": str(e)}
         
-        # Predict with 3D model
-        try:
-            logger.info("📊 Processing with 3D model...")
-            results["predictions_3d"] = self._predict_single_model(
-                model_type="3D",
-                frames_dir=frames_3d_dir,
-                age=age,
-                gender=gender,
-                include_explainability=include_explainability,
-                apply_defensive_preprocessing=apply_defensive_preprocessing
-            )
-            logger.info("✅ 3D model prediction complete")
-        except Exception as e:
-            logger.error(f"❌ 3D model prediction failed: {e}")
-            results["predictions_3d"] = {"error": str(e)}
+        # Predict with 3D model (if enabled)
+        if self.settings.ENABLE_3D_PROCESSING:
+            try:
+                logger.info("📊 Processing with 3D model...")
+                results["predictions_3d"] = self._predict_single_model(
+                    model_type="3D",
+                    frames_dir=frames_3d_dir,
+                    age=age,
+                    gender=gender,
+                    include_explainability=include_explainability,
+                    apply_defensive_preprocessing=apply_defensive_preprocessing
+                )
+                logger.info("✅ 3D model prediction complete")
+            except Exception as e:
+                logger.error(f"❌ 3D model prediction failed: {e}")
+                results["predictions_3d"] = {"error": str(e)}
+        else:
+            logger.info("⏭️  3D processing disabled (ENABLE_3D_PROCESSING=false)")
+            results["predictions_3d"] = None
         
         # Add ensemble prediction (average of both models)
         if results["predictions_2d"] and results["predictions_3d"]:

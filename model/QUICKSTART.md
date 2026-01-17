@@ -37,7 +37,8 @@ ados_server/
 ### 2. Install Dependencies
 
 ```powershell
-cd ados_server
+python -m venv venv
+venv\Scripts\Activate
 pip install -r requirements.txt
 ```
 
