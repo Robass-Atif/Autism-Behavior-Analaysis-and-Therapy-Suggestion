@@ -16,7 +16,7 @@ import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TherapistTitle, LicenseType, TwoFactorMethod } from '../../../common/enums/role.enum';
 
-class ProfessionalReferenceDto {
+export class ProfessionalReferenceDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
@@ -33,68 +33,7 @@ class ProfessionalReferenceDto {
   phone?: string;
 }
 
-class OrganizationDetailsDto {
-  @ApiProperty({ description: 'Organization name' })
-  @IsString()
-  @IsNotEmpty()
-  organizationName: string;
-
-  @ApiPropertyOptional({ description: 'Department or specialty' })
-  @IsString()
-  @IsOptional()
-  department?: string;
-
-  @ApiProperty({ description: 'Work address' })
-  @IsString()
-  @IsNotEmpty()
-  workAddress: string;
-
-  @ApiProperty({ description: 'City' })
-  @IsString()
-  @IsNotEmpty()
-  city: string;
-
-  @ApiProperty({ description: 'State or Province' })
-  @IsString()
-  @IsNotEmpty()
-  stateProvince: string;
-
-  @ApiProperty({ description: 'Zip or Postal code' })
-  @IsString()
-  @IsNotEmpty()
-  zipPostalCode: string;
-
-  @ApiProperty({ description: 'Country' })
-  @IsString()
-  @IsNotEmpty()
-  country: string;
-}
-
-class ProfessionalCredentialsDto {
-  @ApiProperty({ description: 'License number' })
-  @IsString()
-  @IsNotEmpty()
-  licenseNumber: string;
-
-  @ApiProperty({ enum: LicenseType, description: 'Type of license' })
-  @IsEnum(LicenseType)
-  licenseType: LicenseType;
-
-  @ApiPropertyOptional({ description: 'Other license type if selected Other' })
-  @IsString()
-  @IsOptional()
-  otherLicenseType?: string;
-
-  @ApiProperty({ description: 'Issuing authority' })
-  @IsString()
-  @IsNotEmpty()
-  issuingAuthority: string;
-
-  @ApiProperty({ description: 'License expiry date' })
-  @IsDateString()
-  licenseExpiryDate: string;
-}
-
+// Flattened DTO to match FormData structure
 export class RegisterTherapistDto {
   // Personal Information
   @ApiProperty({ description: 'Full name', maxLength: 100 })
@@ -122,17 +61,65 @@ export class RegisterTherapistDto {
   @IsNotEmpty()
   phoneNumber: string;
 
-  // Professional Credentials
-  @ApiProperty({ type: ProfessionalCredentialsDto })
-  @ValidateNested()
-  @Type(() => ProfessionalCredentialsDto)
-  credentials: ProfessionalCredentialsDto;
+  // Professional Credentials (Flattened)
+  @ApiProperty({ description: 'License number' })
+  @IsString()
+  @IsNotEmpty()
+  licenseNumber: string;
 
-  // Organization/Practice
-  @ApiProperty({ type: OrganizationDetailsDto })
-  @ValidateNested()
-  @Type(() => OrganizationDetailsDto)
-  organization: OrganizationDetailsDto;
+  @ApiProperty({ enum: LicenseType, description: 'Type of license' })
+  @IsEnum(LicenseType)
+  licenseType: LicenseType;
+
+  @ApiPropertyOptional({ description: 'Other license type if selected Other' })
+  @IsString()
+  @IsOptional()
+  otherLicenseType?: string;
+
+  @ApiProperty({ description: 'Issuing authority' })
+  @IsString()
+  @IsNotEmpty()
+  issuingAuthority: string;
+
+  @ApiProperty({ description: 'License expiry date' })
+  @IsDateString()
+  licenseExpiryDate: string;
+
+  // Organization/Practice (Flattened)
+  @ApiProperty({ description: 'Organization name' })
+  @IsString()
+  @IsNotEmpty()
+  organizationName: string;
+
+  @ApiPropertyOptional({ description: 'Department or specialty' })
+  @IsString()
+  @IsOptional()
+  department?: string;
+
+  @ApiProperty({ description: 'Work address' })
+  @IsString()
+  @IsNotEmpty()
+  workAddress: string;
+
+  @ApiPropertyOptional({ description: 'City' })
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @ApiPropertyOptional({ description: 'State or Province' })
+  @IsString()
+  @IsOptional()
+  stateProvince?: string;
+
+  @ApiPropertyOptional({ description: 'Zip or Postal code' })
+  @IsString()
+  @IsOptional()
+  zipPostalCode?: string;
+
+  @ApiPropertyOptional({ description: 'Country' })
+  @IsString()
+  @IsOptional()
+  country?: string;
 
   // Account Security
   @ApiProperty({
@@ -156,6 +143,8 @@ export class RegisterTherapistDto {
   confirmPassword: string;
 
   // Professional References (optional)
+  // Kept as array/nested if frontend sends JSON, otherwise might need flattening too or custom parsing
+  // For now assuming references are NOT sent in the initial registration form based on frontend code
   @ApiPropertyOptional({ type: [ProfessionalReferenceDto] })
   @IsArray()
   @ValidateNested({ each: true })
@@ -165,20 +154,19 @@ export class RegisterTherapistDto {
 
   // Terms and Conditions
   @ApiProperty({ description: 'Terms of Service acceptance' })
-  @IsBoolean()
+  @IsOptional() // Use IsOptional + Transform if coming as string "true"/"false" via FormData
   termsAccepted: boolean;
 
   @ApiProperty({ description: 'HIPAA compliance acceptance' })
-  @IsBoolean()
+  @IsOptional()
   hipaaAccepted: boolean;
 
   @ApiProperty({ description: 'Privacy Policy acceptance' })
-  @IsBoolean()
+  @IsOptional()
   privacyPolicyAccepted: boolean;
 
   // Two-Factor Authentication (optional)
   @ApiPropertyOptional({ description: 'Enable Two-Factor Authentication' })
-  @IsBoolean()
   @IsOptional()
   twoFactorEnabled?: boolean;
 

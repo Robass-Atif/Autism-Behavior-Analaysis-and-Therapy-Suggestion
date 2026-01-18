@@ -17,29 +17,32 @@ export class SecurityQuestion {
 
 @Schema({ timestamps: true })
 export class Admin extends User {
-  @Prop({ required: true })
-  employeeId: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
+
+  @Prop()
+  employeeId?: string;
 
   @Prop({ type: String, enum: AdminLevel, required: true })
   adminLevel: AdminLevel;
 
-  @Prop({ required: true })
-  department: string;
+  @Prop()
+  department?: string;
 
-  @Prop({ required: true })
-  organizationName: string;
+  @Prop()
+  organizationName?: string;
 
-  @Prop({ type: String, enum: TwoFactorMethod, required: true })
-  twoFactorMethod: TwoFactorMethod;
+  @Prop({ type: String, enum: TwoFactorMethod })
+  twoFactorMethod?: TwoFactorMethod;
 
   @Prop()
   backupEmail?: string;
 
-  @Prop({ type: [SecurityQuestion], required: true })
-  securityQuestions: SecurityQuestion[];
+  @Prop({ type: [SecurityQuestion] })
+  securityQuestions?: SecurityQuestion[];
 
   @Prop()
-  accessJustification: string;
+  accessJustification?: string;
 
   @Prop()
   approvalCode?: string;
@@ -51,16 +54,16 @@ export class Admin extends User {
   approvalDate?: Date;
 
   @Prop({ default: false })
-  adminCodeOfConductAccepted: boolean;
+  adminCodeOfConductAccepted?: boolean;
 
   @Prop({ default: false })
-  systemAccessPolicyAccepted: boolean;
+  systemAccessPolicyAccepted?: boolean;
 
   @Prop({ default: false })
-  securityResponsibilityAccepted: boolean;
+  securityResponsibilityAccepted?: boolean;
 
   @Prop({ default: false })
-  hipaaAccepted: boolean;
+  hipaaAccepted?: boolean;
 
   @Prop({ default: false })
   isApproved: boolean;

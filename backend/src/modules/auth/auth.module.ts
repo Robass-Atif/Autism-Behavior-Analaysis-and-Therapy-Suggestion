@@ -9,6 +9,10 @@ import { UsersModule } from '../users/users.module';
 import { EmailModule } from '../email/email.module';
 import { InvitationModule } from '../invitation/invitation.module';
 
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+
 @Module({
   imports: [
     UsersModule,
@@ -25,9 +29,19 @@ import { InvitationModule } from '../invitation/invitation.module';
       }),
       inject: [ConfigService],
     }),
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './uploads/licenses',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
   exports: [AuthService, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }

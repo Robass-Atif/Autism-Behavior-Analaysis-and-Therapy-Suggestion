@@ -1,0 +1,389 @@
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { TherapyGoal } from './schemas/therapy-goal.schema';
+import { VideoSession } from './schemas/video-session.schema';
+import { CreateTherapyGoalDto } from './dto/create-therapy-goal.dto';
+import { UpdateTherapyGoalDto } from './dto/update-therapy-goal.dto';
+import { CreateVideoSessionDto } from './dto/create-video-session.dto';
+import { PatientsService } from '../patients/patients.service';
+
+@Injectable()
+export class ClinicalService {
+  constructor(
+    @InjectModel(TherapyGoal.name) private therapyGoalModel: Model<TherapyGoal>,
+    @InjectModel(VideoSession.name) private videoSessionModel: Model<VideoSession>,
+    @Inject(forwardRef(() => PatientsService))
+    private patientsService: PatientsService,
+  ) { }
+
+  // ========== THERAPY GOALS ==========
+
+  async createTherapyGoal(therapistId: string, dto: CreateTherapyGoalDto) {
+    const goal = new this.therapyGoalModel({
+      ...dto,
+      therapistId,
+      status: 'active',
+      progress: dto.progress || 0,
+      deleted: false,
+    });
+
+    await goal.save();
+
+    // Recalculate patient progress after creating goal
+    await this.patientsService.calculatePatientProgress(dto.patientId);
+
+    return {
+      success: true,
+      message: 'Therapy goal created successfully',
+      goal: this.formatGoal(goal),
+    };
+  }
+
+  async getTherapyGoals(therapistId: string, patientId?: string) {
+    const query: any = {
+      therapistId,
+      deleted: false,
+    };
+
+    if (patientId) {
+      query.patientId = patientId;
+    }
+
+    const goals = await this.therapyGoalModel
+      .find(query)
+      .populate('patientId', 'fullName mrn')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return {
+      goals: goals.map((g) => this.formatGoal(g)),
+      total: goals.length,
+    };
+  }
+
+  async getTherapyGoalById(goalId: string, userId: string, userRole: string) {
+    const goal = await this.therapyGoalModel
+      .findById(goalId)
+      .populate('patientId', 'fullName mrn')
+      .exec();
+
+    if (!goal || goal.deleted) {
+      throw new NotFoundException('Therapy goal not found');
+    }
+
+    // Access control
+    if (userRole === 'THERAPIST' && goal.therapistId.toString() !== userId) {
+      throw new ForbiddenException('You can only access your own therapy goals');
+    }
+
+    return this.formatGoal(goal);
+  }
+
+  async updateTherapyGoal(
+    goalId: string,
+    userId: string,
+    userRole: string,
+    updateData: UpdateTherapyGoalDto,
+  ) {
+    const goal = await this.therapyGoalModel.findById(goalId);
+
+    if (!goal || goal.deleted) {
+      throw new NotFoundException('Therapy goal not found');
+    }
+
+    // Access control
+    if (userRole === 'THERAPIST' && goal.therapistId.toString() !== userId) {
+      throw new ForbiddenException('You can only update your own therapy goals');
+    }
+
+    Object.assign(goal, updateData);
+    goal.updatedAt = new Date();
+
+    await goal.save();
+
+    // Recalculate patient progress if status changed
+    if (updateData.status) {
+      await this.patientsService.calculatePatientProgress(goal.patientId.toString());
+    }
+
+    return {
+      success: true,
+      message: 'Therapy goal updated successfully',
+      goal: this.formatGoal(goal),
+    };
+  }
+
+  async deleteTherapyGoal(goalId: string, userId: string, userRole: string) {
+    const goal = await this.therapyGoalModel.findById(goalId);
+
+    if (!goal || goal.deleted) {
+      throw new NotFoundException('Therapy goal not found');
+    }
+
+    // Access control
+    if (userRole === 'THERAPIST' && goal.therapistId.toString() !== userId) {
+      throw new ForbiddenException('You can only delete your own therapy goals');
+    }
+
+    goal.deleted = true;
+    goal.updatedAt = new Date();
+
+    await goal.save();
+
+    // Recalculate patient progress after deleting goal
+    await this.patientsService.calculatePatientProgress(goal.patientId.toString());
+
+    return {
+      success: true,
+      message: 'Therapy goal deleted successfully',
+    };
+  }
+
+  // ========== VIDEO SESSIONS ==========
+
+  async createVideoSession(
+    userId: string,
+    userRole: string,
+    dto: CreateVideoSessionDto,
+    videoUrl: string,
+  ) {
+    const sessionData: any = {
+      ...dto,
+      videoUrl,
+      status: 'uploaded',
+      reviewed: false,
+      deleted: false,
+      recordedAt: dto.recordedAt || new Date(),
+    };
+
+    // Set therapistId or caregiverId based on role
+    if (userRole === 'CAREGIVER') {
+      sessionData.caregiverId = userId;
+      // therapistId will be set based on patient's assigned therapist
+    } else {
+      sessionData.therapistId = userId;
+    }
+
+    const session = new this.videoSessionModel(sessionData);
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Video session uploaded successfully',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  async getVideoSessions(userId: string, userRole: string, patientId?: string, actionType?: string) {
+    const query: any = {
+      deleted: false,
+    };
+
+    if (userRole === 'THERAPIST') {
+      query.therapistId = userId;
+    } else if (userRole === 'CAREGIVER') {
+      query.caregiverId = userId;
+    }
+
+    if (patientId) {
+      query.patientId = patientId;
+    }
+
+    if (actionType) {
+      query.actionType = actionType;
+    }
+
+    const sessions = await this.videoSessionModel
+      .find(query)
+      .populate('patientId', 'fullName mrn')
+      .populate('caregiverId', 'fullName email')
+      .sort({ recordedAt: -1 })
+      .limit(50)
+      .exec();
+
+    return {
+      sessions: sessions.map((s) => this.formatVideoSession(s)),
+      total: sessions.length,
+    };
+  }
+
+  async getVideoSessionById(sessionId: string, userId: string, userRole: string) {
+    const session = await this.videoSessionModel
+      .findById(sessionId)
+      .populate('patientId', 'fullName mrn')
+      .populate('therapistId', 'fullName email')
+      .populate('caregiverId', 'fullName email')
+      .exec();
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    // Access control
+    if (userRole === 'THERAPIST' && session.therapistId.toString() !== userId) {
+      throw new ForbiddenException('You can only access your own video sessions');
+    }
+
+    if (userRole === 'CAREGIVER' && session.caregiverId?.toString() !== userId) {
+      throw new ForbiddenException('You can only access your own video sessions');
+    }
+
+    return this.formatVideoSession(session);
+  }
+
+  async updateVideoSession(
+    sessionId: string,
+    userId: string,
+    userRole: string,
+    updateData: any,
+  ) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    // Access control
+    if (userRole === 'THERAPIST' && session.therapistId.toString() !== userId) {
+      throw new ForbiddenException('You can only update your own video sessions');
+    }
+
+    Object.assign(session, updateData);
+    session.updatedAt = new Date();
+
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Video session updated successfully',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  async deleteVideoSession(sessionId: string, userId: string, userRole: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    // Access control
+    if (userRole === 'THERAPIST' && session.therapistId.toString() !== userId) {
+      throw new ForbiddenException('You can only delete your own video sessions');
+    }
+
+    session.deleted = true;
+    session.updatedAt = new Date();
+
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Video session deleted successfully',
+    };
+  }
+
+  // ========== AI ANALYSIS ==========
+
+  async triggerAIAnalysis(sessionId: string, therapistId: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    // Update session status to processing
+    session.status = 'processing';
+    await session.save();
+
+    // TODO: In production, send video to AI model for analysis
+    // For now, simulate AI processing with mock data
+    setTimeout(async () => {
+      const mockAnalysis = {
+        behaviors: [
+          {
+            type: 'Movement Pattern',
+            timestamp: 5,
+            confidence: 0.87,
+            severity: 'Mild',
+          },
+          {
+            type: 'Coordination',
+            timestamp: 12,
+            confidence: 0.92,
+            severity: 'Normal',
+          },
+        ],
+        summary: 'The patient demonstrates good motor coordination with minor variations in movement patterns.',
+        recommendations: [
+          'Continue with current therapy exercises',
+          'Focus on arm coordination activities',
+          'Monitor progress over next 2 weeks',
+        ],
+      };
+
+      session.status = 'analyzed';
+      session.aiAnalysis = mockAnalysis;
+      session.aiConfidence = 89;
+      await session.save();
+    }, 3000); // Simulate 3 second processing time
+
+    return {
+      success: true,
+      message: 'AI analysis has been triggered. Results will be available shortly.',
+      sessionId: session._id,
+      status: 'Processing',
+    };
+  }
+
+  // ========== HELPER METHODS ==========
+
+  private formatGoal(goal: any) {
+    return {
+      id: goal._id,
+      patientId: goal.patientId?._id || goal.patientId,
+      patientName: goal.patientId?.fullName,
+      patientMrn: goal.patientId?.mrn,
+      title: goal.title,
+      category: goal.category,
+      description: goal.description,
+      status: goal.status,
+      progress: goal.progress,
+      startDate: goal.startDate,
+      targetDate: goal.targetDate,
+      priority: goal.priority,
+      notes: goal.notes,
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt,
+    };
+  }
+
+  private formatVideoSession(session: any) {
+    return {
+      id: session._id,
+      patientId: session.patientId?._id || session.patientId,
+      patientName: session.patientId?.fullName,
+      caregiverName: session.caregiverId?.fullName,
+      videoUrl: session.videoUrl,
+      thumbnailUrl: session.thumbnailUrl,
+      recordedAt: session.recordedAt,
+      duration: session.duration,
+      actionType: session.actionType,
+      qualityScore: session.qualityScore,
+      status: session.status,
+      aiConfidence: session.aiConfidence,
+      aiAnalysis: session.aiAnalysis,
+      therapistNotes: session.therapistNotes,
+      reviewed: session.reviewed,
+      reviewedAt: session.reviewedAt,
+      createdAt: session.createdAt,
+    };
+  }
+}
