@@ -142,12 +142,12 @@ export default function LoginScreen() {
             <div className="flex justify-center items-center border-2 border-white w-10 h-10">
               <Terminal size={20} className="text-white" />
             </div>
-            <span className="font-bold text-white text-xl tracking-widest uppercase">NEUROCARE</span>
+            <span className="font-bold text-white text-xl uppercase tracking-widest">NEUROCARE</span>
           </div>
 
           {/* Headline */}
           <div className="mb-8">
-            <p className="mb-2 text-zinc-500 text-xs tracking-widest uppercase">// CLINICAL_INTELLIGENCE</p>
+            <p className="mb-2 text-zinc-500 text-xs uppercase tracking-widest">// CLINICAL_INTELLIGENCE</p>
             <h1 className="font-bold text-white text-3xl lg:text-4xl leading-tight tracking-tight">
               BEHAVIOR<br />
               ANALYSIS<br />
@@ -166,15 +166,15 @@ export default function LoginScreen() {
           <div className="gap-px grid grid-cols-2 bg-zinc-800">
             <div className="flex items-center gap-2 bg-black p-4">
               <Shield size={14} className="text-green-500" />
-              <span className="text-xs text-zinc-300 uppercase tracking-wider">HIPAA_COMPLIANT</span>
+              <span className="text-zinc-300 text-xs uppercase tracking-wider">HIPAA_COMPLIANT</span>
             </div>
             <div className="flex items-center gap-2 bg-black p-4">
               <Key size={14} className="text-green-500" />
-              <span className="text-xs text-zinc-300 uppercase tracking-wider">AES_256_ENCRYPTED</span>
+              <span className="text-zinc-300 text-xs uppercase tracking-wider">AES_256_ENCRYPTED</span>
             </div>
           </div>
-          <div className="bg-zinc-900 p-3 border-t border-zinc-800">
-            <p className="text-[10px] text-zinc-500 tracking-wider">&gt; SYSTEM_STATUS: <span className="text-green-500">ONLINE</span> | UPTIME: 99.9%</p>
+          <div className="bg-zinc-900 p-3 border-zinc-800 border-t">
+            <p className="text-[10px] text-zinc-500 tracking-wider">&gt; <span className="text-green-500">AUTISM_SUPPORT</span> | THERAPY_TRACKING | 24/7_CARE</p>
           </div>
         </div>
       </div>
@@ -187,14 +187,14 @@ export default function LoginScreen() {
             <div className="flex justify-center items-center border-2 border-black w-10 h-10">
               <Terminal size={20} className="text-black" />
             </div>
-            <span className="font-bold text-black text-xl tracking-widest uppercase">NEUROCARE</span>
+            <span className="font-bold text-black text-xl uppercase tracking-widest">NEUROCARE</span>
           </div>
 
           <div className="bg-white p-8 lg:p-10 border-2 border-zinc-200">
             {/* Header */}
             <div className="mb-8">
-              <p className="mb-1 text-xs text-zinc-400 tracking-widest">&gt; AUTH_MODULE</p>
-              <h2 className="font-bold text-black text-2xl tracking-tight uppercase">SIGN_IN</h2>
+              <p className="mb-1 text-zinc-400 text-xs tracking-widest">&gt; AUTH_MODULE</p>
+              <h2 className="font-bold text-black text-2xl uppercase tracking-tight">SIGN_IN</h2>
               <div className="bg-black mt-2 w-12 h-0.5" />
             </div>
 
@@ -211,7 +211,7 @@ export default function LoginScreen() {
 
               {/* Email Field */}
               <div>
-                <label className="block mb-2 font-bold text-xs text-zinc-600 uppercase tracking-wider">EMAIL_</label>
+                <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">EMAIL_</label>
                 <div className="relative">
                   <Mail className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
                   <input
@@ -229,7 +229,7 @@ export default function LoginScreen() {
 
               {/* Password Field */}
               <div>
-                <label className="block mb-2 font-bold text-xs text-zinc-600 uppercase tracking-wider">PASSWORD_</label>
+                <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">PASSWORD_</label>
                 <div className="relative">
                   <Lock className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
                   <input
@@ -256,12 +256,12 @@ export default function LoginScreen() {
               <div className="flex justify-between items-center">
                 <label className="group flex items-center cursor-pointer">
                   <input type="checkbox" className="border-2 border-zinc-300 focus:ring-0 w-4 h-4 text-black" />
-                  <span className="ml-2 text-xs text-zinc-600 group-hover:text-black tracking-wider uppercase transition-colors">REMEMBER_ME</span>
+                  <span className="ml-2 text-zinc-600 group-hover:text-black text-xs uppercase tracking-wider transition-colors">REMEMBER_ME</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => navigate({ to: '/forgot-password' })}
-                  className="font-bold text-xs text-zinc-500 hover:text-black tracking-wider uppercase transition-colors"
+                  className="font-bold text-zinc-500 hover:text-black text-xs uppercase tracking-wider transition-colors"
                 >
                   FORGOT_PASSWORD?
                 </button>
@@ -271,7 +271,7 @@ export default function LoginScreen() {
               <button
                 type="submit"
                 disabled={loginMutation.isPending}
-                className="flex justify-center items-center bg-black hover:bg-zinc-800 disabled:bg-zinc-300 py-4 w-full font-bold text-sm text-white uppercase tracking-widest transition-colors disabled:cursor-not-allowed"
+                className="flex justify-center items-center bg-black hover:bg-zinc-800 disabled:bg-zinc-300 py-4 w-full font-bold text-white text-sm uppercase tracking-widest transition-colors disabled:cursor-not-allowed"
               >
                 {loginMutation.isPending ? (
                   <>
@@ -288,23 +288,23 @@ export default function LoginScreen() {
 
             {/* Divider */}
             <div className="flex items-center my-8">
-              <div className="flex-1 border-t-2 border-zinc-100" />
-              <span className="px-4 font-bold text-xs text-zinc-400 uppercase tracking-wider">OR</span>
-              <div className="flex-1 border-t-2 border-zinc-100" />
+              <div className="flex-1 border-zinc-100 border-t-2" />
+              <span className="px-4 font-bold text-zinc-400 text-xs uppercase tracking-wider">OR</span>
+              <div className="flex-1 border-zinc-100 border-t-2" />
             </div>
 
             {/* Register Link */}
             <button
               type="button"
               onClick={() => navigate({ to: '/register/therapist' })}
-              className="flex justify-center items-center bg-white hover:bg-zinc-50 py-4 border-2 border-zinc-200 hover:border-black w-full font-bold text-sm text-black uppercase tracking-widest transition-all"
+              className="flex justify-center items-center bg-white hover:bg-zinc-50 py-4 border-2 border-zinc-200 hover:border-black w-full font-bold text-black text-sm uppercase tracking-widest transition-all"
             >
               REGISTER_AS_THERAPIST
             </button>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-zinc-100">
-              <p className="text-[10px] text-center text-zinc-400 uppercase tracking-wider">
+            <div className="mt-8 pt-6 border-zinc-100 border-t">
+              <p className="text-[10px] text-zinc-400 text-center uppercase tracking-wider">
                 PROTECTED BY NEUROCARE SECURE AUTH v2.0
               </p>
             </div>

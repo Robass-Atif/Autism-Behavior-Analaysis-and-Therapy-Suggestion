@@ -9,6 +9,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { useAdminDashboardStats, useAuditLogs, useUserGrowthStats } from '../../../api/admin';
+import { Navigate } from '@tanstack/react-router';
 
 // Stat Card Component
 const StatCard = ({ label, value, subValue, icon: Icon, trend, isLoading }: {
@@ -19,9 +20,9 @@ const StatCard = ({ label, value, subValue, icon: Icon, trend, isLoading }: {
   trend?: { value: number; positive: boolean };
   isLoading?: boolean;
 }) => (
-  <div className="bg-white border-2 border-zinc-200 p-6">
+  <div className="bg-white p-6 border-2 border-zinc-200">
     <div className="flex justify-between items-start mb-4">
-      <div className="p-2 bg-zinc-100 border border-zinc-200">
+      <div className="bg-zinc-100 p-2 border border-zinc-200">
         <Icon size={20} className="text-zinc-600" />
       </div>
       {trend && (
@@ -32,14 +33,14 @@ const StatCard = ({ label, value, subValue, icon: Icon, trend, isLoading }: {
       )}
     </div>
     {isLoading ? (
-      <div className="h-8 flex items-center">
-        <Loader2 size={20} className="animate-spin text-zinc-400" />
+      <div className="flex items-center h-8">
+        <Loader2 size={20} className="text-zinc-400 animate-spin" />
       </div>
     ) : (
-      <div className="font-mono text-3xl font-bold text-black tracking-tight">{value}</div>
+      <div className="font-mono font-bold text-black text-3xl tracking-tight">{value}</div>
     )}
-    <div className="text-xs text-zinc-500 uppercase tracking-wider mt-1">{label}</div>
-    {subValue && <div className="text-xs text-zinc-400 font-mono mt-2">{subValue}</div>}
+    <div className="mt-1 text-zinc-500 text-xs uppercase tracking-wider">{label}</div>
+    {subValue && <div className="mt-2 font-mono text-zinc-400 text-xs">{subValue}</div>}
   </div>
 );
 
@@ -57,15 +58,15 @@ const SystemStatusItem = ({ label, status, value, icon: Icon }: {
   };
 
   return (
-    <div className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-0">
+    <div className="flex justify-between items-center py-3 border-zinc-100 last:border-0 border-b">
       <div className="flex items-center gap-3">
-        <div className="p-1.5 bg-zinc-100">
+        <div className="bg-zinc-100 p-1.5">
           <Icon size={14} className="text-zinc-600" />
         </div>
-        <span className="text-sm font-mono text-zinc-700 uppercase">{label}</span>
+        <span className="font-mono text-zinc-700 text-sm uppercase">{label}</span>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-sm font-mono text-zinc-900 font-medium">{value}</span>
+        <span className="font-mono font-medium text-zinc-900 text-sm">{value}</span>
         <div className={`w-2 h-2 rounded-full ${statusColors[status]} animate-pulse`} />
       </div>
     </div>
@@ -88,15 +89,15 @@ const ActivityItem = ({ action, user, time, type }: {
   const Icon = typeIcons[type];
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-zinc-100 last:border-0">
-      <div className="p-1.5 bg-zinc-900 mt-0.5">
+    <div className="flex items-start gap-3 py-3 border-zinc-100 last:border-0 border-b">
+      <div className="bg-zinc-900 mt-0.5 p-1.5">
         <Icon size={12} className="text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-zinc-900 font-medium truncate">{action}</div>
-        <div className="text-xs text-zinc-500 font-mono">{user}</div>
+        <div className="font-medium text-zinc-900 text-sm truncate">{action}</div>
+        <div className="font-mono text-zinc-500 text-xs">{user}</div>
       </div>
-      <div className="text-xs text-zinc-400 font-mono whitespace-nowrap">{time}</div>
+      <div className="font-mono text-zinc-400 text-xs whitespace-nowrap">{time}</div>
     </div>
   );
 };
@@ -154,34 +155,34 @@ export default function AdminDashboard() {
   ].filter(d => d.count > 0);
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-mono">
+    <div className="bg-zinc-50 min-h-screen font-mono">
       {/* Header */}
-      <div className="bg-zinc-900 text-white px-8 py-6">
-        <div className="flex items-center justify-between">
+      <div className="bg-zinc-900 px-8 py-6 text-white">
+        <div className="flex justify-between items-center">
           <div>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/10 border border-white/20">
+              <div className="bg-white/10 p-2 border border-white/20">
                 <Shield size={20} />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight uppercase">Dashboard</h1>
-                <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">
+                <h1 className="font-bold text-xl uppercase tracking-tight">Dashboard</h1>
+                <p className="mt-0.5 text-zinc-400 text-xs uppercase tracking-wider">
                   NeuroCare System Control Center
                 </p>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-xs text-zinc-400">
+            <div className="text-zinc-400 text-xs">
               <span className="text-zinc-500">LAST UPDATE:</span>{' '}
-              <span className="text-white font-medium">
+              <span className="font-medium text-white">
                 {lastUpdated.toLocaleTimeString()}
               </span>
             </div>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-white text-xs uppercase tracking-wider hover:bg-white/20 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 px-4 py-2 border border-white/20 text-white text-xs uppercase tracking-wider transition-colors"
             >
               <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
               Refresh
@@ -192,7 +193,7 @@ export default function AdminDashboard() {
 
       <div className="p-8">
         {/* Stats Grid - Using real API data */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatCard
             label="Total Users"
             value={stats?.totalUsers?.toLocaleString() || '0'}
@@ -223,18 +224,18 @@ export default function AdminDashboard() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="gap-6 grid grid-cols-1 lg:grid-cols-3 mb-8">
           {/* User Distribution Chart (Bar) */}
-          <div className="lg:col-span-2 bg-white border-2 border-zinc-200 p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="lg:col-span-2 bg-white p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="text-sm font-bold text-black uppercase tracking-wider">User Distribution</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Current breakdown by role</p>
+                <h3 className="font-bold text-black text-sm uppercase tracking-wider">User Distribution</h3>
+                <p className="mt-0.5 text-zinc-500 text-xs">Current breakdown by role</p>
               </div>
             </div>
             {statsLoading ? (
-              <div className="h-[240px] flex items-center justify-center">
-                <Loader2 size={24} className="animate-spin text-zinc-400" />
+              <div className="flex justify-center items-center h-[240px]">
+                <Loader2 size={24} className="text-zinc-400 animate-spin" />
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
@@ -260,11 +261,11 @@ export default function AdminDashboard() {
           </div>
 
           {/* System Status */}
-          <div className="bg-white border-2 border-zinc-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-black uppercase tracking-wider">System Status</h3>
-              <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <div className="bg-white p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-black text-sm uppercase tracking-wider">System Status</h3>
+              <div className="flex items-center gap-1.5 font-medium text-green-600 text-xs">
+                <div className="bg-green-500 rounded-full w-2 h-2 animate-pulse" />
                 All Operational
               </div>
             </div>
@@ -278,18 +279,18 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="gap-6 grid grid-cols-1 lg:grid-cols-3">
           {/* User Growth Chart (Area) - NEW */}
-          <div className="lg:col-span-2 bg-white border-2 border-zinc-200 p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="lg:col-span-2 bg-white p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h3 className="text-sm font-bold text-black uppercase tracking-wider">User Growth</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">New users over the last 6 months</p>
+                <h3 className="font-bold text-black text-sm uppercase tracking-wider">User Growth</h3>
+                <p className="mt-0.5 text-zinc-500 text-xs">New users over the last 6 months</p>
               </div>
             </div>
             {growthLoading ? (
-              <div className="h-[240px] flex items-center justify-center">
-                <Loader2 size={24} className="animate-spin text-zinc-400" />
+              <div className="flex justify-center items-center h-[240px]">
+                <Loader2 size={24} className="text-zinc-400 animate-spin" />
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
@@ -321,17 +322,20 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white border-2 border-zinc-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-black uppercase tracking-wider">Recent Activity</h3>
-              <button className="text-xs text-zinc-500 hover:text-black uppercase tracking-wider flex items-center gap-1">
+          <div className="bg-white p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-black text-sm uppercase tracking-wider">Recent Activity</h3>
+              <button className="flex items-center gap-1 text-zinc-500 hover:text-black text-xs uppercase tracking-wider"
+                onClick={() => {
+                  Navigate({ to: '/admin/audit' })
+              }}>
                 View All <ChevronRight size={12} />
               </button>
             </div>
             <div className="space-y-1">
               {auditLoading ? (
-                <div className="py-8 flex justify-center">
-                  <Loader2 size={20} className="animate-spin text-zinc-400" />
+                <div className="flex justify-center py-8">
+                  <Loader2 size={20} className="text-zinc-400 animate-spin" />
                 </div>
               ) : auditData?.logs && auditData.logs.length > 0 ? (
                 auditData.logs.slice(0, 5).map((log) => (
@@ -344,7 +348,7 @@ export default function AdminDashboard() {
                   />
                 ))
               ) : (
-                <div className="py-8 text-center text-xs text-zinc-400 uppercase">
+                <div className="py-8 text-zinc-400 text-xs text-center uppercase">
                   No recent activity
                 </div>
               )}
@@ -353,35 +357,35 @@ export default function AdminDashboard() {
         </div>
 
         {/* Summary Stats */}
-        <div className="mt-6 bg-white border-2 border-zinc-200 p-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white mt-6 p-6 border-2 border-zinc-200">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-sm font-bold text-black uppercase tracking-wider">Platform Overview</h3>
-              <p className="text-xs text-zinc-500 mt-0.5">Total counts from database</p>
+              <h3 className="font-bold text-black text-sm uppercase tracking-wider">Platform Overview</h3>
+              <p className="mt-0.5 text-zinc-500 text-xs">Total counts from database</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-zinc-50 border border-zinc-200">
-              <div className="text-2xl font-bold font-mono">{stats?.totalApplications || 0}</div>
-              <div className="text-xs text-zinc-500 uppercase mt-1">Total Applications</div>
+          <div className="gap-4 grid grid-cols-2 md:grid-cols-4">
+            <div className="bg-zinc-50 p-4 border border-zinc-200">
+              <div className="font-mono font-bold text-2xl">{stats?.totalApplications || 0}</div>
+              <div className="mt-1 text-zinc-500 text-xs uppercase">Total Applications</div>
             </div>
-            <div className="p-4 bg-amber-50 border border-amber-200">
-              <div className="text-2xl font-bold font-mono text-amber-700">{stats?.pendingApplications || 0}</div>
-              <div className="text-xs text-amber-600 uppercase mt-1">Pending Review</div>
+            <div className="bg-amber-50 p-4 border border-amber-200">
+              <div className="font-mono font-bold text-amber-700 text-2xl">{stats?.pendingApplications || 0}</div>
+              <div className="mt-1 text-amber-600 text-xs uppercase">Pending Review</div>
             </div>
-            <div className="p-4 bg-green-50 border border-green-200">
-              <div className="text-2xl font-bold font-mono text-green-700">{stats?.activeTherapists || 0}</div>
-              <div className="text-xs text-green-600 uppercase mt-1">Active Therapists</div>
+            <div className="bg-green-50 p-4 border border-green-200">
+              <div className="font-mono font-bold text-green-700 text-2xl">{stats?.activeTherapists || 0}</div>
+              <div className="mt-1 text-green-600 text-xs uppercase">Active Therapists</div>
             </div>
-            <div className="p-4 bg-red-50 border border-red-200">
-              <div className="text-2xl font-bold font-mono text-red-700">{stats?.rejectedApplications || 0}</div>
-              <div className="text-xs text-red-600 uppercase mt-1">Rejected</div>
+            <div className="bg-red-50 p-4 border border-red-200">
+              <div className="font-mono font-bold text-red-700 text-2xl">{stats?.rejectedApplications || 0}</div>
+              <div className="mt-1 text-red-600 text-xs uppercase">Rejected</div>
             </div>
           </div>
         </div>
 
         {/* Footer Status Bar */}
-        <div className="mt-8 bg-zinc-900 text-white px-4 py-3 flex items-center justify-between text-xs">
+        <div className="flex justify-between items-center bg-zinc-900 mt-8 px-4 py-3 text-white text-xs">
           <div className="flex items-center gap-6">
             <span className="text-zinc-500">ENV:</span>
             <span className="text-green-400">PRODUCTION</span>
@@ -391,7 +395,7 @@ export default function AdminDashboard() {
             <span>CONNECTED</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <div className="bg-green-500 rounded-full w-2 h-2 animate-pulse" />
             <span className="text-zinc-400">ALL SYSTEMS OPERATIONAL</span>
           </div>
         </div>

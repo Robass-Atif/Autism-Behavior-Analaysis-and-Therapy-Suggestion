@@ -3,17 +3,17 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-} from '@nestjs/common';
-import { UsersService } from '../users/users.service';
-import { EmailService } from '../email/email.service';
-import { AccountStatus, Role } from '../../common/enums/role.enum';
-import { Caregiver } from '../users/schemas/caregiver.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { AuditLog, AuditLogDocument } from './schemas/audit-log.schema';
-import * as os from 'os';
+} from "@nestjs/common";
+import { UsersService } from "../users/users.service";
+import { EmailService } from "../email/email.service";
+import { AccountStatus, Role } from "../../common/enums/role.enum";
+import { Caregiver } from "../users/schemas/caregiver.schema";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { AuditLog, AuditLogDocument } from "./schemas/audit-log.schema";
+import * as os from "os";
 
-import { PatientsService } from '../patients/patients.service';
+import { PatientsService } from "../patients/patients.service";
 
 @Injectable()
 export class AdminService {
@@ -23,48 +23,66 @@ export class AdminService {
     // @ts-ignore
     private patientsService: PatientsService,
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
-  ) { }
+  ) {}
 
   // Dashboard Stats - Real backend-calculated data
   async getDashboardStats() {
     // Calculate stats from centralized User model
-    const totalTherapists = await this.usersService.countUsers({ role: Role.THERAPIST });
-    const totalCaregivers = await this.usersService.countUsers({ role: Role.CAREGIVER });
-    const totalAdmins = await this.usersService.countUsers({ role: Role.ADMIN });
+    const totalTherapists = await this.usersService.countUsers({
+      role: Role.THERAPIST,
+    });
+    const totalCaregivers = await this.usersService.countUsers({
+      role: Role.CAREGIVER,
+    });
+    const totalAdmins = await this.usersService.countUsers({
+      role: Role.ADMIN,
+    });
     // FIX: Count ALL users regardless of role (includes PATIENTS now), excluding deleted
-    const totalUsers = await this.usersService.countUsers({ deleted: { $ne: true } });
+    const totalUsers = await this.usersService.countUsers({
+      deleted: { $ne: true },
+    });
 
     // Therapist status breakdown
     // Therapist status breakdown (using simpler queries for efficiency)
-    const pendingVerification = await this.usersService['userModel'].countDocuments({
+    const pendingVerification = await this.usersService[
+      "userModel"
+    ].countDocuments({
       role: Role.THERAPIST,
-      accountStatus: AccountStatus.PENDING_VERIFICATION
+      accountStatus: AccountStatus.PENDING_VERIFICATION,
     });
 
-    const pendingApproval = await this.usersService['userModel'].countDocuments({
+    const pendingApproval = await this.usersService["userModel"].countDocuments(
+      {
+        role: Role.THERAPIST,
+        accountStatus: {
+          $in: [AccountStatus.PENDING_APPROVAL, AccountStatus.PENDING],
+        },
+      },
+    );
+
+    const activeTherapists = await this.usersService[
+      "userModel"
+    ].countDocuments({
       role: Role.THERAPIST,
-      accountStatus: { $in: [AccountStatus.PENDING_APPROVAL, AccountStatus.PENDING] }
+      accountStatus: AccountStatus.ACTIVE,
     });
 
-    const activeTherapists = await this.usersService['userModel'].countDocuments({
-      role: Role.THERAPIST,
-      accountStatus: AccountStatus.ACTIVE
+    const suspendedUsers = await this.usersService["userModel"].countDocuments({
+      accountStatus: AccountStatus.SUSPENDED,
     });
 
-    const suspendedUsers = await this.usersService['userModel'].countDocuments({
-      accountStatus: AccountStatus.SUSPENDED
-    });
-
-    const rejectedApplications = await this.usersService['userModel'].countDocuments({
+    const rejectedApplications = await this.usersService[
+      "userModel"
+    ].countDocuments({
       role: Role.THERAPIST,
-      accountStatus: AccountStatus.REJECTED
+      accountStatus: AccountStatus.REJECTED,
     });
 
     // Active caregivers
     // Active caregivers
     const activeCaregivers = await this.usersService.countUsers({
       role: Role.CAREGIVER,
-      accountStatus: AccountStatus.ACTIVE
+      accountStatus: AccountStatus.ACTIVE,
     });
 
     return {
@@ -92,27 +110,40 @@ export class AdminService {
     const pipeline = [
       {
         $match: {
-          createdAt: { $gte: sixMonthsAgo }
-        }
+          createdAt: { $gte: sixMonthsAgo },
+        },
       },
       {
         $group: {
           _id: {
             month: { $month: "$createdAt" },
-            year: { $year: "$createdAt" }
+            year: { $year: "$createdAt" },
           },
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
-        $sort: { "_id.year": 1, "_id.month": 1 } as any
-      }
+        $sort: { "_id.year": 1, "_id.month": 1 } as any,
+      },
     ];
 
     const stats = await this.usersService.userModel.aggregate(pipeline);
 
     // 2. Format for frontend
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
 
     // Create base array for last 6 months
     const result = [];
@@ -122,11 +153,13 @@ export class AdminService {
       const monthIndex = d.getMonth();
       const year = d.getFullYear();
 
-      const found = stats.find(s => s._id.month === monthIndex + 1 && s._id.year === year);
+      const found = stats.find(
+        (s) => s._id.month === monthIndex + 1 && s._id.year === year,
+      );
 
       result.push({
         name: months[monthIndex],
-        users: found ? found.count : 0
+        users: found ? found.count : 0,
       });
     }
 
@@ -146,20 +179,27 @@ export class AdminService {
 
     // Map frontend status to backend accountStatus
     let filteredApplications = applications;
-    if (status && status !== 'all') {
+    if (status && status !== "all") {
       const statusMap: Record<string, string[]> = {
-        'pending_approval': ['pending_approval', 'pending_verification', 'pending'],
-        'active': ['active'],
-        'rejected': ['rejected'],
+        pending_approval: [
+          "pending_approval",
+          "pending_verification",
+          "pending",
+        ],
+        active: ["active"],
+        rejected: ["rejected"],
       };
       const targetStatuses = statusMap[status] || [status];
       filteredApplications = applications.filter((app: any) =>
-        targetStatuses.includes(app.accountStatus)
+        targetStatuses.includes(app.accountStatus),
       );
     }
 
     const skip = (page - 1) * limit;
-    const paginatedApplications = filteredApplications.slice(skip, skip + limit);
+    const paginatedApplications = filteredApplications.slice(
+      skip,
+      skip + limit,
+    );
 
     return {
       applications: paginatedApplications.map((app: any) => ({
@@ -169,7 +209,8 @@ export class AdminService {
         email: app.email,
         licenseNumber: app.credentials?.licenseNumber,
         licenseType: app.credentials?.licenseType,
-        organizationName: app.organization?.organizationName || app.organization?.name,
+        organizationName:
+          app.organization?.organizationName || app.organization?.name,
         submittedAt: app.createdAt,
         status: app.accountStatus,
         licenseCertificate: app.credentials?.licenseCertificateUrl,
@@ -199,21 +240,23 @@ export class AdminService {
 
     // Combine and normalize
     let allUsers = [
-      ...therapists.map((u: any) => ({ ...u.toObject(), role: 'therapist' })),
-      ...caregivers.map((u: any) => ({ ...u.toObject(), role: 'caregiver' })),
-      ...admins.map((u: any) => ({ ...u.toObject(), role: 'admin' })),
-      ...patients.map((u: any) => ({ ...u.toObject(), role: 'patient' })),
+      ...therapists.map((u: any) => ({ ...u.toObject(), role: "therapist" })),
+      ...caregivers.map((u: any) => ({ ...u.toObject(), role: "caregiver" })),
+      ...admins.map((u: any) => ({ ...u.toObject(), role: "admin" })),
+      ...patients.map((u: any) => ({ ...u.toObject(), role: "patient" })),
     ];
 
     // Filter by role
-    if (role && role !== 'all') {
-      allUsers = allUsers.filter((u: any) => u.role.toLowerCase() === role.toLowerCase());
+    if (role && role !== "all") {
+      allUsers = allUsers.filter(
+        (u: any) => u.role.toLowerCase() === role.toLowerCase(),
+      );
     }
 
     // Filter by status
-    if (status && status !== 'all') {
-      allUsers = allUsers.filter((u: any) =>
-        u.accountStatus?.toLowerCase() === status.toLowerCase()
+    if (status && status !== "all") {
+      allUsers = allUsers.filter(
+        (u: any) => u.accountStatus?.toLowerCase() === status.toLowerCase(),
       );
     }
 
@@ -241,7 +284,7 @@ export class AdminService {
   async getUserById(userId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
     const userObj = user.toObject();
     return {
@@ -261,7 +304,7 @@ export class AdminService {
   async getUserDetails(userId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
     const userObj = user.toObject();
 
@@ -286,7 +329,9 @@ export class AdminService {
           roleSpecific: {
             licenseNumber: userObj.credentials?.licenseNumber,
             licenseType: userObj.credentials?.licenseType,
-            organizationName: userObj.organization?.organizationName || userObj.organization?.name,
+            organizationName:
+              userObj.organization?.organizationName ||
+              userObj.organization?.name,
             department: userObj.organization?.department,
             specialties: userObj.specialties || [],
             yearsOfExperience: userObj.yearsOfExperience,
@@ -295,7 +340,7 @@ export class AdminService {
             rejectionCount: userObj.rejectionCount,
             approvedAt: userObj.approvedAt,
             licenseCertificate: userObj.credentials?.licenseCertificatePath
-              ? `${process.env.BACKEND_URL || 'http://localhost:5001'}/uploads/${userObj.credentials.licenseCertificatePath}`
+              ? `${process.env.BACKEND_URL || "http://localhost:5001"}/uploads/${userObj.credentials.licenseCertificatePath}`
               : undefined,
           },
         };
@@ -312,7 +357,7 @@ export class AdminService {
         return {
           ...baseInfo,
           roleSpecific: {
-            adminLevel: userObj.adminLevel || 'admin',
+            adminLevel: userObj.adminLevel || "admin",
             permissions: userObj.permissions || [],
           },
         };
@@ -325,34 +370,39 @@ export class AdminService {
   async updateUser(userId: string, updateData: any, adminId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Allowed fields for update
     const allowedUpdates: any = {};
     if (updateData.fullName) allowedUpdates.fullName = updateData.fullName;
-    if (updateData.phoneNumber) allowedUpdates.phoneNumber = updateData.phoneNumber;
+    if (updateData.phoneNumber)
+      allowedUpdates.phoneNumber = updateData.phoneNumber;
     if (updateData.organizationName) {
-      allowedUpdates['organization.organizationName'] = updateData.organizationName;
+      allowedUpdates["organization.organizationName"] =
+        updateData.organizationName;
     }
     if (updateData.department) {
-      allowedUpdates['organization.department'] = updateData.department;
+      allowedUpdates["organization.department"] = updateData.department;
     }
 
     // Update user
-    const updatedUser = await this.usersService.updateUser(userId, allowedUpdates);
+    const updatedUser = await this.usersService.updateUser(
+      userId,
+      allowedUpdates,
+    );
 
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'USER_UPDATED',
+      action: "USER_UPDATED",
       targetUserId: userId,
-      details: `Updated user fields: ${Object.keys(allowedUpdates).join(', ')}`,
+      details: `Updated user fields: ${Object.keys(allowedUpdates).join(", ")}`,
     });
 
     return {
       success: true,
-      message: 'User updated successfully',
+      message: "User updated successfully",
       user: {
         id: updatedUser._id?.toString(),
         fullName: updatedUser.fullName,
@@ -368,12 +418,12 @@ export class AdminService {
   async deleteUser(userId: string, adminId: string, reason?: string) {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Prevent self-deletion
     if (userId === adminId) {
-      throw new BadRequestException('You cannot delete your own account');
+      throw new BadRequestException("You cannot delete your own account");
     }
 
     // Soft delete user
@@ -386,7 +436,8 @@ export class AdminService {
     // If therapist, cascade to linked caregivers
     let cascadeEffect: any = { linkedCaregiversDeactivated: 0 };
     if (user.role === Role.THERAPIST) {
-      const linkedCaregivers = await this.findCaregiversLinkedToTherapist(userId);
+      const linkedCaregivers =
+        await this.findCaregiversLinkedToTherapist(userId);
       for (const caregiver of linkedCaregivers) {
         await this.usersService.updateUser(caregiver._id.toString(), {
           accountStatus: AccountStatus.DELETED,
@@ -400,14 +451,14 @@ export class AdminService {
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'USER_DELETED',
+      action: "USER_DELETED",
       targetUserId: userId,
-      details: `Soft deleted user. Reason: ${reason || 'No reason provided'}. Cascade effect: ${cascadeEffect.linkedCaregiversDeactivated} caregivers deactivated`,
+      details: `Soft deleted user. Reason: ${reason || "No reason provided"}. Cascade effect: ${cascadeEffect.linkedCaregiversDeactivated} caregivers deactivated`,
     });
 
     return {
       success: true,
-      message: 'User deleted successfully',
+      message: "User deleted successfully",
       user: {
         id: user._id,
         fullName: user.fullName,
@@ -427,18 +478,18 @@ export class AdminService {
     const therapist = await this.usersService.findById(applicationId);
 
     if (!therapist || therapist.role !== Role.THERAPIST) {
-      throw new NotFoundException('Therapist application not found');
+      throw new NotFoundException("Therapist application not found");
     }
 
     if (therapist.accountStatus === AccountStatus.ACTIVE) {
-      throw new BadRequestException('Application already approved');
+      throw new BadRequestException("Application already approved");
     }
 
     // CRITICAL: Check if email is verified before allowing approval
     if (!therapist.isEmailVerified) {
       throw new BadRequestException(
-        'Cannot approve: Therapist has not verified their email address. ' +
-        'Please wait for them to click the verification link.'
+        "Cannot approve: Therapist has not verified their email address. " +
+          "Please wait for them to click the verification link.",
       );
     }
 
@@ -454,9 +505,9 @@ export class AdminService {
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'THERAPIST_APPROVED',
+      action: "THERAPIST_APPROVED",
       targetUserId: applicationId,
-      details: notes || 'Therapist application approved',
+      details: notes || "Therapist application approved",
     });
 
     // Send approval email
@@ -468,12 +519,12 @@ export class AdminService {
     const updatedTherapist = await this.usersService.findById(applicationId);
 
     if (!updatedTherapist) {
-      throw new NotFoundException('Therapist not found');
+      throw new NotFoundException("Therapist not found");
     }
 
     return {
       success: true,
-      message: 'Therapist application approved',
+      message: "Therapist application approved",
       therapist: {
         id: updatedTherapist._id,
         status: updatedTherapist.accountStatus,
@@ -493,7 +544,7 @@ export class AdminService {
     const therapist = await this.usersService.findById(applicationId);
 
     if (!therapist || therapist.role !== Role.THERAPIST) {
-      throw new NotFoundException('Therapist application not found');
+      throw new NotFoundException("Therapist application not found");
     }
 
     // Increment rejection count
@@ -508,7 +559,7 @@ export class AdminService {
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'THERAPIST_REJECTED',
+      action: "THERAPIST_REJECTED",
       targetUserId: applicationId,
       details: `Rejected: ${reason}. Count: ${newRejectionCount}`,
     });
@@ -523,7 +574,7 @@ export class AdminService {
 
     return {
       success: true,
-      message: 'Application rejected',
+      message: "Application rejected",
       therapist: {
         id: therapist._id,
         status: AccountStatus.REJECTED,
@@ -546,14 +597,11 @@ export class AdminService {
     const user = await this.usersService.findById(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     // Update user status
-    await this.usersService.updateUserStatus(
-      userId,
-      AccountStatus.SUSPENDED,
-    );
+    await this.usersService.updateUserStatus(userId, AccountStatus.SUSPENDED);
 
     let cascadeEffect: any = {
       linkedCaregiversSuspended: 0,
@@ -562,9 +610,8 @@ export class AdminService {
 
     // CASCADE: If therapist, suspend all linked caregivers
     if (user.role === Role.THERAPIST) {
-      const linkedCaregivers = await this.findCaregiversLinkedToTherapist(
-        userId,
-      );
+      const linkedCaregivers =
+        await this.findCaregiversLinkedToTherapist(userId);
 
       for (const caregiver of linkedCaregivers) {
         await this.usersService.updateUserStatus(
@@ -583,7 +630,7 @@ export class AdminService {
         await this.emailService.sendAccountSuspensionEmail(
           caregiver.email,
           caregiver.fullName,
-          'Your linked therapist has been suspended',
+          "Your linked therapist has been suspended",
         );
       }
     }
@@ -591,7 +638,7 @@ export class AdminService {
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'USER_SUSPENDED',
+      action: "USER_SUSPENDED",
       targetUserId: userId,
       details: `Suspended: ${reason}. Caregivers affected: ${cascadeEffect.linkedCaregiversSuspended}`,
     });
@@ -605,7 +652,7 @@ export class AdminService {
 
     return {
       success: true,
-      message: 'User suspended successfully',
+      message: "User suspended successfully",
       user: {
         id: user._id,
         status: AccountStatus.SUSPENDED,
@@ -621,7 +668,7 @@ export class AdminService {
     const user = await this.usersService.findById(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
     await this.usersService.updateUserStatus(userId, AccountStatus.ACTIVE);
@@ -629,9 +676,9 @@ export class AdminService {
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'USER_ACTIVATED',
+      action: "USER_ACTIVATED",
       targetUserId: userId,
-      details: notes || 'User reactivated',
+      details: notes || "User reactivated",
     });
 
     // Send reactivation email
@@ -642,7 +689,7 @@ export class AdminService {
 
     return {
       success: true,
-      message: 'User activated successfully',
+      message: "User activated successfully",
       user: {
         id: user._id,
         status: AccountStatus.ACTIVE,
@@ -659,7 +706,7 @@ export class AdminService {
     confirmation: string,
     reason: string,
   ) {
-    if (confirmation !== 'DELETE') {
+    if (confirmation !== "DELETE") {
       throw new BadRequestException(
         'Confirmation string must be exactly "DELETE"',
       );
@@ -668,18 +715,17 @@ export class AdminService {
     const therapist = await this.usersService.findById(therapistId);
 
     if (!therapist || therapist.role !== Role.THERAPIST) {
-      throw new NotFoundException('Therapist not found');
+      throw new NotFoundException("Therapist not found");
     }
 
     // Find all linked caregivers
-    const linkedCaregivers = await this.findCaregiversLinkedToTherapist(
-      therapistId,
-    );
+    const linkedCaregivers =
+      await this.findCaregiversLinkedToTherapist(therapistId);
 
     // CASCADE: Revoke all caregiver access (set status to REVOKED)
     for (const caregiver of linkedCaregivers) {
       await this.usersService.updateUser(caregiver._id.toString(), {
-        accountStatus: 'REVOKED' as any, // New status for permanently blocked
+        accountStatus: "REVOKED" as any, // New status for permanently blocked
         deleted: true,
         deletedAt: new Date(),
       });
@@ -688,7 +734,7 @@ export class AdminService {
       await this.emailService.sendAccountDeletionEmail(
         caregiver.email,
         caregiver.fullName,
-        'Your linked therapist account has been permanently deleted',
+        "Your linked therapist account has been permanently deleted",
       );
     }
 
@@ -699,13 +745,13 @@ export class AdminService {
     await this.usersService.updateUser(therapistId, {
       deleted: true,
       deletedAt: new Date(),
-      accountStatus: 'REVOKED' as any,
+      accountStatus: "REVOKED" as any,
     });
 
     // Create audit log
     await this.createAuditLog({
       userId: adminId,
-      action: 'THERAPIST_DELETED',
+      action: "THERAPIST_DELETED",
       targetUserId: therapistId,
       details: `Deleted therapist. Reason: ${reason}. Caregivers revoked: ${linkedCaregivers.length}. Patients retained: ${patientsCount}`,
     });
@@ -719,7 +765,7 @@ export class AdminService {
 
     return {
       success: true,
-      message: 'Therapist permanently deleted',
+      message: "Therapist permanently deleted",
       cascadeEffect: {
         linkedCaregiversRevoked: linkedCaregivers.length,
         caregiverIds: linkedCaregivers.map((c: any) => c._id.toString()),
@@ -758,19 +804,23 @@ export class AdminService {
       page,
       totalPages: 0,
       message:
-        'Patients module not yet implemented. Create patients module first.',
+        "Patients module not yet implemented. Create patients module first.",
     };
   }
 
   // Helper: Find caregivers linked to therapist
-  private async findCaregiversLinkedToTherapist(therapistId: string): Promise<any[]> {
+  private async findCaregiversLinkedToTherapist(
+    therapistId: string,
+  ): Promise<any[]> {
     // This would query patient_caregivers table
     // For now, return empty array (will be implemented with patients module)
     return Promise.resolve([]);
   }
 
   // Helper: Count patients for therapist
-  private async countPatientsForTherapist(therapistId: string): Promise<number> {
+  private async countPatientsForTherapist(
+    therapistId: string,
+  ): Promise<number> {
     // This would query patients table
     // For now, return 0 (will be implemented with patients module)
     return Promise.resolve(0);
@@ -803,7 +853,7 @@ export class AdminService {
         usagePercentage: cpuUsage,
       },
       database: {
-        status: 'connected', // Mongoose is connected if we are here
+        status: "connected", // Mongoose is connected if we are here
         latency: Math.floor(Math.random() * 20) + 5, // Simulated latency
       },
       timestamp: new Date(),
@@ -842,14 +892,14 @@ export class AdminService {
         try {
           const user = await this.usersService.findById(logData.userId);
           // @ts-ignore
-          logData.userName = user?.name || user?.fullName || 'Admin';
-        } catch (e) { }
+          logData.userName = user?.name || user?.fullName || "Admin";
+        } catch (e) {}
       }
 
       const log = new this.auditLogModel(logData);
       await log.save();
     } catch (error) {
-      console.error('Failed to create audit log:', error);
+      console.error("Failed to create audit log:", error);
     }
   }
 }

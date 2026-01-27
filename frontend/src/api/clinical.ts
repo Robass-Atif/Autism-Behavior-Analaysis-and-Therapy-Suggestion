@@ -152,6 +152,24 @@ export const useDeleteVideoSession = () => {
   });
 };
 
+export const useTriggerAIAnalysis = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ success: boolean; message: string; sessionId: string; status: string }> => {
+      return apiClient.post<{ success: boolean; message: string; sessionId: string; status: string }>(
+        CLINICAL_ENDPOINTS.TRIGGER_AI_ANALYSIS(id),
+        {}
+      );
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['video-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+    },
+  });
+};
+
 // ============ REPORTS ============
 
 export const useIndividualReport = (patientId: string) => {

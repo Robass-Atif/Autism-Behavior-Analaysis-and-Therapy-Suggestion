@@ -282,11 +282,25 @@ export interface VideoSession {
   recordedAt: string;
   duration: number;
   actionType: string;
-  qualityScore: 'High' | 'Medium' | 'Low';
-  status: 'Processing' | 'Analyzed' | 'Reviewed';
-  aiConfidence: number;
+  qualityScore: 'high' | 'medium' | 'low';
+  status: 'uploaded' | 'processing' | 'analyzed' | 'reviewed' | 'failed';
+  aiConfidence?: number;
+  aiAnalysis?: {
+    behaviors: Array<{
+      type: string;
+      timestamp: number;
+      confidence: number;
+      severity: string;
+    }>;
+    summary: string;
+    recommendations: string[];
+  };
+  videoUrl?: string;
   thumbnailUrl?: string;
   caregiverName?: string;
+  therapistNotes?: string;
+  reviewed?: boolean;
+  reviewedAt?: string;
 }
 
 export interface AuditLogEntry {
