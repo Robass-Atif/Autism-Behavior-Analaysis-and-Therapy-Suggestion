@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
-import os
 from pathlib import Path
 
 # Get the base directory (ados_server/)
@@ -12,8 +11,9 @@ class Settings(BaseSettings):
     API_VERSION: str = "1.0.0"
     API_DESCRIPTION: str = "Multi-task ADOS prediction with 2D/3D models"
     
-    # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-this")
+    # Security - these will be loaded from .env file
+    SECRET_KEY: str = "your-secret-key-change-this"
+    API_KEY: str = "your-api-key-change-this-please"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     MAX_SEQUENCE_LENGTH: int = 100
     
     # Feature Flags
-    ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "true").lower() in ("true", "1", "yes")
+    ENABLE_3D_PROCESSING: bool = True
     
     # Video Processing Settings
     VIDEO_FPS: int = 30  # Target FPS for video processing
