@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
 from pathlib import Path
+import os
 
 # Get the base directory (ados_server/)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +28,7 @@ class Settings(BaseSettings):
     MAX_SEQUENCE_LENGTH: int = 100
     
     # Feature Flags
-    ENABLE_3D_PROCESSING: bool = True
+    ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "true").lower() in ("true", "1", "yes")
     
     # Video Processing Settings
     VIDEO_FPS: int = 30  # Target FPS for video processing
