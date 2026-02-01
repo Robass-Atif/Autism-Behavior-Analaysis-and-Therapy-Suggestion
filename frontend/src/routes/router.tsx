@@ -7,6 +7,7 @@ import LoginScreen from '../components/screens/auth/LoginScreen';
 import ForgotPasswordScreen from '../components/screens/auth/ForgotPasswordScreen';
 import ResetPasswordScreen from '../components/screens/auth/ResetPasswordScreen';
 import TherapistRegistrationScreen from '../components/screens/auth/TherapistRegistrationScreen';
+import CaregiverRegistrationScreen from '../components/screens/auth/CaregiverRegistrationScreen';
 
 // Therapist Screens
 import TherapistDashboard from '../components/screens/therapist/TherapistDashboard';
