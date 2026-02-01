@@ -27,9 +27,9 @@ export const useTherapyGoals = (params: { patientId?: string; status?: string } 
 export const useMyTherapyGoals = () => {
   return useQuery({
     queryKey: ['my-therapy-goals'],
-    queryFn: async (): Promise<TherapyGoal[]> => {
-      const endpoint = '/therapy-goals/me';
-      return apiClient.get<TherapyGoal[]>(endpoint);
+    queryFn: async (): Promise<{ goals: TherapyGoal[]; total: number }> => {
+      const endpoint = '/clinical/therapy-goals/me';
+      return apiClient.get<{ goals: TherapyGoal[]; total: number }>(endpoint);
     },
     staleTime: 5 * 60 * 1000,
   });

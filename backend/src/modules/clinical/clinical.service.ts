@@ -15,6 +15,7 @@ import { CreateVideoSessionDto } from './dto/create-video-session.dto';
 import { PatientsService } from '../patients/patients.service';
 import { PdfGeneratorService } from './services/pdf-generator.service';
 import { AiAnalysisService } from './services/ai-analysis.service';
+import { Role } from '../../common/enums/role.enum';
 
 @Injectable()
 export class ClinicalService {
@@ -50,11 +51,17 @@ export class ClinicalService {
     };
   }
 
-  async getTherapyGoals(therapistId: string, patientId?: string) {
+  async getTherapyGoals(userId: string, userRole: string, patientId?: string) {
     const query: any = {
-      therapistId,
       deleted: false,
     };
+
+    if (userRole === Role.THERAPIST) {
+      query.therapistId = userId;
+    } else if (userRole === Role.PATIENT) {
+      const profile = await this.patientsService.getPatientProfile(userId);
+      query.patientId = profile.id;
+    }
 
     if (patientId) {
       query.patientId = patientId;

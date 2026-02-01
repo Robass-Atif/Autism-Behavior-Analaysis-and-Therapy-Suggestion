@@ -84,7 +84,15 @@ export class ClinicalController {
     @CurrentUser() user: any,
     @Query('patientId') patientId?: string,
   ) {
-    return this.clinicalService.getTherapyGoals(user.sub, patientId);
+    return this.clinicalService.getTherapyGoals(user.sub, user.role, patientId);
+  }
+
+  @Get('therapy-goals/me')
+  @Roles(Role.PATIENT)
+  @ApiOperation({ summary: 'Get my therapy goals' })
+  @ApiResponse({ status: 200, description: 'Goals retrieved' })
+  async getMyTherapyGoals(@CurrentUser() user: any) {
+    return this.clinicalService.getTherapyGoals(user.sub, Role.PATIENT);
   }
 
   @Get('therapy-goals/:id')

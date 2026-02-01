@@ -69,7 +69,7 @@ export const usePatients = (params: { search?: string; status?: string; page?: n
     queryFn: async (): Promise<{ patients: Patient[]; total: number; page: number; totalPages: number }> => {
       return apiClient.get<{ patients: Patient[]; total: number; page: number; totalPages: number }>(endpoint);
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 1000, // Reduced to 5 seconds for more responsive management
   });
 };
 
@@ -119,6 +119,8 @@ export const useCreatePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['recent-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['therapist-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
     },
   });
 };
@@ -136,6 +138,8 @@ export const useUpdatePatient = () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['patient', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['recent-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['therapist-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
     },
   });
 };
@@ -152,6 +156,8 @@ export const useDeletePatient = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       queryClient.invalidateQueries({ queryKey: ['recent-patients'] });
+      queryClient.invalidateQueries({ queryKey: ['therapist-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
     },
   });
 };

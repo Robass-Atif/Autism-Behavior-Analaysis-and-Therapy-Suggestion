@@ -143,6 +143,7 @@ export class PatientsService {
         progressScore: p.progressScore,
         diagnosisDate: p.diagnosisDate,
         createdAt: p.createdAt,
+        caregiverName: p.emergencyContact?.name || (p as any).caregiverName || 'N/A',
       })),
       total,
       page,
@@ -474,9 +475,39 @@ export class PatientsService {
 
   // Get patient's own profile (for patient role)
   async getPatientProfile(userId: string) {
-    const patient = await this.patientModel.findOne({ userId });
+    const logger = new Logger('PatientsService');
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      logger.error(`User record NOT FOUND for ID: ${userId}`);
+      throw new NotFoundException('User account not found');
+    }
+
+    logger.log(`🔍 Attempting to find patient profile for User: ${user.email} (ID: ${userId})`);
+
+    let patient = await this.patientModel.findOne({ userId });
 
     if (!patient) {
+      logger.warn(`Patient record NOT FOUND by userId: ${userId}. Attempting MRN fallback...`);
+
+      // Attempt to derive MRN from email if it follows the pattern mrn@patient...
+      const emailParts = user.email.split('@');
+      if (emailParts.length > 1 && emailParts[1].includes('patient')) {
+        const derivedMrn = emailParts[0].toUpperCase();
+        logger.log(`🔍 Derived MRN from email: ${derivedMrn}. Searching...`);
+        patient = await this.patientModel.findOne({ mrn: derivedMrn });
+
+        if (patient) {
+          logger.log(`✅ Found patient by MRN fallback: ${patient._id}. RELINKING userId...`);
+          // Fix the link if it was broken
+          patient.userId = user._id as any;
+          await patient.save();
+        }
+      }
+    }
+
+    if (!patient) {
+      logger.error(`CRITICAL: No patient record found for user ${user.email}`);
       throw new NotFoundException('Patient profile not found');
     }
 
@@ -484,19 +515,23 @@ export class PatientsService {
       throw new NotFoundException('Patient profile is archived');
     }
 
+    return this.formatPatientProfile(patient);
+  }
+
+  private formatPatientProfile(p: any) {
     return {
-      id: patient._id,
-      fullName: patient.fullName,
-      mrn: patient.mrn,
-      dob: patient.dob,
-      gender: patient.gender,
-      diagnosis: patient.asdSeverity,
-      diagnosisDate: patient.diagnosisDate,
-      progressScore: patient.progressScore,
-      therapistId: patient.therapistId,
-      status: patient.status,
-      address: patient.address,
-      emergencyContact: patient.emergencyContact,
+      id: p._id,
+      fullName: p.fullName,
+      mrn: p.mrn,
+      dob: p.dob,
+      gender: p.gender,
+      diagnosis: p.asdSeverity,
+      diagnosisDate: p.diagnosisDate,
+      progressScore: p.progressScore,
+      therapistId: p.therapistId,
+      status: p.status,
+      address: p.address,
+      emergencyContact: p.emergencyContact,
     };
   }
 }
