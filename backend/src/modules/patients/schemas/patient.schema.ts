@@ -68,7 +68,7 @@ export class Patient extends Document {
   @Prop({ required: true, enum: ['male', 'female', 'other'] })
   gender: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Therapist', required: true })
   therapistId: Types.ObjectId;
 
   // ===== CONTACT INFORMATION =====

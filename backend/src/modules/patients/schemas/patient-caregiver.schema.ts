@@ -6,7 +6,7 @@ export class PatientCaregiver extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Patient', required: true })
   patientId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Caregiver', required: true })
   caregiverId: Types.ObjectId;
 
   @Prop({ default: 'active', enum: ['active', 'revoked'] })

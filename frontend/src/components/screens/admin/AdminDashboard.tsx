@@ -8,8 +8,8 @@ import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { useAdminDashboardStats, useAuditLogs, useUserGrowthStats } from '../../../api/admin';
-import { Navigate } from '@tanstack/react-router';
+import { useAdminDashboardStats, useAuditLogs, useUserGrowthStats, useSystemHealth } from '../../../api/admin';
+import { useNavigate } from '@tanstack/react-router';
 
 // Stat Card Component
 const StatCard = ({ label, value, subValue, icon: Icon, trend, isLoading }: {
@@ -127,6 +127,7 @@ const mapActionToType = (action: string): 'login' | 'registration' | 'approval' 
 
 export default function AdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const navigate = useNavigate();
 
   // Fetch real dashboard stats from API
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminDashboardStats();
@@ -137,12 +138,16 @@ export default function AdminDashboard() {
   // Fetch user growth stats for Area Chart
   const { data: growthData, isLoading: growthLoading, refetch: refetchGrowth } = useUserGrowthStats();
 
-  const isRefreshing = statsLoading || auditLoading || growthLoading;
+  // Fetch real system health data
+  const { data: healthData, isLoading: healthLoading, refetch: refetchHealth } = useSystemHealth();
+
+  const isRefreshing = statsLoading || auditLoading || growthLoading || healthLoading;
 
   const handleRefresh = () => {
     refetchStats();
     refetchAudit();
     refetchGrowth();
+    refetchHealth();
     setLastUpdated(new Date());
   };
 
@@ -260,22 +265,53 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* System Status */}
+          {/* System Status - Integrated with API */}
           <div className="bg-white p-6 border-2 border-zinc-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-black text-sm uppercase tracking-wider">System Status</h3>
-              <div className="flex items-center gap-1.5 font-medium text-green-600 text-xs">
-                <div className="bg-green-500 rounded-full w-2 h-2 animate-pulse" />
-                All Operational
+              <div className={`flex items-center gap-1.5 font-medium text-xs ${healthData?.database.status === 'connected' ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`${healthData?.database.status === 'connected' ? 'bg-green-500' : 'bg-red-500'} rounded-full w-2 h-2 animate-pulse`} />
+                {healthData?.database.status === 'connected' ? 'All Operational' : 'Issues Detected'}
               </div>
             </div>
-            <div className="space-y-1">
-              <SystemStatusItem label="API Server" status="healthy" value="99.98%" icon={Server} />
-              <SystemStatusItem label="Database" status="healthy" value="12ms" icon={Database} />
-              <SystemStatusItem label="AI Engine" status="healthy" value="Online" icon={Cpu} />
-              <SystemStatusItem label="Storage" status="warning" value="72%" icon={HardDrive} />
-              <SystemStatusItem label="CDN" status="healthy" value="45ms" icon={Globe} />
-            </div>
+            {healthLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <Loader2 size={24} className="text-zinc-400 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <SystemStatusItem
+                  label="API Server"
+                  status="healthy"
+                  value="Online"
+                  icon={Server}
+                />
+                <SystemStatusItem
+                  label="Database"
+                  status={healthData?.database.status === 'connected' ? 'healthy' : 'error'}
+                  value={`${healthData?.database.latency || 0}ms`}
+                  icon={Database}
+                />
+                <SystemStatusItem
+                  label="Memory"
+                  status={healthData && healthData.memory.usagePercentage > 85 ? 'warning' : 'healthy'}
+                  value={`${healthData?.memory.usagePercentage || 0}%`}
+                  icon={Cpu}
+                />
+                <SystemStatusItem
+                  label="CPU Load"
+                  status={healthData && healthData.cpu.usagePercentage > 70 ? 'warning' : 'healthy'}
+                  value={`${healthData?.cpu.usagePercentage || 0}%`}
+                  icon={HardDrive}
+                />
+                <SystemStatusItem
+                  label="Uptime"
+                  status="healthy"
+                  value={`${Math.floor((healthData?.uptime || 0) / 3600)}h ${Math.floor(((healthData?.uptime || 0) % 3600) / 60)}m`}
+                  icon={Clock}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -326,9 +362,7 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-black text-sm uppercase tracking-wider">Recent Activity</h3>
               <button className="flex items-center gap-1 text-zinc-500 hover:text-black text-xs uppercase tracking-wider"
-                onClick={() => {
-                  Navigate({ to: '/admin/audit' })
-              }}>
+                onClick={() => navigate({ to: '/admin/audit' })}>
                 View All <ChevronRight size={12} />
               </button>
             </div>

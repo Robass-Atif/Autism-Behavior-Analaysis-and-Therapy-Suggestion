@@ -41,21 +41,28 @@ export interface RegisterTherapistData {
 }
 
 export interface RegisterCaregiverData {
-  email: string;
-  password: string;
   fullName: string;
-  phone: string;
-  relationshipToPatient: string;
+  email: string;
+  phoneNumber: string;
   dateOfBirth?: string;
-  address?: string;
+  preferredLanguage: string;
+  relationshipType: string;
+  password: string;
+  confirmPassword: string;
+  invitationCode: string;
   emergencyContact?: {
-    name: string;
-    phone: string;
-    relationship: string;
+    name?: string;
+    phone?: string;
+    relationship?: string;
   };
-  agreeToTerms: boolean;
-  agreeToPrivacy: boolean;
-  videoRecordingConsent: boolean;
+  termsAccepted: boolean;
+  privacyPolicyAccepted: boolean;
+  videoRecordingConsentAccepted: boolean;
+  notificationPreferences?: {
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    recordingReminders?: boolean;
+  };
 }
 
 export interface ForgotPasswordData {

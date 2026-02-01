@@ -38,6 +38,7 @@ export class PatientsService {
       password: dto.mrn, // Default password is MRN
       role: Role.PATIENT,
       accountStatus: AccountStatus.ACTIVE,
+      isEmailVerified: true, // Patients created by therapists are pre-verified
     });
     const savedUser = await user.save();
 
@@ -303,21 +304,26 @@ export class PatientsService {
       .filter((link) => link.patientId && !(link.patientId as any).deleted)
       .map((link) => {
         const patient = link.patientId as any;
-        const therapist = patient.therapistId;
+        const therapist = patient?.therapistId;
 
         return {
-          id: patient._id,
-          fullName: patient.fullName,
-          dob: patient.dob,
-          gender: patient.gender,
-          status: patient.status,
-          asdSeverity: patient.asdSeverity,
-          progressScore: patient.progressScore,
-          therapist: {
+          id: patient?._id,
+          fullName: patient?.fullName,
+          dob: patient?.dob,
+          gender: patient?.gender,
+          status: patient?.status,
+          asdSeverity: patient?.asdSeverity,
+          progressScore: patient?.progressScore,
+          therapist: therapist ? {
             id: therapist._id,
             name: therapist.fullName,
             email: therapist.email,
             phone: therapist.phone,
+          } : {
+            id: null,
+            name: 'Unknown Therapist',
+            email: '',
+            phone: '',
           },
         };
       });

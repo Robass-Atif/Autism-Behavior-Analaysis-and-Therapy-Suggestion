@@ -168,7 +168,16 @@ export class ClinicalService {
     // Set therapistId or caregiverId based on role
     if (userRole === 'CAREGIVER') {
       sessionData.caregiverId = userId;
-      // therapistId will be set based on patient's assigned therapist
+
+      // Link to patient's therapist
+      try {
+        const patient = await this.patientsService.getPatientById(dto.patientId, userId, 'CAREGIVER');
+        if (patient && patient.therapistId) {
+          sessionData.therapistId = patient.therapistId;
+        }
+      } catch (err) {
+        console.warn('Could not link therapist to session:', err.message);
+      }
     } else {
       sessionData.therapistId = userId;
     }
@@ -176,9 +185,14 @@ export class ClinicalService {
     const session = new this.videoSessionModel(sessionData);
     await session.save();
 
+    // Automatically trigger AI analysis upon upload
+    this.triggerAIAnalysis(session._id.toString(), sessionData.therapistId || userId).catch(err => {
+      console.error('Failed to trigger automatic AI analysis:', err);
+    });
+
     return {
       success: true,
-      message: 'Video session uploaded successfully',
+      message: 'Video session uploaded and analysis sequence initiated',
       session: this.formatVideoSession(session),
     };
   }

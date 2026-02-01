@@ -15,7 +15,7 @@ export class Invitation {
   @Prop({ required: true, unique: true, uppercase: true })
   invitationCode: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Therapist', required: true })
   therapistId: Types.ObjectId;
 
   @Prop({ required: true })

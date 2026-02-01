@@ -91,6 +91,12 @@ export const therapistRegisterRoute = createRoute({
     component: TherapistRegistrationScreen,
 });
 
+export const caregiverRegisterRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/register/caregiver',
+    component: CaregiverRegistrationScreen,
+});
+
 // Protected layout route
 export const protectedRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -340,6 +346,7 @@ const routeTree = rootRoute.addChildren([
     forgotPasswordRoute,
     resetPasswordRoute,
     therapistRegisterRoute,
+    caregiverRegisterRoute,
     protectedRoute.addChildren([
         dashboardRoute,
         patientsRoute,

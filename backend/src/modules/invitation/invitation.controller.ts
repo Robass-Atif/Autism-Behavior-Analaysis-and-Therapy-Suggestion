@@ -26,11 +26,17 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role } from '../../common/enums/role.enum';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { ValidateInvitationDto } from './dto/validate-invitation.dto';
+import { UsersService } from '../users/users.service';
+import { PatientsService } from '../patients/patients.service';
 
 @ApiTags('Invitations')
 @Controller('invitations')
 export class InvitationController {
-  constructor(private readonly invitationService: InvitationService) {}
+  constructor(
+    private readonly invitationService: InvitationService,
+    private readonly usersService: UsersService,
+    private readonly patientsService: PatientsService,
+  ) { }
 
   // Task 6: POST /api/invitations - Create invitation
   @Post()
@@ -52,13 +58,16 @@ export class InvitationController {
     @CurrentUser() user: any,
     @Body() dto: CreateInvitationDto,
   ) {
-    // For now, we'll use user data from JWT
-    // In production, fetch therapist and patient details from database
+    const [therapist, patient] = await Promise.all([
+      this.usersService.findById(user.sub),
+      this.patientsService.getPatientById(dto.patientId, user.sub, user.role),
+    ]);
+
     const invitation = await this.invitationService.createInvitation({
       therapistId: user.sub,
-      therapistName: user.fullName || 'Therapist', // Should be fetched from DB
+      therapistName: therapist?.fullName || 'Therapist',
       patientId: dto.patientId,
-      patientName: 'Patient', // Should be fetched from DB
+      patientName: patient?.fullName || 'Patient',
       caregiverEmail: dto.caregiverEmail,
       caregiverName: dto.caregiverName,
       expiresInDays: dto.expiresInDays || 7,

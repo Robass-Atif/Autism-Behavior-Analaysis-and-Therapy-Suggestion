@@ -34,7 +34,8 @@ export default function AuditLogScreen() {
 
   const filteredLogs = logs.filter((log: any) => {
     if (actionFilter !== 'all' && log.action !== actionFilter) return false;
-    if (searchQuery && !log.user?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    const user = log.userName || log.userId || '';
+    if (searchQuery && !user.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
@@ -42,7 +43,15 @@ export default function AuditLogScreen() {
     const csvContent = [
       ['Timestamp', 'User', 'Role', 'Action', 'Resource', 'Status', 'IP Address'].join(','),
       ...filteredLogs.map((log: any) =>
-        [log.timestamp, log.user, log.role, log.action, log.resource, log.status, log.ip || '-'].join(',')
+        [
+          new Date(log.createdAt).toLocaleString(),
+          log.userName || log.userId,
+          'ADMIN',
+          log.action,
+          log.details,
+          'Success',
+          log.ipAddress || '-'
+        ].join(',')
       ),
     ].join('\n');
 
@@ -150,7 +159,7 @@ export default function AuditLogScreen() {
           <div className="bg-white border-2 border-zinc-200 px-4 py-3 flex items-center justify-between">
             <span className="text-xs text-zinc-500 uppercase">SUCCESS</span>
             <span className="font-bold text-lg text-green-600">
-              {filteredLogs.filter((l: any) => l.status === 'Success').length}
+              {filteredLogs.length}
             </span>
           </div>
           <div className="bg-white border-2 border-zinc-200 px-4 py-3 flex items-center justify-between">
@@ -162,7 +171,7 @@ export default function AuditLogScreen() {
           <div className="bg-white border-2 border-zinc-200 px-4 py-3 flex items-center justify-between">
             <span className="text-xs text-zinc-500 uppercase">UNIQUE_USERS</span>
             <span className="font-bold text-lg">
-              {new Set(filteredLogs.map((l: any) => l.user)).size}
+              {new Set(filteredLogs.map((l: any) => l.userId)).size}
             </span>
           </div>
         </div>
@@ -200,23 +209,23 @@ export default function AuditLogScreen() {
 
                   return (
                     <tr
-                      key={log.id || index}
+                      key={log._id || log.id || index}
                       className="border-b border-zinc-100 hover:bg-zinc-50"
                     >
                       <td className="px-4 py-3 text-zinc-500 font-mono text-xs">
-                        {log.timestamp}
+                        {new Date(log.createdAt).toLocaleString()}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-600">
-                            {log.user?.charAt(0)?.toUpperCase() || '?'}
+                            {(log.userName || 'A').charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-medium text-zinc-900">{log.user}</span>
+                          <span className="font-medium text-zinc-900">{log.userName || log.userId}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-1 bg-zinc-100 text-zinc-600 text-[10px] font-bold uppercase border border-zinc-200">
-                          {log.role}
+                          {log.role || 'ADMIN'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -226,11 +235,11 @@ export default function AuditLogScreen() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-zinc-600 font-mono text-xs">
-                        {log.resource}
+                        {log.details}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 text-[10px] font-bold uppercase border ${statusConfig.bg} ${statusConfig.color}`}>
-                          {log.status}
+                          {log.status || 'Success'}
                         </span>
                       </td>
                     </tr>

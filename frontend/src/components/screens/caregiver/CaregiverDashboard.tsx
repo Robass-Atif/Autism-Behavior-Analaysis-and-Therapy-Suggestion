@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
-import { Video, Calendar, CheckCircle, Clock, AlertCircle, Plus, TrendingUp, Settings, X, Loader2, Camera } from 'lucide-react';
+import {
+  Video, Calendar, CheckCircle, Clock,
+  AlertCircle, Plus, TrendingUp, Settings,
+  X, Loader2, Camera, ArrowRight, User
+} from 'lucide-react';
 import { useCaregiverPatients } from '../../../api/caregiver';
 import { useCaregiverDashboardStats } from '../../../api/dashboard';
-import { useVideoSessions } from '../../../api/clinical';
 import VideoProgressTracker from './VideoProgressTracker';
 import GuidedVideoRecording from './GuidedVideoRecording';
 
-// Mock sessions for now (will be replaced with real data)
 const mockChildSessions = [
-  { id: 1, time: '9:00 AM', type: 'Behavioral Therapy', status: 'completed', duration: '45 min' },
-  { id: 2, time: '2:00 PM', type: 'Speech Therapy', status: 'in-progress', duration: '30 min' },
-  { id: 3, time: '4:00 PM', type: 'Occupational Therapy', status: 'pending', duration: '45 min' },
+  { id: 1, time: '09:00', type: 'Behavioral_Therapy', status: 'completed', duration: '45m' },
+  { id: 2, time: '14:00', type: 'Speech_Therapy', status: 'active', duration: '30m' },
+  { id: 3, time: '16:00', type: 'Occupational_Therapy', status: 'pending', duration: '45m' },
 ];
 
 export default function CaregiverDashboard() {
-  // Fetch real data from APIs
   const { data: patientsData, isLoading: patientsLoading, error: patientsError } = useCaregiverPatients();
   const { data: stats, isLoading: statsLoading } = useCaregiverDashboardStats();
-  const { data: sessionsData, isLoading: sessionsLoading } = useVideoSessions();
 
   const linkedPatients = patientsData?.patients || [];
   const isLoading = patientsLoading || statsLoading;
@@ -26,79 +26,38 @@ export default function CaregiverDashboard() {
   const [showLogModal, setShowLogModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showVideoRecording, setShowVideoRecording] = useState(false);
-  const [selectedSession, setSelectedSession] = useState(mockChildSessions[0] || null);
-  const [logForm, setLogForm] = useState({ type: '', date: '', time: '', notes: '', duration: '' });
-  const [scheduleForm, setScheduleForm] = useState({ date: '', time: '', type: '', duration: '' });
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
-  // Get first patient (or selected patient)
-  const primaryPatient = linkedPatients && linkedPatients.length > 0 ? linkedPatients[0] : null;
+  const primaryPatient = linkedPatients.find(p => p.id === selectedPatientId) || (linkedPatients.length > 0 ? linkedPatients[0] : null);
   const patientId = primaryPatient?.id || primaryPatient?._id || '';
 
-  const handleLogIncident = () => {
-    setShowLogModal(true);
-  };
-
-  const handleScheduleSession = () => {
-    setShowScheduleModal(true);
-  };
-
-  const handleLogSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Behavior logged:', logForm);
-    setShowLogModal(false);
-    alert('Incident logged successfully');
-  };
-
-  const handleScheduleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Session scheduled:', scheduleForm);
-    setShowScheduleModal(false);
-    alert('Session scheduled successfully');
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg"><CheckCircle size={14} /> Completed</span>;
-      case 'in-progress':
-        return <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg"><Clock size={14} /> In Progress</span>;
-      case 'pending':
-        return <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-lg"><Clock size={14} /> Scheduled</span>;
-      default:
-        return null;
-    }
-  };
-
-  // Show Video Recording Screen
   if (showVideoRecording) {
     return <GuidedVideoRecording onClose={() => setShowVideoRecording(false)} patientId={patientId} />;
   }
 
-  // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-slate-600 font-light">Loading your dashboard...</p>
+      <div className="min-h-screen bg-white flex items-center justify-center font-mono">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-zinc-900" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Loading_System_Nodes...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center bg-white rounded-xl border border-red-200 p-8 max-w-md">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-light text-slate-900 mb-2">Failed to load data</h2>
-          <p className="text-slate-600 font-light mb-4">{error instanceof Error ? error.message : 'Unknown error occurred'}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Retry
+      <div className="min-h-screen bg-white flex items-center justify-center p-8 font-mono">
+        <div className="border border-zinc-200 p-8 max-w-md w-full bg-zinc-50 relative">
+          <div className="absolute top-0 right-0 p-2"><div className="w-2 h-2 border-t border-r border-zinc-300"></div></div>
+          <AlertCircle className="w-8 h-8 text-zinc-900 mb-4" />
+          <h2 className="text-xl font-black uppercase mb-2 tracking-tight">System_Error_Detected</h2>
+          <p className="text-xs text-zinc-500 font-bold mb-6 tracking-wide leading-relaxed uppercase">
+            {error instanceof Error ? error.message : 'Unknown kernel exception occurred.'}
+          </p>
+          <button onClick={() => window.location.reload()} className="w-full py-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all">
+            Reboot_Session
           </button>
         </div>
       </div>
@@ -106,231 +65,190 @@ export default function CaregiverDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              {primaryPatient?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'PT'}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Caregiver Portal</h1>
-              <p className="text-slate-500">{primaryPatient?.fullName || 'Patient'}'s Dashboard</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
-              <Settings size={20} />
-            </button>
-            <button className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
-              <AlertCircle size={20} />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-white text-zinc-900 font-mono selection:bg-zinc-100 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
 
-      {/* Main Content */}
-      <main className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Header Section */}
+        <header className="mb-12 border-b border-zinc-100 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-zinc-900 flex items-center justify-center text-white font-bold text-xl border border-zinc-900">
+                {primaryPatient?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'PT'}
+              </div>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver_Terminal_V1.0</p>
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none">
+              {primaryPatient?.fullName || 'Patient'}<span className="text-zinc-200">_</span>PORTAL
+            </h1>
+            <p className="mt-2 text-zinc-400 text-xs font-bold uppercase tracking-widest">
+              // Clinical monitoring & therapy support active
+            </p>
+          </div>
 
-        {/* Record Video CTA */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/25">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Camera size={24} />
-                Record Therapy Videos
+          <div className="flex gap-4">
+            <button className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors text-zinc-400 hover:text-zinc-900">
+              <Settings size={18} />
+            </button>
+            <button className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors text-zinc-400 hover:text-zinc-900">
+              <AlertCircle size={18} />
+            </button>
+          </div>
+        </header>
+
+        {/* Global CTA */}
+        <div className="mb-12 group cursor-pointer" onClick={() => setShowVideoRecording(true)}>
+          <div className="border-4 border-zinc-900 p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:bg-zinc-900 hover:text-white relative overflow-hidden">
+            <div className="relative z-10">
+              <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-4 mb-2">
+                <Camera size={28} /> Start_Session_Recording
               </h2>
-              <p className="text-blue-100 mt-1">
-                Help your therapist by recording your child performing guided activities
+              <p className="text-[10px] uppercase font-bold tracking-[0.1em] opacity-70">
+                Record guided activity videos for clinical analysis // 11 Actions available
               </p>
             </div>
-            <button
-              onClick={() => setShowVideoRecording(true)}
-              className="px-6 py-3 bg-white text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-colors flex items-center gap-2 shadow-lg"
-            >
-              <Video size={18} />
-              Start Recording
-            </button>
+            <div className="relative z-10 flex items-center gap-4">
+              <span className="text-xs font-black uppercase tracking-widest hidden md:block">Initialize_Camera</span>
+              <div className="w-12 h-12 rounded-full border-2 border-current flex items-center justify-center group-hover:translate-x-2 transition-transform">
+                <ArrowRight size={20} />
+              </div>
+            </div>
+            {/* Background pattern */}
+            <div className="absolute right-0 top-0 h-full w-1/3 opacity-[0.03] pointer-events-none group-hover:opacity-[0.1] transition-opacity">
+              <Video size={120} className="-rotate-12 translate-x-1/2 translate-y-1/2" />
+            </div>
           </div>
         </div>
 
-        {/* Video Progress Tracker */}
-        {patientId && (
-          <VideoProgressTracker
-            patientId={patientId}
-            onRecordAction={() => setShowVideoRecording(true)}
-          />
-        )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Child's Progress */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">{primaryPatient?.fullName || 'Patient'}'s Progress</h2>
-              <button className="p-2 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
-                <TrendingUp size={16} />
-              </button>
-            </div>
-            <div className="h-32 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl flex items-center justify-center flex-col">
-              <span className="text-4xl font-bold text-emerald-700">{(primaryPatient as any)?.progressScore || 0}%</span>
-              <p className="text-xs text-emerald-600 mt-2">Overall Progress</p>
-            </div>
-            <div className="space-y-4 mt-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Weekly Goal</span>
-                <span className="text-slate-900 font-semibold">8 sessions completed</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Next Session</span>
-                <span className="text-slate-900 font-semibold">Tomorrow, 10:00 AM</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">This Week</span>
-                <span className="text-slate-900 font-semibold">7 sessions planned</span>
-              </div>
-            </div>
-            <button className="w-full mt-4 py-3 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-colors border border-blue-200">
-              View Full Report
-            </button>
-          </div>
+          {/* Left Column: Progress & Video */}
+          <div className="lg:col-span-8 space-y-12">
 
-          {/* Today's Schedule */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-slate-900">Today's Schedule</h2>
-              <div className="text-xs text-slate-500">{new Date().toLocaleDateString()}</div>
-            </div>
-            <div className="flex gap-2 mb-4">
-              <button onClick={handleLogIncident} className="p-2 text-blue-600 hover:text-blue-700 rounded-lg transition-colors flex items-center gap-2">
-                <Plus size={16} />
-                <span>Log Incident</span>
-              </button>
-              <button onClick={handleScheduleSession} className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2">
-                <Calendar size={16} />
-                <span>Schedule</span>
-              </button>
-            </div>
-            <div className="space-y-4">
-              {mockChildSessions.map((session) => (
-                <div key={session.id} className="border-b border-slate-100 pb-4 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer rounded-lg p-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{session.time}</p>
-                      <p className="text-xs text-slate-500">{session.type}</p>
-                    </div>
-                    {getStatusBadge(session.status)}
-                  </div>
-                  <div className="text-right mt-1">
-                    <p className="text-xs text-slate-400">{session.duration}</p>
+            {/* Real Video Progress Tracker */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                  <TrendingUp size={14} /> Activity_Compliance
+                </h3>
+              </div>
+              <VideoProgressTracker
+                patientId={patientId}
+                onRecordAction={() => setShowVideoRecording(true)}
+              />
+            </section>
+
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="border border-zinc-200 p-8 flex flex-col justify-between bg-zinc-50/50">
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-widest">Therapy_Compliance_Score</h4>
+                <div>
+                  <div className="text-6xl font-black tracking-tighter mb-2">{(primaryPatient as any)?.progressScore || 0}<span className="text-2xl text-zinc-300">%</span></div>
+                  <div className="w-full h-1 bg-zinc-200 mt-4 overflow-hidden">
+                    <div className="h-full bg-zinc-900" style={{ width: `${(primaryPatient as any)?.progressScore || 0}%` }}></div>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="border border-zinc-200 p-8 space-y-4">
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-2 tracking-widest">Active_Metrics</h4>
+                <div className="space-y-4">
+                  <div className="flex justify-between border-b border-zinc-100 pb-2">
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Weekly_Goal</span>
+                    <span className="text-xs font-black uppercase">08 Sessions</span>
+                  </div>
+                  <div className="flex justify-between border-b border-zinc-100 pb-2">
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Next_Event</span>
+                    <span className="text-xs font-black uppercase">Tomorrow_10:00</span>
+                  </div>
+                  <div className="flex justify-between border-b border-zinc-100 pb-2">
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">This_Cycle</span>
+                    <span className="text-xs font-black uppercase">07 Planned</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-6">Quick Actions</h2>
-            <div className="space-y-3">
-              <button
-                onClick={() => setShowVideoRecording(true)}
-                className="w-full p-4 flex items-center gap-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition-colors"
-              >
-                <Video size={20} />
-                <span className="font-medium">Record Activity Video</span>
-              </button>
-              <button
-                onClick={handleLogIncident}
-                className="w-full p-4 flex items-center gap-3 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition-colors"
-              >
-                <AlertCircle size={20} />
-                <span className="font-medium">Log Behavioral Incident</span>
-              </button>
-              <button
-                onClick={handleScheduleSession}
-                className="w-full p-4 flex items-center gap-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-colors"
-              >
-                <Calendar size={20} />
-                <span className="font-medium">Schedule Session</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </main>
+          {/* Right Column: Schedule & Quick Actions */}
+          <div className="lg:col-span-4 space-y-12">
 
-      {/* Log Incident Modal */}
-      {showLogModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-auto p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900">Log Incident</h2>
-              <button onClick={() => setShowLogModal(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg transition-colors">
-                <X size={20} />
+            {/* Schedule Section */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
+                  <Calendar size={14} /> Daily_Logs
+                </h3>
+                <span className="text-[10px] font-bold text-zinc-300">{new Date().toLocaleDateString()}</span>
+              </div>
+
+              <div className="space-y-4">
+                {mockChildSessions.map((session) => (
+                  <div key={session.id} className="border border-zinc-100 p-4 hover:border-zinc-300 transition-all group relative cursor-pointer">
+                    <div className="absolute top-0 right-0 p-1"><div className="w-1 h-1 bg-zinc-200 group-hover:bg-zinc-900 transition-colors"></div></div>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-black uppercase tracking-tight">{session.time}</span>
+                      <div className={`text-[8px] font-bold px-2 py-0.5 border ${session.status === 'completed' ? 'bg-zinc-900 text-white border-zinc-900' :
+                        session.status === 'active' ? 'bg-zinc-50 text-zinc-900 border-zinc-200' :
+                          'text-zinc-300 border-zinc-100'
+                        }`}>
+                        {session.status.toUpperCase()}
+                      </div>
+                    </div>
+                    <p className="text-[10px] font-bold text-zinc-600 block mb-1 uppercase tracking-tight">{session.type.replace('_', ' ')}</p>
+                    <p className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">{session.duration} Expected_Cycle</p>
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={() => setShowLogModal(true)} className="w-full mt-6 py-4 border border-zinc-200 hover:bg-zinc-50 text-[10px] font-black uppercase tracking-widest transition-all">
+                + New_Behavior_Entry
               </button>
-            </div>
-            <form onSubmit={handleLogSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-2">Date</label>
-                <input
-                  type="date"
-                  value={logForm.date}
-                  onChange={(e) => setLogForm({ ...logForm, date: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:ring-0 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-2">Time</label>
-                <input
-                  type="time"
-                  value={logForm.time}
-                  onChange={(e) => setLogForm({ ...logForm, time: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:ring-0 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-2">Incident Type</label>
-                <select
-                  value={logForm.type}
-                  onChange={(e) => setLogForm({ ...logForm, type: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:ring-0 focus:border-blue-500 transition-all bg-white"
-                >
-                  <option value="">Select type...</option>
-                  <option value="Behavioral">Behavioral</option>
-                  <option value="Therapy">Therapy</option>
-                  <option value="Medical">Medical</option>
-                  <option value="Social">Social</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-2">Notes</label>
-                <textarea
-                  value={logForm.notes}
-                  onChange={(e) => setLogForm({ ...logForm, notes: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:ring-0 focus:border-blue-500 transition-all resize-none"
-                  placeholder="Describe the incident..."
-                />
-              </div>
-              <div className="flex gap-4 justify-end mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowLogModal(false)}
-                  className="px-6 py-2.5 text-slate-600 hover:text-slate-900 font-medium rounded-xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
+            </section>
+
+            {/* Quick Actions Card */}
+            <section className="bg-zinc-50 p-8 border border-zinc-200 relative overflow-hidden">
+              <div className="absolute top-0 left-0 p-2"><div className="w-2 h-2 border-t border-l border-zinc-300"></div></div>
+              <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900 mb-6 flex items-center gap-2">
+                QUICK_SYBSYTEMS
+              </h3>
+              <div className="space-y-3">
+                <button onClick={() => setShowVideoRecording(true)} className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
+                  <span className="text-[10px] font-bold uppercase">Video_Recorder</span>
+                  <Video size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
-                >
-                  Save Incident
+                <button className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
+                  <span className="text-[10px] font-bold uppercase">Analytics_Report</span>
+                  <TrendingUp size={14} className="opacity-40 group-hover:opacity-100" />
+                </button>
+                <button className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
+                  <span className="text-[10px] font-bold uppercase">Clinical_Notes</span>
+                  <Settings size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
               </div>
-            </form>
+            </section>
+
           </div>
         </div>
-      )}
+
+        {/* System Footer */}
+        <footer className="mt-24 border-t border-zinc-100 pt-8 text-center">
+          <div className="flex justify-center gap-12 mb-4">
+            <div className="text-center">
+              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Station_ID</p>
+              <p className="text-[10px] font-bold uppercase">ABTS-NODE-04</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Secure_Key</p>
+              <p className="text-[10px] font-bold uppercase">CR-X299-RSA</p>
+            </div>
+            <div className="text-center">
+              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Link_Status</p>
+              <p className="text-[10px] font-bold uppercase text-emerald-500">Active_Sync</p>
+            </div>
+          </div>
+        </footer>
+
+      </div>
     </div>
   );
 }

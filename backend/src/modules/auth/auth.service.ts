@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { InvitationService } from '../invitation/invitation.service';
+import { PatientsService } from '../patients/patients.service';
 import { RegisterTherapistDto } from './dto/register-therapist.dto';
 import { RegisterCaregiverDto } from './dto/register-caregiver.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
@@ -25,6 +26,7 @@ export class AuthService {
     private configService: ConfigService,
     private emailService: EmailService,
     private invitationService: InvitationService,
+    private patientsService: PatientsService,
   ) { }
 
   private generateToken(userId: string, email: string, role: Role): string {
@@ -251,7 +253,7 @@ export class AuthService {
     if (!validationResult.valid) {
       // Return specific error message based on reason
       if (validationResult.reason === 'NOT_FOUND') {
-        throw new BadRequestException('Invitation code not found');
+        throw new BadRequestException(validationResult.message || 'Invitation code not found');
       }
       if (validationResult.reason === 'EXPIRED') {
         throw new ForbiddenException('This invitation has expired. Please request a new invitation from your therapist.');
@@ -307,9 +309,10 @@ export class AuthService {
       caregiver._id.toString(),
     );
 
-    // TODO: Create patient-caregiver link in patient_caregivers table
-    // This will be implemented once PatientsService is injected here
-    // await this.patientsService.linkCaregiverToPatient(linkedPatientId, caregiver._id.toString());
+    // Create patient-caregiver link in patient_caregivers table
+    if (linkedPatientId) {
+      await this.patientsService.linkCaregiverToPatient(linkedPatientId, caregiver._id.toString());
+    }
 
     // Generate and save email verification token
     const verificationToken = this.generateVerificationToken();

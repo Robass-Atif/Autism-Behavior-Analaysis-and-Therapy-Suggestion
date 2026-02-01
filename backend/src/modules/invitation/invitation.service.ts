@@ -157,16 +157,25 @@ export class InvitationService {
       };
     }
 
+    // Verify that the references exist
+    if (!invitation.therapistId || !invitation.patientId) {
+      return {
+        valid: false,
+        reason: 'NOT_FOUND',
+        message: 'The therapist or patient associated with this invitation no longer exists',
+      };
+    }
+
     // Valid invitation
     return {
       valid: true,
       invitation: {
         id: invitation._id,
         invitationCode: invitation.invitationCode,
-        patientId: invitation.patientId._id,
-        patientName: (invitation.patientId as any).fullName,
-        therapistId: invitation.therapistId._id,
-        therapistName: (invitation.therapistId as any).fullName,
+        patientId: (invitation.patientId as any)._id || (invitation.patientId as any).id,
+        patientName: (invitation.patientId as any).fullName || invitation.patientName,
+        therapistId: (invitation.therapistId as any)._id || (invitation.therapistId as any).id,
+        therapistName: (invitation.therapistId as any).fullName || invitation.therapistName,
         therapistEmail: (invitation.therapistId as any).email,
         therapistPhone: (invitation.therapistId as any).phone,
         expiresAt: invitation.expiresAt,

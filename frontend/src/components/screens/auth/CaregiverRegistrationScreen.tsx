@@ -2,42 +2,41 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CaregiverRegistrationData } from '../../../types';
-import { X, Mail, Phone, User, Lock, CheckCircle2, AlertCircle, Calendar, Users, Bell, Video, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import {
+  X, Mail, Phone, User, Lock, CheckCircle2,
+  AlertCircle, Calendar, Users, Bell, Video,
+  Eye, EyeOff, Loader2, ArrowRight, ShieldCheck
+} from 'lucide-react';
+import { useRegisterCaregiver } from '../../../api/auth';
+import { toast } from 'react-hot-toast';
 
 // Zod Schema for Caregiver Registration
 const caregiverRegistrationSchema = z.object({
-  // Personal Information
+  // Step 1: Personal
   fullName: z.string().min(2, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'Phone number is required'),
   preferredLanguage: z.string().min(1, 'Preferred language is required'),
   dateOfBirth: z.string().optional(),
 
-  // Relationship
+  // Step 2: Relationship
   relationshipType: z.string().min(1, 'Relationship type is required'),
   invitationCode: z.string().min(6, 'Invitation code is required'),
 
-  // Security
+  // Step 3: Security
   password: z.string().min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain an uppercase letter')
     .regex(/[0-9]/, 'Password must contain a number'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 
-  // Compliance
+  // Step 4: Compliance & Meta
   agreeToTerms: z.boolean().refine(val => val === true, 'You must agree to Terms of Service'),
   agreeToPrivacy: z.boolean().refine(val => val === true, 'You must agree to Privacy Policy'),
+  videoRecordingConsent: z.boolean().default(false),
 
-  // Emergency Contact
-  emergencyContact: z.object({
-    name: z.string().optional(),
-    phone: z.string().optional(),
-    relationship: z.string().optional(),
-  }).optional(),
-
-  // Notifications
   emailNotifications: z.boolean().default(true),
-  smsNotifications: z.boolean().default(true),
+  smsNotifications: z.boolean().default(false),
   sessionReminders: z.boolean().default(true),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -46,417 +45,363 @@ const caregiverRegistrationSchema = z.object({
 
 type CaregiverFormInputs = z.infer<typeof caregiverRegistrationSchema>;
 
-interface CaregiverRegistrationScreenProps {
-  onBack: () => void;
-  onSuccess: () => void;
-}
-
-const LANGUAGES = [
-  'English',
-  'Spanish',
-  'Mandarin',
-  'Arabic',
-  'French',
-  'German',
-  'Portuguese',
-  'Russian',
-  'Japanese',
-  'Korean',
-  'Hindi',
-  'Other'
-];
+const LANGUAGES = ['English', 'Spanish', 'Urdu', 'Other'];
 
 const RELATIONSHIP_TYPES = [
   'Parent',
-  'Legal Guardian',
-  'Grandparent',
-  'Sibling',
-  'Extended Family Member',
+  'Guardian',
+  'Family Member',
   'Professional Caregiver',
+  'Teacher/Educator',
   'Other'
 ];
 
-export default function CaregiverRegistrationScreen({ onBack, onSuccess }: CaregiverRegistrationScreenProps) {
+export default function CaregiverRegistrationScreen() {
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [invitationVerified, setInvitationVerified] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, watch, trigger, setValue } = useForm<CaregiverFormInputs>({
     resolver: zodResolver(caregiverRegistrationSchema),
+    mode: 'onBlur',
     defaultValues: {
       preferredLanguage: 'English',
-      relationshipType: '',
       emailNotifications: true,
       smsNotifications: true,
       sessionReminders: true,
+      agreeToTerms: false,
+      agreeToPrivacy: false,
     },
   });
 
   const watchedPassword = watch('password');
   const watchedInvitationCode = watch('invitationCode');
+  const registerMutation = useRegisterCaregiver();
+
+  const totalSteps = 4;
 
   const verifyInvitation = async () => {
-    // This will be connected to API later
     if (watchedInvitationCode?.length >= 6) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setInvitationVerified(true);
+      setVerifying(true);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/invitations/validate/${watchedInvitationCode}`);
+        const data = await response.json();
+
+        if (data.valid) {
+          setInvitationVerified(true);
+          toast.success('Invitation code verified');
+        } else {
+          setInvitationVerified(false);
+          toast.error(data.message || 'Invalid invitation code');
+        }
+      } catch (error) {
+        setInvitationVerified(false);
+        toast.error('Failed to verify code');
+      } finally {
+        setVerifying(false);
+      }
     }
   };
 
+  const nextStep = async () => {
+    let fieldsToValidate: any[] = [];
+    if (currentStep === 1) fieldsToValidate = ['fullName', 'email', 'phone', 'preferredLanguage'];
+    if (currentStep === 2) fieldsToValidate = ['relationshipType', 'invitationCode'];
+    if (currentStep === 3) fieldsToValidate = ['password', 'confirmPassword'];
+
+    const isValid = await trigger(fieldsToValidate);
+
+    if (isValid) {
+      if (currentStep === 2 && !invitationVerified) {
+        toast.error('Please verify your invitation code first');
+        return;
+      }
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    }
+  };
+
+  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
   const onSubmit = async (data: CaregiverFormInputs) => {
-    // This will be connected to API later
-    console.log('Caregiver Registration Data:', data);
+    try {
+      await registerMutation.mutateAsync({
+        fullName: data.fullName,
+        email: data.email,
+        phoneNumber: data.phone,
+        dateOfBirth: data.dateOfBirth,
+        preferredLanguage: data.preferredLanguage,
+        relationshipType: data.relationshipType,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        invitationCode: data.invitationCode,
+        termsAccepted: data.agreeToTerms,
+        privacyPolicyAccepted: data.agreeToPrivacy,
+        videoRecordingConsentAccepted: data.videoRecordingConsent,
+        notificationPreferences: {
+          emailNotifications: data.emailNotifications,
+          smsNotifications: data.smsNotifications,
+          recordingReminders: data.sessionReminders,
+        }
+      });
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Redirect to login with success message
-    onSuccess();
+      toast.success('Registration successful! Please login.');
+      setTimeout(() => navigate({ to: '/login' }), 1500);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Registration failed');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center p-4 md:p-6">
-      <div className="max-w-2xl w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <div className="min-h-screen bg-white text-zinc-900 font-mono selection:bg-zinc-100 flex items-center justify-center p-4 md:p-8">
+      <div className="w-full max-w-4xl">
+
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 px-8 py-6">
-          <button onClick={onBack} className="text-white/80 hover:text-white flex items-center gap-2 text-sm mb-4 transition-colors">
-            <X size={18} /> Back to Login
-          </button>
-          <h1 className="text-2xl font-bold text-white">Caregiver Registration</h1>
-          <p className="text-emerald-100 mt-1 text-sm">Join as a caregiver to support patient therapy</p>
-        </div>
-
-        {/* Invitation Notice */}
-        <div className="bg-amber-50 border border-amber-200 px-8 py-4 flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm">
-            <p className="font-medium text-amber-900 mb-1">Caregiver Registration by Invitation Only</p>
-            <p className="text-amber-700">You must have a valid invitation code from a therapist or admin to register.</p>
+        <div className="mb-8 flex items-end justify-between border-b border-zinc-100 pb-4">
+          <div>
+            <button
+              onClick={() => navigate({ to: '/login' })}
+              className="mb-4 text-xs font-bold text-zinc-400 hover:text-zinc-600 flex items-center gap-2 transition-colors uppercase tracking-widest"
+            >
+              <X size={14} /> Cancel_Process
+            </button>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-zinc-900">
+              CAREGIVER<span className="text-zinc-300">_</span>JOIN
+            </h1>
+            <p className="mt-2 text-zinc-500 text-sm">
+              <span className="text-zinc-300 mr-2">//</span>
+              Support patient therapy journeys.
+            </p>
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-8">
-          <div className="space-y-8">
-            {/* Personal Information Section */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <User size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Personal Information</h2>
-                  <p className="text-slate-500 text-sm">Tell us about yourself</p>
-                </div>
-              </div>
+        <div className="flex flex-col lg:flex-row gap-12">
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Full Name *</label>
-                  <input
-                    {...register('fullName')}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all"
-                    placeholder="John Smith"
-                  />
-                  {errors.fullName && <p className="mt-2 text-xs text-red-600 font-medium">{errors.fullName.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Email Address *</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                    <input
-                      {...register('email')}
-                      type="email"
-                      className="w-full pl-11 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="john@example.com"
-                    />
+          {/* Sidebar Progress */}
+          <div className="lg:w-64 flex-shrink-0">
+            <div className="sticky top-8">
+              <div className="flex lg:flex-col lg:items-start items-center justify-between lg:justify-start gap-4 overflow-x-auto pb-4 lg:pb-0 scrollbar-hide">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className={`flex items-center gap-3 transition-colors duration-300 ${step === currentStep ? 'text-zinc-900' : 'text-zinc-300'}`}>
+                    <div className={`w-8 h-8 flex items-center justify-center text-xs font-bold border ${step === currentStep ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-300 border-zinc-200'}`}>
+                      {step < currentStep ? <CheckCircle2 size={14} /> : `0${step}`}
+                    </div>
+                    <div className="hidden lg:block text-xs font-bold uppercase tracking-wider">
+                      {step === 1 && 'Profile_Info'}
+                      {step === 2 && 'Verification'}
+                      {step === 3 && 'Security'}
+                      {step === 4 && 'Compliance'}
+                    </div>
                   </div>
-                  {errors.email && <p className="mt-2 text-xs text-red-600 font-medium">{errors.email.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Phone Number *</label>
-                  <div className="relative">
-                    <Phone className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                    <input
-                      {...register('phone')}
-                      type="tel"
-                      className="w-full pl-11 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  {errors.phone && <p className="mt-2 text-xs text-red-600 font-medium">{errors.phone.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Preferred Language *</label>
-                  <select
-                    {...register('preferredLanguage')}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all bg-white"
-                  >
-                    <option value="">Select language</option>
-                    {LANGUAGES.map((lang) => (
-                      <option key={lang} value={lang}>{lang}</option>
-                    ))}
-                  </select>
-                  {errors.preferredLanguage && <p className="mt-2 text-xs text-red-600 font-medium">{errors.preferredLanguage.message}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Date of Birth</label>
-                  <div className="relative">
-                    <Calendar className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
-                    <input
-                      {...register('dateOfBirth')}
-                      type="date"
-                      className="w-full pl-11 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all"
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
+          </div>
 
-            {/* Relationship Section */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <Users size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Relationship to Patient</h2>
-                  <p className="text-slate-500 text-sm">How are you connected to the patient?</p>
-                </div>
-              </div>
+          {/* Form Content */}
+          <div className="flex-1">
+            <div className="bg-white border border-zinc-200 p-6 md:p-10 relative overflow-hidden">
+              {/* Accents */}
+              <div className="absolute top-0 right-0 p-2"><div className="w-2 h-2 border-t border-r border-zinc-300"></div></div>
+              <div className="absolute bottom-0 left-0 p-2"><div className="w-2 h-2 border-b border-l border-zinc-300"></div></div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Relationship Type *</label>
-                  <select
-                    {...register('relationshipType')}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all bg-white"
-                  >
-                    <option value="">Select relationship</option>
-                    {RELATIONSHIP_TYPES.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                  {errors.relationshipType && <p className="mt-2 text-xs text-red-600 font-medium">{errors.relationshipType.message}</p>}
-                </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="relative z-10">
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Invitation Code *</label>
-                  <div className="relative">
-                    <input
-                      {...register('invitationCode')}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-0 outline-none transition-all pr-28 ${
-                        errors.invitationCode
-                          ? 'border-red-200 focus:border-red-500'
-                          : 'border-slate-200 focus:border-emerald-500'
-                      }`}
-                      placeholder="Enter invitation code"
-                      onBlur={verifyInvitation}
-                    />
-                    {invitationVerified && (
-                      <div className="absolute right-4 top-3.5 flex items-center gap-1.5 text-emerald-600 text-sm">
-                        <CheckCircle2 size={16} />
-                        <span className="font-medium">Verified</span>
+                {/* Step 1: Profile Info */}
+                {currentStep === 1 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="border-b border-zinc-100 pb-4 mb-6">
+                      <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
+                        <User size={20} /> Personal_Details
+                      </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-8">
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Full Name *</label>
+                        <input {...register('fullName')} className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all" placeholder="Enter your full name" />
+                        {errors.fullName && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.fullName.message}</p>}
                       </div>
-                    )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Email Address *</label>
+                          <input {...register('email')} type="email" className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all" placeholder="name@example.com" />
+                          {errors.email && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.email.message}</p>}
+                        </div>
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Phone Number *</label>
+                          <input {...register('phone')} type="tel" className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all" placeholder="+1 (555) 000-0000" />
+                          {errors.phone && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.phone.message}</p>}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Preferred Language *</label>
+                          <select {...register('preferredLanguage')} className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer">
+                            {LANGUAGES.map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                          </select>
+                        </div>
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Date Of Birth</label>
+                          <input {...register('dateOfBirth')} type="date" className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  {errors.invitationCode && <p className="mt-2 text-xs text-red-600 font-medium">{errors.invitationCode.message}</p>}
-                  <p className="mt-2 text-xs text-slate-500">
-                    Enter code provided by your therapist or administrator.
-                  </p>
-                </div>
-              </div>
-            </div>
+                )}
 
-            {/* Account Security Section */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <Lock size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Account Security</h2>
-                  <p className="text-slate-500 text-sm">Create a secure password</p>
-                </div>
-              </div>
+                {/* Step 2: Verification */}
+                {currentStep === 2 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="border-b border-zinc-100 pb-4 mb-6">
+                      <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
+                        <ShieldCheck size={20} /> Identity_Verification
+                      </h2>
+                    </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Password *</label>
-                  <div className="relative">
-                    <input
-                      {...register('password')}
-                      type={showPassword ? 'text' : 'password'}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    <div className="p-4 bg-amber-50 border-l-4 border-amber-400 text-amber-900 text-[10px] font-bold uppercase mb-8">
+                      Invitation Required // This portal is private access only.
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Relationship to Patient *</label>
+                        <select {...register('relationshipType')} className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer">
+                          <option value="">SELECT_RELATIONSHIP...</option>
+                          {RELATIONSHIP_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                        </select>
+                        {errors.relationshipType && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.relationshipType.message}</p>}
+                      </div>
+
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Invitation Code *</label>
+                        <div className="relative">
+                          <input
+                            {...register('invitationCode')}
+                            onBlur={verifyInvitation}
+                            className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all font-mono uppercase placeholder:normal-case"
+                            placeholder="Enter 6-digit code"
+                          />
+                          <div className="absolute right-4 top-3">
+                            {verifying ? <Loader2 size={16} className="animate-spin text-zinc-400" /> :
+                              invitationVerified ? <CheckCircle2 size={16} className="text-emerald-500" /> : null}
+                          </div>
+                        </div>
+                        {errors.invitationCode && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.invitationCode.message}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Security */}
+                {currentStep === 3 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="border-b border-zinc-100 pb-4 mb-6">
+                      <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
+                        <Lock size={20} /> Secure_Credentials
+                      </h2>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Password *</label>
+                        <div className="relative">
+                          <input {...register('password')} type={showPassword ? 'text' : 'password'} className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all font-mono" placeholder="••••••••" />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3 text-zinc-400 hover:text-zinc-900 transition-colors">
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                        {errors.password && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.password.message}</p>}
+                      </div>
+
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Confirm Password *</label>
+                        <div className="relative">
+                          <input {...register('confirmPassword')} type={showConfirmPassword ? 'text' : 'password'} className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all font-mono" placeholder="••••••••" />
+                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-3 text-zinc-400 hover:text-zinc-900 transition-colors">
+                            {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                        {errors.confirmPassword && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.confirmPassword.message}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Compliance */}
+                {currentStep === 4 && (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="border-b border-zinc-100 pb-4 mb-6">
+                      <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
+                        <ShieldCheck size={20} /> Compliance_Consent
+                      </h2>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="p-6 bg-zinc-50 border border-zinc-100 space-y-4">
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input type="checkbox" {...register('agreeToTerms')} className="appearance-none w-4 h-4 border-2 border-zinc-300 checked:bg-zinc-900 checked:border-zinc-900 transition-all cursor-pointer" />
+                          <span className="text-[10px] font-bold uppercase text-zinc-600 group-hover:text-zinc-900 transition-colors">Accept Terms of Service *</span>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input type="checkbox" {...register('agreeToPrivacy')} className="appearance-none w-4 h-4 border-2 border-zinc-300 checked:bg-zinc-900 checked:border-zinc-900 transition-all cursor-pointer" />
+                          <span className="text-[10px] font-bold uppercase text-zinc-600 group-hover:text-zinc-900 transition-colors">Accept Privacy Policy *</span>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input type="checkbox" {...register('videoRecordingConsent')} className="appearance-none w-4 h-4 border-2 border-zinc-300 checked:bg-zinc-900 checked:border-zinc-900 transition-all cursor-pointer" />
+                          <span className="text-[10px] font-bold uppercase text-zinc-600 group-hover:text-zinc-900 transition-colors">Video Recording Consent (Optional)</span>
+                        </label>
+                      </div>
+
+                      <div className="pt-6 border-t border-zinc-100">
+                        <h3 className="text-xs font-bold uppercase text-zinc-400 mb-4 tracking-widest">Notification_Settings</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {['Email', 'SMS', 'Reminders'].map(pref => (
+                            <div key={pref} className="border border-zinc-200 p-3 flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase">{pref}</span>
+                              <div className="w-8 h-4 bg-zinc-100 relative cursor-pointer">
+                                <div className="absolute right-0 top-0 w-4 h-4 bg-zinc-900"></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer Navigation */}
+                <div className="mt-12 pt-8 border-t border-zinc-100 flex items-center justify-between">
+                  {currentStep > 1 ? (
+                    <button type="button" onClick={prevStep} className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors flex items-center gap-2">
+                      Back_Step
                     </button>
-                  </div>
-                  {errors.password && <p className="mt-2 text-xs text-red-600 font-medium">{errors.password.message}</p>}
+                  ) : <div></div>}
 
-                  {/* Password Requirements */}
-                  <div className="mt-3 p-3 bg-slate-50 rounded-lg text-xs space-y-1">
-                    <p className={`flex items-center gap-2 ${watchedPassword?.length >= 8 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                      {watchedPassword?.length >= 8 ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                      At least 8 characters
-                    </p>
-                    <p className={`flex items-center gap-2 ${/[A-Z]/.test(watchedPassword || '') ? 'text-emerald-600' : 'text-slate-500'}`}>
-                      {/[A-Z]/.test(watchedPassword || '') ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                      At least one uppercase letter
-                    </p>
-                    <p className={`flex items-center gap-2 ${/[0-9]/.test(watchedPassword || '') ? 'text-emerald-600' : 'text-slate-500'}`}>
-                      {/[0-9]/.test(watchedPassword || '') ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                      At least one number
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-800 mb-2">Confirm Password *</label>
-                  <div className="relative">
-                    <input
-                      {...register('confirmPassword')}
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-0 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {currentStep < totalSteps ? (
+                    <button type="button" onClick={nextStep} className="px-8 py-3 bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest flex items-center gap-4 hover:bg-zinc-800 transition-all">
+                      Next_Step <ArrowRight size={14} />
                     </button>
-                  </div>
-                  {errors.confirmPassword && <p className="mt-2 text-xs text-red-600 font-medium">{errors.confirmPassword.message}</p>}
+                  ) : (
+                    <button type="submit" disabled={registerMutation.isPending} className="px-8 py-3 bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest flex items-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-50">
+                      {registerMutation.isPending ? 'Processing...' : 'Complete_Registration'} <CheckCircle2 size={14} />
+                    </button>
+                  )}
                 </div>
-              </div>
+
+              </form>
             </div>
 
-            {/* Notifications Section */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                  <Bell size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Notification Preferences</h2>
-                  <p className="text-slate-500 text-sm">Choose how you want to receive updates</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="flex items-center justify-between cursor-pointer p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-slate-600" />
-                    <span className="text-sm font-medium text-slate-700">Email Notifications</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    {...register('emailNotifications')}
-                    className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-slate-600" />
-                    <span className="text-sm font-medium text-slate-700">SMS Notifications</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    {...register('smsNotifications')}
-                    className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-slate-600" />
-                    <span className="text-sm font-medium text-slate-700">Session Reminders</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    {...register('sessionReminders')}
-                    className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Compliance Checkboxes */}
-            <div className="pt-4 border-t border-slate-200">
-              <div className="space-y-4">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register('agreeToTerms')}
-                    className="mt-1 w-4.5 h-4.5 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="text-sm text-slate-600">
-                    I agree to the <a href="#" className="text-emerald-600 hover:underline font-medium">Terms of Service</a> *
-                  </span>
-                </label>
-                {errors.agreeToTerms && <p className="ml-7 text-xs text-red-600 font-medium">{errors.agreeToTerms.message}</p>}
-
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register('agreeToPrivacy')}
-                    className="mt-1 w-4.5 h-4.5 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="text-sm text-slate-600">
-                    I agree to the <a href="#" className="text-emerald-600 hover:underline font-medium">Privacy Policy</a> *
-                  </span>
-                </label>
-                {errors.agreeToPrivacy && <p className="ml-7 text-xs text-red-600 font-medium">{errors.agreeToPrivacy.message}</p>}
-
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register('videoRecordingConsent')}
-                    className="mt-1 w-4.5 h-4.5 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="text-sm text-slate-600 flex items-start gap-2">
-                    <Video className="h-4 w-4 text-slate-500 flex-shrink-0" />
-                    <span>
-                      I understand that my recordings may be reviewed for therapy purposes
-                      <span className="text-slate-400 font-normal"> (optional)</span>
-                    </span>
-                  </span>
-                </label>
-              </div>
+            <div className="mt-8 text-center text-[10px] text-zinc-300 font-mono tracking-tighter uppercase">
+              Encrypted_Auth_Node // ABA-TS System V1.0
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-6 py-2.5 text-slate-600 hover:text-slate-800 font-medium transition-colors"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="px-8 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition-all"
-            >
-              Create Account
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
