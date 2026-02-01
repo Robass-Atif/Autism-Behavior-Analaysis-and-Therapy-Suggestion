@@ -10,7 +10,9 @@ import { AccountStatus, Role } from "../../common/enums/role.enum";
 import { Caregiver } from "../users/schemas/caregiver.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { AuditLog, AuditLogDocument } from "./schemas/audit-log.schema";
+import { SystemMetric, SystemMetricDocument } from './schemas/system-metric.schema';
 import * as os from "os";
 
 import { PatientsService } from "../patients/patients.service";
@@ -23,7 +25,8 @@ export class AdminService {
     // @ts-ignore
     private patientsService: PatientsService,
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
-  ) {}
+    @InjectModel(SystemMetric.name) private systemMetricModel: Model<SystemMetricDocument>,
+  ) { }
 
   // Dashboard Stats - Real backend-calculated data
   async getDashboardStats() {
@@ -489,7 +492,7 @@ export class AdminService {
     if (!therapist.isEmailVerified) {
       throw new BadRequestException(
         "Cannot approve: Therapist has not verified their email address. " +
-          "Please wait for them to click the verification link.",
+        "Please wait for them to click the verification link.",
       );
     }
 
@@ -834,11 +837,26 @@ export class AdminService {
     const usedMem = totalMem - freeMem;
     const memUsage = Math.round((usedMem / totalMem) * 100);
 
-    // CPU Load (last 1 min) - simplified for demo
-    const cpus = os.cpus();
-    const cpuCount = cpus.length;
-    // Mock reasonable CPU usage since os.loadavg() isn't always reliable on Windows
-    const cpuUsage = Math.floor(Math.random() * 30) + 20;
+    // Get DB status
+    let dbStatus = 'connected';
+    let dbLatency = 0;
+    try {
+      const start = Date.now();
+      await this.usersService.userModel.db.db.admin().command({ ping: 1 });
+      dbLatency = Date.now() - start;
+    } catch (error) {
+      dbStatus = 'error';
+    }
+
+    // Get historical data (last 30 minutes)
+    const history = await this.systemMetricModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(30)
+      .exec();
+
+    // Reverse to show oldest to newest
+    const historySorted = history.reverse();
 
     return {
       uptime,
@@ -849,15 +867,61 @@ export class AdminService {
         usagePercentage: memUsage,
       },
       cpu: {
-        count: cpuCount,
-        usagePercentage: cpuUsage,
+        count: os.cpus().length,
+        usagePercentage: historySorted.length > 0 ? historySorted[historySorted.length - 1].cpuUsage : 0,
       },
       database: {
-        status: "connected", // Mongoose is connected if we are here
-        latency: Math.floor(Math.random() * 20) + 5, // Simulated latency
+        status: dbStatus,
+        latency: dbLatency,
       },
+      history: historySorted,
       timestamp: new Date(),
     };
+  }
+
+  // Cron Job: Collect Metrics every 10 seconds for demo purposes (usually every minute)
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async collectMetrics() {
+    try {
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const usedMem = totalMem - freeMem;
+      const memUsage = Math.round((usedMem / totalMem) * 100);
+
+      // Mock reasonable CPU usage fluctuation
+      const cpuUsage = Math.floor(Math.random() * 30) + 10;
+
+      // Simulating active users
+      const activeUsers = Math.floor(Math.random() * 50) + 100;
+
+      // DB Latency
+      let dbLatency = 0;
+      try {
+        const start = Date.now();
+        await this.usersService.userModel.db.db.admin().command({ ping: 1 });
+        dbLatency = Date.now() - start;
+      } catch (e) { }
+
+      const metric = new this.systemMetricModel({
+        cpuUsage,
+        memoryUsage: memUsage,
+        activeUsers,
+        apiLatency: dbLatency || 5, // Default to 5ms
+      });
+
+      await metric.save();
+
+      // Cleanup old metrics (keep last 24 hours) - run occasionally or check count
+      // For demo, keep last 1000 records
+      const count = await this.systemMetricModel.countDocuments();
+      if (count > 1000) {
+        const oldest = await this.systemMetricModel.find().sort({ createdAt: 1 }).limit(count - 1000);
+        const ids = oldest.map(d => d._id);
+        await this.systemMetricModel.deleteMany({ _id: { $in: ids } });
+      }
+    } catch (error) {
+      console.error('Error collecting system metrics:', error);
+    }
   }
 
   // Get Audit Logs
@@ -893,7 +957,7 @@ export class AdminService {
           const user = await this.usersService.findById(logData.userId);
           // @ts-ignore
           logData.userName = user?.name || user?.fullName || "Admin";
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const log = new this.auditLogModel(logData);

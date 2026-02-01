@@ -97,6 +97,17 @@ export const usePatient = (id: string) => {
   });
 };
 
+// Get Own Profile (Patient Access)
+export const useMyProfile = () => {
+  return useQuery({
+    queryKey: ['my-profile'],
+    queryFn: async (): Promise<Patient> => {
+      return apiClient.get<Patient>('/patients/me/profile');
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 // Create Patient
 export const useCreatePatient = () => {
   const queryClient = useQueryClient();

@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { TherapyGoalsService } from './therapy-goals.service';
+import { PatientsService } from '../patients/patients.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -22,7 +23,19 @@ import { Role } from '../../common/enums/role.enum';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class TherapyGoalsController {
-    constructor(private readonly goalsService: TherapyGoalsService) { }
+    constructor(
+        private readonly goalsService: TherapyGoalsService,
+        private readonly patientsService: PatientsService,
+    ) { }
+
+    @Get('me')
+    @Roles(Role.PATIENT)
+    @ApiOperation({ summary: 'Get my therapy goals' })
+    @ApiResponse({ status: 200, description: 'My goals retrieved' })
+    async getMyGoals(@CurrentUser() user: any) {
+        const profile = await this.patientsService.getPatientProfile(user.sub);
+        return this.goalsService.findByPatient(profile.id.toString());
+    }
 
     @Post()
     @Roles(Role.THERAPIST)

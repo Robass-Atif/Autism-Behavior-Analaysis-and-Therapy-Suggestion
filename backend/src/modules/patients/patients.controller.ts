@@ -152,4 +152,16 @@ export class PatientsController {
   ) {
     return this.patientsService.deletePatient(id, user.sub, user.role);
   }
+  // 7️⃣ GET /patients/me/profile - Get patient's own profile
+  @Get('me/profile')
+  @Roles(Role.PATIENT)
+  @ApiOperation({
+    summary: "Get patient's own profile",
+    description: "Allows logged-in patient to view their own record",
+  })
+  @ApiResponse({ status: 200, description: 'Profile retrieved' })
+  @ApiResponse({ status: 404, description: 'Profile not found' })
+  async getMyProfile(@CurrentUser() user: any) {
+    return this.patientsService.getPatientProfile(user.sub);
+  }
 }

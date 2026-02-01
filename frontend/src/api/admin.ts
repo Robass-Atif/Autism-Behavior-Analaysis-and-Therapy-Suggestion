@@ -55,25 +55,13 @@ export interface SystemHealthStats {
     status: string;
     latency: number;
   };
-  timestamp: string;
-}
-
-export interface SystemHealthStats {
-  uptime: number;
-  memory: {
-    total: number;
-    free: number;
-    used: number;
-    usagePercentage: number;
-  };
-  cpu: {
-    count: number;
-    usagePercentage: number;
-  };
-  database: {
-    status: string;
-    latency: number;
-  };
+  history: {
+    cpuUsage: number;
+    memoryUsage: number;
+    activeUsers: number;
+    apiLatency: number;
+    createdAt: string;
+  }[];
   timestamp: string;
 }
 

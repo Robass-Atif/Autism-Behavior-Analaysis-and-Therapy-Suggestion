@@ -1,16 +1,65 @@
 import React, { useState } from 'react';
-import { Settings, FileText, Download, Printer, Check, ChevronDown, Lock, BarChart2, CheckSquare, Square } from 'lucide-react';
+import { Settings, FileText, Download, Printer, Check, ChevronDown, Lock, BarChart2, CheckSquare, Square, Users } from 'lucide-react';
+import { useGenerateReport } from '../../../api/clinical';
+import { usePatients } from '../../../api/patient';
+import toast from 'react-hot-toast';
+import { Patient } from '../../../types';
 
 export default function ReportGeneration() {
+  const [selectedPatientId, setSelectedPatientId] = useState('');
   const [config, setConfig] = useState({
     charts: true,
     tables: false,
     notes: true,
-    watermark: true
+    watermark: true,
+    password: ''
   });
 
+  const { data: patientsData } = usePatients({ limit: 100 });
+  const generateReport = useGenerateReport();
+
+  const handleGenerate = async () => {
+    if (!selectedPatientId) {
+      toast.error('Please select a patient first');
+      return;
+    }
+
+    const toastId = toast.loading('Generating PDF report...');
+
+    try {
+      const blob = await generateReport.mutateAsync({
+        patientId: selectedPatientId,
+        includeCharts: config.charts,
+        includeTables: config.tables,
+        includeNotes: config.notes,
+        watermark: config.watermark,
+        password: config.password || undefined, // Only send if set
+        includeGoals: true // Always include goals by default configuration logic
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // Generate filename based on patient name if available, else date
+      const patientName = patientsData?.patients.find(p => p.id === selectedPatientId)?.fullName.replace(/\s+/g, '_') || 'Patient';
+      link.setAttribute('download', `Report_${patientName}_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Report generated successfully!', { id: toastId });
+    } catch (error) {
+      console.error('PDF Generation failed', error);
+      toast.error('Failed to generate report. Please try again.', { id: toastId });
+    }
+  };
+
   return (
-    <div className="flex h-full bg-zinc-100 overflow-hidden font-mono">
+    <div className="flex h-full bg-zinc-100 overflow-hidden font-mono text-zinc-900">
       {/* Left Panel: Configuration */}
       <div className="w-full md:w-5/12 lg:w-4/12 bg-white border-r-2 border-zinc-200 flex flex-col h-full z-10">
         <div className="p-6 border-b-2 border-zinc-200">
@@ -21,10 +70,33 @@ export default function ReportGeneration() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
+
+          {/* Section 0: Patient Selection */}
+          <section>
+            <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">1</span> Select Patient
+            </h3>
+            <div className="relative">
+              <select
+                className="w-full p-3 bg-zinc-50 border-2 border-zinc-200 font-sans text-sm font-medium focus:ring-0 focus:border-zinc-900 appearance-none"
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+              >
+                <option value="">-- Choose a Patient --</option>
+                {patientsData?.patients.map((p: Patient) => (
+                  <option key={p.id} value={p.id}>{p.fullName} ({p.mrn})</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                <ChevronDown size={16} />
+              </div>
+            </div>
+          </section>
+
           {/* Section 1 */}
           <section>
             <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">1</span> Report Type
+              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">2</span> Report Type
             </h3>
             <div className="space-y-3">
               <ReportOption label="Individual Summary" active={true} />
@@ -36,7 +108,7 @@ export default function ReportGeneration() {
           {/* Section 2 */}
           <section>
             <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">2</span> Content
+              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">3</span> Content
             </h3>
             <div className="bg-zinc-50 p-4 space-y-3 border-2 border-zinc-100">
               <Checkbox label="Demographics & History" checked={true} />
@@ -50,16 +122,20 @@ export default function ReportGeneration() {
           {/* Section 3 */}
           <section>
             <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">3</span> Security
+              <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">4</span> Security
             </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 border-2 border-zinc-200">
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-zinc-700">
                   <Lock size={14} className="text-zinc-400" /> Password Protection
                 </div>
-                <div className="w-10 h-6 bg-zinc-200 rounded-none relative cursor-pointer border border-zinc-300">
-                  <div className="absolute left-0.5 top-0.5 w-4 h-[18px] bg-white border border-zinc-400 shadow-sm"></div>
-                </div>
+                <input
+                  type="password"
+                  placeholder="Optional"
+                  className="w-24 bg-zinc-50 border border-zinc-200 px-2 py-1 text-xs focus:outline-none focus:border-zinc-900"
+                  value={config.password}
+                  onChange={(e) => setConfig({ ...config, password: e.target.value })}
+                />
               </div>
               <Checkbox label="Watermark 'CONFIDENTIAL'" checked={config.watermark} onChange={() => setConfig({ ...config, watermark: !config.watermark })} />
             </div>
@@ -67,8 +143,18 @@ export default function ReportGeneration() {
         </div>
 
         <div className="p-6 border-t-2 border-zinc-200 bg-zinc-50">
-          <button className="w-full py-3 bg-zinc-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 flex items-center justify-center gap-2 transition-all">
-            <Download size={16} /> Generate PDF Report
+          <button
+            onClick={handleGenerate}
+            disabled={!selectedPatientId || generateReport.isPending}
+            className={`w-full py-3 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${!selectedPatientId || generateReport.isPending ? 'bg-zinc-400 cursor-not-allowed' : 'bg-zinc-900 hover:bg-zinc-800'}`}
+          >
+            {generateReport.isPending ? (
+              <span className="flex items-center gap-2">Generating...</span>
+            ) : (
+              <>
+                <Download size={16} /> Generate PDF Report
+              </>
+            )}
           </button>
         </div>
       </div>

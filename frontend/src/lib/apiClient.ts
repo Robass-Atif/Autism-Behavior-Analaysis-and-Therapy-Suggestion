@@ -147,6 +147,24 @@ export const apiClient = {
     );
   },
 
+  // POST request expecting Blob response (for downloads)
+  postBlob: async (endpoint: string, body: any, includeAuth = true): Promise<Blob> => {
+    console.log(`🌐 POST Blob ${buildUrl(endpoint)}`, body);
+    const headers = getHeaders(includeAuth) as Record<string, string>;
+    const response = await fetch(buildUrl(endpoint), {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new ApiError(`HTTP Error: ${response.status}`, response.status, errorText);
+    }
+
+    return response.blob();
+  },
+
   // PUT request
   put: <T>(endpoint: string, body: any, includeAuth = true): Promise<T> => {
     return fetchApi<T>(

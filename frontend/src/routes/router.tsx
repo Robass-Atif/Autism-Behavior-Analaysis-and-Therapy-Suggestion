@@ -121,6 +121,11 @@ const handleScreenNavigation = (screen: Screen) => {
     }
 };
 
+// Patient Screens
+import PatientDashboard from '../components/screens/patient/PatientDashboard';
+
+// ... existing imports ...
+
 // Role-aware Dashboard component
 const RoleBasedDashboard = () => {
     const role = getUserRole();
@@ -133,6 +138,10 @@ const RoleBasedDashboard = () => {
     if (role === 'CAREGIVER') {
         console.log('✅ Rendering CaregiverDashboard');
         return <CaregiverDashboard />;
+    }
+    if (role === 'PATIENT') {
+        console.log('✅ Rendering PatientDashboard');
+        return <PatientDashboard />;
     }
     console.log('✅ Rendering TherapistDashboard');
     return <TherapistDashboard onNavigate={handleScreenNavigation} />;

@@ -12,6 +12,7 @@ import {
   UploadedFile,
   HttpCode,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -160,6 +161,14 @@ export class ClinicalController {
     return this.clinicalService.getVideoSessions(user.sub, user.role, patientId, actionType);
   }
 
+  @Get('video-sessions/me')
+  @Roles(Role.PATIENT)
+  @ApiOperation({ summary: 'Get my video sessions' })
+  @ApiResponse({ status: 200, description: 'Sessions retrieved' })
+  async getMyVideoSessions(@CurrentUser() user: any) {
+    return this.clinicalService.getVideoSessions(user.sub, Role.PATIENT);
+  }
+
   @Get('video-sessions/:id')
   @Roles(Role.THERAPIST, Role.CAREGIVER, Role.ADMIN)
   @ApiOperation({ summary: 'Get video session by ID' })
@@ -259,6 +268,38 @@ export class ClinicalController {
       patientsSummary: [],
       trends: [],
     };
+  }
+
+  @Post('reports/generate-pdf')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate PDF report' })
+  @ApiResponse({ status: 200, description: 'PDF generated' })
+  async generatePDF(
+    @CurrentUser() user: any,
+    @Body() options: {
+      patientId: string;
+      includeGoals?: boolean;
+      includeCharts?: boolean;
+      includeTables?: boolean;
+      includeNotes?: boolean;
+      watermark?: boolean;
+      password?: string;
+    },
+    @Res() res: any,
+  ) {
+    const pdfBuffer = await this.clinicalService.generatePatientPDF(
+      options.patientId,
+      user.sub,
+      options
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=report-${options.patientId}-${Date.now()}.pdf`
+    );
+    res.send(pdfBuffer);
   }
 
   @Post('reports/generate')

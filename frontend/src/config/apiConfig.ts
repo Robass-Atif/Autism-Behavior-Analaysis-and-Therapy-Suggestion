@@ -113,7 +113,7 @@ export const CLINICAL_ENDPOINTS = {
   // Reports (BACKEND NOT IMPLEMENTED)
   GET_INDIVIDUAL_REPORT: (patientId: string) => `/clinical/reports/individual/${patientId}`,
   GET_CONSOLIDATED_REPORT: '/clinical/reports/consolidated',
-  GENERATE_REPORT: '/clinical/reports/generate',
+  GENERATE_REPORT: '/clinical/reports/generate-pdf',
 };
 
 // Dashboard Stats (BACKEND NOT IMPLEMENTED)

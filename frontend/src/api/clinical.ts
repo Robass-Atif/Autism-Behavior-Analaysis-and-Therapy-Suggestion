@@ -24,6 +24,17 @@ export const useTherapyGoals = (params: { patientId?: string; status?: string } 
   });
 };
 
+export const useMyTherapyGoals = () => {
+  return useQuery({
+    queryKey: ['my-therapy-goals'],
+    queryFn: async (): Promise<TherapyGoal[]> => {
+      const endpoint = '/therapy-goals/me';
+      return apiClient.get<TherapyGoal[]>(endpoint);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useTherapyGoal = (goalId: string) => {
   return useQuery({
     queryKey: ['therapy-goal', goalId],
@@ -82,6 +93,17 @@ export const useVideoSessions = (patientId?: string) => {
     queryKey: ['video-sessions', patientId],
     queryFn: async (): Promise<{ sessions: VideoSession[]; total: number }> => {
       const endpoint = CLINICAL_ENDPOINTS.LIST_VIDEO_SESSIONS + (patientId ? `?patientId=${patientId}` : '');
+      return apiClient.get<{ sessions: VideoSession[]; total: number }>(endpoint);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useMyVideoSessions = () => {
+  return useQuery({
+    queryKey: ['my-video-sessions'],
+    queryFn: async (): Promise<{ sessions: VideoSession[]; total: number }> => {
+      const endpoint = '/clinical/video-sessions/me';
       return apiClient.get<{ sessions: VideoSession[]; total: number }>(endpoint);
     },
     staleTime: 5 * 60 * 1000,
@@ -197,8 +219,16 @@ export const useGenerateReport = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { patientId?: string; reportType: string }): Promise<{ success: boolean; reportId: string }> => {
-      return apiClient.post<{ success: boolean; reportId: string }>(CLINICAL_ENDPOINTS.GENERATE_REPORT, data);
+    mutationFn: async (data: {
+      patientId: string;
+      includeGoals?: boolean;
+      includeCharts?: boolean;
+      includeTables?: boolean;
+      includeNotes?: boolean;
+      watermark?: boolean;
+      password?: string;
+    }): Promise<Blob> => {
+      return apiClient.postBlob(CLINICAL_ENDPOINTS.GENERATE_REPORT, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['individual-report'] });

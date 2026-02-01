@@ -135,6 +135,34 @@ export class TherapyGoalsService {
         }
     }
 
+    async findByPatient(patientId: string): Promise<any[]> {
+        const goals = await this.goalModel
+            .find({
+                patientId: new Types.ObjectId(patientId),
+                deleted: false,
+            })
+            .populate('patientId', 'fullName mrn')
+            .sort({ priority: -1, createdAt: -1 }) // Sort by priority then date
+            .exec();
+
+        return goals.map((g) => ({
+            id: g._id,
+            title: g.title,
+            description: g.description,
+            category: g.category,
+            priority: g.priority,
+            status: g.status,
+            progress: g.progress,
+            targetDate: g.targetDate,
+            notes: g.notes,
+            milestones: g.milestones,
+            patientId: g.patientId._id || g.patientId,
+            patientName: (g.patientId as any)?.fullName,
+            createdAt: g.createdAt,
+            updatedAt: g.updatedAt,
+        }));
+    }
+
     // Get stats for dashboard
     async getStats(therapistId: string) {
         const [total, active, completed] = await Promise.all([

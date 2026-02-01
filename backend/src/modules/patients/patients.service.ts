@@ -441,4 +441,32 @@ export class PatientsService {
   async countTotalPatients(): Promise<number> {
     return this.patientModel.countDocuments({ deleted: false });
   }
+
+  // Get patient's own profile (for patient role)
+  async getPatientProfile(userId: string) {
+    const patient = await this.patientModel.findOne({ userId });
+
+    if (!patient) {
+      throw new NotFoundException('Patient profile not found');
+    }
+
+    if (patient.deleted) {
+      throw new NotFoundException('Patient profile is archived');
+    }
+
+    return {
+      id: patient._id,
+      fullName: patient.fullName,
+      mrn: patient.mrn,
+      dob: patient.dob,
+      gender: patient.gender,
+      diagnosis: patient.asdSeverity,
+      diagnosisDate: patient.diagnosisDate,
+      progressScore: patient.progressScore,
+      therapistId: patient.therapistId,
+      status: patient.status,
+      address: patient.address,
+      emergencyContact: patient.emergencyContact,
+    };
+  }
 }

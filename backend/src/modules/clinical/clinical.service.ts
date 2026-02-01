@@ -13,6 +13,7 @@ import { CreateTherapyGoalDto } from './dto/create-therapy-goal.dto';
 import { UpdateTherapyGoalDto } from './dto/update-therapy-goal.dto';
 import { CreateVideoSessionDto } from './dto/create-video-session.dto';
 import { PatientsService } from '../patients/patients.service';
+import { PdfGeneratorService } from './services/pdf-generator.service';
 
 @Injectable()
 export class ClinicalService {
@@ -21,6 +22,7 @@ export class ClinicalService {
     @InjectModel(VideoSession.name) private videoSessionModel: Model<VideoSession>,
     @Inject(forwardRef(() => PatientsService))
     private patientsService: PatientsService,
+    private pdfGeneratorService: PdfGeneratorService,
   ) { }
 
   // ========== THERAPY GOALS ==========
@@ -190,6 +192,9 @@ export class ClinicalService {
       query.therapistId = userId;
     } else if (userRole === 'CAREGIVER') {
       query.caregiverId = userId;
+    } else if (userRole === 'PATIENT') {
+      const profile = await this.patientsService.getPatientProfile(userId);
+      query.patientId = profile.id;
     }
 
     if (patientId) {
@@ -385,5 +390,56 @@ export class ClinicalService {
       reviewedAt: session.reviewedAt,
       createdAt: session.createdAt,
     };
+  }
+
+  // ========== PDF GENERATION ==========
+
+  async generatePatientPDF(
+    patientId: string,
+    therapistId: string,
+    options: any
+  ): Promise<Buffer> {
+    // Fetch patient data
+    const patient = await this.patientsService.getPatientById(patientId, therapistId, 'THERAPIST');
+
+    // Fetch goals
+    const goalsData = await this.therapyGoalModel
+      .find({ patientId, deleted: false })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+
+    // Fetch sessions
+    const sessionsData = await this.videoSessionModel
+      .find({ patientId, deleted: false })
+      .sort({ recordedAt: -1 })
+      .limit(20)
+      .lean()
+      .exec();
+
+    // Get therapist name
+    const therapist = await this.patientsService['userModel']
+      .findById(therapistId)
+      .select('fullName')
+      .lean()
+      .exec();
+
+    // Prepare patient data for PDF
+    const patientData = {
+      ...patient,
+      therapistName: therapist?.fullName || 'Unknown Therapist',
+      notes: sessionsData
+        .filter(s => s.therapistNotes)
+        .map(s => s.therapistNotes)
+        .join('\n\n'),
+    };
+
+    // Generate PDF
+    return this.pdfGeneratorService.generatePatientReport(
+      patientData,
+      goalsData,
+      sessionsData,
+      options
+    );
   }
 }

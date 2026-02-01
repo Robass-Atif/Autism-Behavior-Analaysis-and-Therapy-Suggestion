@@ -136,6 +136,14 @@ export default function SystemHealthScreen() {
     return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   };
 
+  const chartData = health?.history?.map(h => ({
+    time: new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    cpu: h.cpuUsage,
+    memory: h.memoryUsage,
+    users: h.activeUsers,
+    latency: h.apiLatency
+  })) || [];
+
   return (
     <div className="min-h-screen bg-zinc-50 font-mono">
       {/* Header */}
@@ -209,14 +217,14 @@ export default function SystemHealthScreen() {
           />
         </div>
 
-        {/* Charts Row - Placeholder for now until time-series DB is implemented */}
+        {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* CPU & Memory Chart */}
           <div className="bg-white border-2 border-zinc-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-sm font-bold text-black uppercase tracking-wider">CPU_&_MEMORY</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">24-hour usage trend</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Real-time resource usage</p>
               </div>
               <div className="flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-2">
@@ -229,39 +237,61 @@ export default function SystemHealthScreen() {
                 </div>
               </div>
             </div>
-            <div className="h-[200px] flex items-center justify-center text-zinc-400 text-xs uppercase">
-              <div className="text-center">
-                <Clock size={24} className="mx-auto mb-2 text-zinc-300" />
-                <p>TIME-SERIES DATA REQUIRES</p>
-                <p>METRICS COLLECTION ENDPOINT</p>
-              </div>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#18181b" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="#18181b" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
+                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#a1a1aa' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#a1a1aa' }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', fontSize: '12px' }}
+                    itemStyle={{ fontSize: '10px' }}
+                  />
+                  <Area type="monotone" dataKey="cpu" stroke="#18181b" fillOpacity={1} fill="url(#colorCpu)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="memory" stroke="#a1a1aa" fill="none" strokeWidth={2} strokeDasharray="4 4" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          {/* API Requests Chart */}
+          {/* Active Users & Latency Chart */}
           <div className="bg-white border-2 border-zinc-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-sm font-bold text-black uppercase tracking-wider">API_REQUESTS</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Requests & error rate</p>
+                <h3 className="text-sm font-bold text-black uppercase tracking-wider">ACTIVE_USERS_&_LATENCY</h3>
+                <p className="text-xs text-zinc-500 mt-0.5">User load vs System response</p>
               </div>
               <div className="flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-0.5 bg-zinc-900" />
-                  <span className="text-zinc-600">REQS</span>
+                  <span className="text-zinc-600">USERS</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-0.5 bg-red-500" />
-                  <span className="text-zinc-600">ERRORS</span>
+                  <span className="text-zinc-600">LATENCY (ms)</span>
                 </div>
               </div>
             </div>
-            <div className="h-[200px] flex items-center justify-center text-zinc-400 text-xs uppercase">
-              <div className="text-center">
-                <Clock size={24} className="mx-auto mb-2 text-zinc-300" />
-                <p>TIME-SERIES DATA REQUIRES</p>
-                <p>METRICS COLLECTION ENDPOINT</p>
-              </div>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
+                  <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#a1a1aa' }} />
+                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#a1a1aa' }} />
+                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ef4444' }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e4e4e7', fontSize: '12px' }}
+                  />
+                  <Line yAxisId="left" type="monotone" dataKey="users" stroke="#18181b" strokeWidth={2} dot={false} />
+                  <Line yAxisId="right" type="monotone" dataKey="latency" stroke="#ef4444" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
