@@ -1,0 +1,14 @@
+{
+  "severity_inverse_mapping": {
+    "0": 2.0,
+    "1": 3.0
+  },
+  "severity_mapping": {
+    "2": 0,
+    "3": 1
+  },
+  "gender_classes": [
+    "F",
+    "M"
+  ]
+}

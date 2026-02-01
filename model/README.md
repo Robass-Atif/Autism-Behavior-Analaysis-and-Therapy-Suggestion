@@ -63,13 +63,13 @@ python main.py
 
 Or using uvicorn directly:
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn main:app --reload --host localhost --port 8000
 ```
 
 ### Production
 
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn main:app --host localhost --port 8000 --workers 4
 ```
 
 The API will be available at: `http://localhost:8000`

@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     # Model Settings - Updated paths to use the 2d model and 3d model folders
     MODEL_2D_PATH: str = str(BASE_DIR / "2d model")
     MODEL_3D_PATH: str = str(BASE_DIR / "3d model")
+    OPENPOSE_DIR: Optional[str] = None
     MAX_SEQUENCE_LENGTH: int = 100
     
     # Feature Flags
