@@ -1,15 +1,34 @@
 import React, { useState } from 'react';
 import { useRecentSessions } from '../../../api/clinical';
+import { usePatients } from '../../../api/patient';
+import { getFileUrl } from '../../../config/apiConfig';
 import {
   Play, Grid, List, Clock, Loader2, Brain, Search,
-  Calendar, TrendingUp, Award, Sparkles, Eye
+  Calendar, TrendingUp, Award, Sparkles, Eye, Filter, User, Target, X, Activity
 } from 'lucide-react';
 
 export default function VideoLibraryScreen() {
   const { data: videos, isLoading } = useRecentSessions();
+  const { data: patientsData } = usePatients({ limit: 100 });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPatient, setFilterPatient] = useState<string>('all');
+  const [filterAction, setFilterAction] = useState<string>('all');
+
+  const GUIDED_ACTIONS = [
+    { id: 'arm_swing_left', name: 'Arm Swing Left' },
+    { id: 'arm_swing_right', name: 'Arm Swing Right' },
+    { id: 'body_swing', name: 'Body Swing' },
+    { id: 'chest_expansion', name: 'Chest Expansion' },
+    { id: 'sing_and_clap', name: 'Sing and Clap' },
+    { id: 'drumming', name: 'Drumming' },
+    { id: 'frog_pose', name: 'Frog Pose' },
+    { id: 'arm_rotation', name: 'Arm Rotation' },
+    { id: 'head_tilt', name: 'Head Tilt' },
+    { id: 'finger_tapping', name: 'Finger Tapping' },
+    { id: 'jump_test', name: 'Jump Test' },
+  ];
 
   const handleViewVideo = (videoId: string) => {
     window.location.href = `/videos/${videoId}`;
@@ -44,10 +63,19 @@ export default function VideoLibraryScreen() {
   };
 
   const filteredVideos = videos?.sessions?.filter(video => {
-    const matchesSearch = video.actionType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      video.patientName?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || video.status === filterStatus;
-    return matchesSearch && matchesFilter;
+    const matchesSearch =
+      (video.actionType?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (video.patientName?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+
+    const matchesStatus = filterStatus === 'all' || video.status === filterStatus;
+    const matchesPatient = filterPatient === 'all' || video.patientId === filterPatient;
+
+    // Action filter matches either the ID or the Label
+    const matchesAction = filterAction === 'all' ||
+      video.actionType === filterAction ||
+      GUIDED_ACTIONS.find(a => a.id === filterAction)?.name === video.actionType;
+
+    return matchesSearch && matchesStatus && matchesPatient && matchesAction;
   });
 
   const stats = {
@@ -77,8 +105,8 @@ export default function VideoLibraryScreen() {
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2.5 border-2 transition-all ${viewMode === 'grid'
-                    ? 'bg-white text-zinc-900 border-white'
-                    : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  ? 'bg-white text-zinc-900 border-white'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                   }`}
               >
                 <Grid size={18} />
@@ -86,8 +114,8 @@ export default function VideoLibraryScreen() {
               <button
                 onClick={() => setViewMode('list')}
                 className={`p-2.5 border-2 transition-all ${viewMode === 'list'
-                    ? 'bg-white text-zinc-900 border-white'
-                    : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+                  ? 'bg-white text-zinc-900 border-white'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
                   }`}
               >
                 <List size={18} />
@@ -142,33 +170,107 @@ export default function VideoLibraryScreen() {
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-8">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-400" size={18} />
-            <input
-              type="text"
-              placeholder="SEARCH BY ACTION OR PATIENT..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border-2 border-zinc-300 focus:border-zinc-900 focus:outline-none text-sm uppercase tracking-wider placeholder:text-zinc-400 font-bold transition-colors"
-            />
+        {/* Filters Panel */}
+        <div className="bg-white border-2 border-zinc-900 p-6 mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Search */}
+            <div className="flex-[2] relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-400" size={18} />
+              <input
+                type="text"
+                placeholder="SEARCH ACTIONS OR PATIENTS..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-sm uppercase tracking-wider placeholder:text-zinc-400 font-bold transition-all"
+              />
+            </div>
+
+            {/* Quick Filters */}
+            <div className="flex-1 space-y-2">
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <User size={12} /> Patient
+              </label>
+              <select
+                value={filterPatient}
+                onChange={(e) => setFilterPatient(e.target.value)}
+                className="w-full px-4 py-2.5 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-xs font-bold uppercase tracking-widest transition-all appearance-none cursor-pointer"
+              >
+                <option value="all">ALL PATIENTS</option>
+                {patientsData?.patients?.map(p => (
+                  <option key={p.id} value={p.id}>{p.fullName.toUpperCase()}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Target size={12} /> Action Type
+              </label>
+              <select
+                value={filterAction}
+                onChange={(e) => setFilterAction(e.target.value)}
+                className="w-full px-4 py-2.5 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-xs font-bold uppercase tracking-widest transition-all appearance-none cursor-pointer"
+              >
+                <option value="all">ALL ACTIONS</option>
+                {GUIDED_ACTIONS.map(a => (
+                  <option key={a.id} value={a.id}>{a.name.toUpperCase()}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Activity size={12} /> Status
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-4 py-2.5 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-xs font-bold uppercase tracking-widest transition-all appearance-none cursor-pointer"
+              >
+                <option value="all">ALL STATUS</option>
+                <option value="uploaded">UPLOADED</option>
+                <option value="processing">PROCESSING</option>
+                <option value="analyzed">ANALYZED</option>
+                <option value="reviewed">REVIEWED</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'uploaded', 'processing', 'analyzed', 'reviewed'].map((status) => (
+          {/* Active Filters Display */}
+          {(filterPatient !== 'all' || filterAction !== 'all' || filterStatus !== 'all' || searchQuery) && (
+            <div className="mt-4 pt-4 border-t border-zinc-100 flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Active:</span>
+              {searchQuery && (
+                <FilterBadge label={`Search: ${searchQuery}`} onClear={() => setSearchQuery('')} />
+              )}
+              {filterPatient !== 'all' && (
+                <FilterBadge
+                  label={`Patient: ${patientsData?.patients?.find(p => p.id === filterPatient)?.fullName}`}
+                  onClear={() => setFilterPatient('all')}
+                />
+              )}
+              {filterAction !== 'all' && (
+                <FilterBadge
+                  label={`Action: ${GUIDED_ACTIONS.find(a => a.id === filterAction)?.name}`}
+                  onClear={() => setFilterAction('all')}
+                />
+              )}
+              {filterStatus !== 'all' && (
+                <FilterBadge label={`Status: ${filterStatus.toUpperCase()}`} onClear={() => setFilterStatus('all')} />
+              )}
               <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-4 py-3 border-2 font-bold text-xs uppercase tracking-widest transition-all ${filterStatus === status
-                    ? 'bg-zinc-900 text-white border-zinc-900'
-                    : 'bg-white text-zinc-700 border-zinc-300 hover:border-zinc-900'
-                  }`}
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterPatient('all');
+                  setFilterAction('all');
+                  setFilterStatus('all');
+                }}
+                className="text-[10px] font-black text-zinc-900 hover:text-red-600 transition-colors uppercase tracking-widest ml-auto"
               >
-                {status}
+                Clear All
               </button>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -200,7 +302,14 @@ export default function VideoLibraryScreen() {
                 onClick={() => handleViewVideo(video.id)}
               >
                 {/* Thumbnail */}
-                <div className="aspect-video bg-zinc-900 relative border-b-2 border-zinc-200 group-hover:border-zinc-900 transition-colors">
+                <div
+                  className="aspect-video bg-zinc-900 relative border-b-2 border-zinc-200 group-hover:border-zinc-900 transition-colors"
+                  style={{
+                    backgroundImage: video.thumbnailUrl ? `url(${getFileUrl(video.thumbnailUrl)})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
 
                   {/* Play Button */}
@@ -360,6 +469,23 @@ export default function VideoLibraryScreen() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function FilterBadge({ label, onClear }: { label: string; onClear: () => void }) {
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest border border-zinc-900">
+      <span>{label}</span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClear();
+        }}
+        className="hover:text-red-400 p-0.5"
+      >
+        <X size={10} />
+      </button>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   Loader2, Sparkles, CheckCircle2, AlertCircle, Zap, Target
 } from 'lucide-react';
 import { useVideoSession, useTriggerAIAnalysis, useUpdateVideoSession } from '../../../api/clinical';
+import { getFileUrl } from '../../../config/apiConfig';
 
 export default function VideoReviewInterface() {
   const { videoId } = useParams({ strict: false });
@@ -27,9 +28,12 @@ export default function VideoReviewInterface() {
 
   useEffect(() => {
     if (session?.therapistNotes) {
-      setNotes(session.therapistNotes);
+      setNotes(session.therapistNotes || '');
     }
-  }, [session]);
+    if (session?.duration && (!duration || duration === Infinity)) {
+      setDuration(session.duration);
+    }
+  }, [session, duration]);
 
   const handlePlayPause = () => {
     if (videoRef.current) {
@@ -50,7 +54,10 @@ export default function VideoReviewInterface() {
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration);
+      const videoDuration = videoRef.current.duration;
+      if (videoDuration && videoDuration !== Infinity && !isNaN(videoDuration)) {
+        setDuration(videoDuration);
+      }
     }
   };
 
@@ -121,12 +128,17 @@ export default function VideoReviewInterface() {
   };
 
   const handleMarkReviewed = async () => {
-    if (!id) return;
+    if (!id || !session) return;
 
     try {
       await updateSession.mutateAsync({
-        id,
-        data: { reviewed: true, reviewedAt: new Date() }
+        id: session.id,
+        data: {
+          status: 'reviewed',
+          therapistNotes: notes,
+          reviewed: true,
+          reviewedAt: new Date().toISOString()
+        }
       });
       setShowSuccess(true);
       setTimeout(() => {
@@ -138,6 +150,7 @@ export default function VideoReviewInterface() {
   };
 
   const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds) || seconds === Infinity) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -246,7 +259,7 @@ export default function VideoReviewInterface() {
               <div className="aspect-video relative bg-black">
                 <video
                   ref={videoRef}
-                  src={session.videoUrl}
+                  src={getFileUrl(session.videoUrl)}
                   className="w-full h-full object-contain"
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
@@ -285,7 +298,7 @@ export default function VideoReviewInterface() {
                       [&::-webkit-slider-thumb]:border-zinc-900
                       [&::-webkit-slider-thumb]:cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #fff 0%, #fff ${(currentTime / duration) * 100}%, #3f3f46 ${(currentTime / duration) * 100}%, #3f3f46 100%)`
+                      background: `linear-gradient(to right, #fff 0%, #fff ${duration > 0 && duration !== Infinity ? (currentTime / duration) * 100 : 0}%, #3f3f46 ${duration > 0 && duration !== Infinity ? (currentTime / duration) * 100 : 0}%, #3f3f46 100%)`
                     }}
                   />
                 </div>
@@ -507,8 +520,8 @@ export default function VideoReviewInterface() {
                                 <span>{formatTime(behavior.timestamp)}</span>
                                 <span className="w-1 h-1 bg-zinc-400"></span>
                                 <span className={`px-1.5 py-0.5 border ${behavior.severity === 'Normal' ? 'bg-green-50 border-green-600 text-green-700' :
-                                    behavior.severity === 'Mild' ? 'bg-amber-50 border-amber-600 text-amber-700' :
-                                      'bg-red-50 border-red-600 text-red-700'
+                                  behavior.severity === 'Mild' ? 'bg-amber-50 border-amber-600 text-amber-700' :
+                                    'bg-red-50 border-red-600 text-red-700'
                                   }`}>
                                   {behavior.severity}
                                 </span>

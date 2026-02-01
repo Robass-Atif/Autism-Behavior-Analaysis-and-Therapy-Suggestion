@@ -1,4 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ClinicalController } from './clinical.controller';
 import { ClinicalService } from './clinical.service';
@@ -6,6 +7,7 @@ import { PdfGeneratorService } from './services/pdf-generator.service';
 import { TherapyGoal, TherapyGoalSchema } from './schemas/therapy-goal.schema';
 import { VideoSession, VideoSessionSchema } from './schemas/video-session.schema';
 import { PatientsModule } from '../patients/patients.module';
+import { AiAnalysisService } from './services/ai-analysis.service';
 
 @Module({
   imports: [
@@ -14,9 +16,10 @@ import { PatientsModule } from '../patients/patients.module';
       { name: VideoSession.name, schema: VideoSessionSchema },
     ]),
     forwardRef(() => PatientsModule),
+    HttpModule,
   ],
   controllers: [ClinicalController],
-  providers: [ClinicalService, PdfGeneratorService],
+  providers: [ClinicalService, PdfGeneratorService, AiAnalysisService],
   exports: [ClinicalService],
 })
 export class ClinicalModule { }

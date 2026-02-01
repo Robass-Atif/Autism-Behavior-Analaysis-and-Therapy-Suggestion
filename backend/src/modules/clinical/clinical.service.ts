@@ -14,6 +14,7 @@ import { UpdateTherapyGoalDto } from './dto/update-therapy-goal.dto';
 import { CreateVideoSessionDto } from './dto/create-video-session.dto';
 import { PatientsService } from '../patients/patients.service';
 import { PdfGeneratorService } from './services/pdf-generator.service';
+import { AiAnalysisService } from './services/ai-analysis.service';
 
 @Injectable()
 export class ClinicalService {
@@ -23,6 +24,7 @@ export class ClinicalService {
     @Inject(forwardRef(() => PatientsService))
     private patientsService: PatientsService,
     private pdfGeneratorService: PdfGeneratorService,
+    private aiAnalysisService: AiAnalysisService,
   ) { }
 
   // ========== THERAPY GOALS ==========
@@ -185,14 +187,12 @@ export class ClinicalService {
     const session = new this.videoSessionModel(sessionData);
     await session.save();
 
-    // Automatically trigger AI analysis upon upload
-    this.triggerAIAnalysis(session._id.toString(), sessionData.therapistId || userId).catch(err => {
-      console.error('Failed to trigger automatic AI analysis:', err);
-    });
+    // REMOVED: Automatic AI analysis trigger
+    // Now strictly manual as per FR-5 requirements
 
     return {
       success: true,
-      message: 'Video session uploaded and analysis sequence initiated',
+      message: 'Video session uploaded successfully. Ready for therapist review.',
       session: this.formatVideoSession(session),
     };
   }
@@ -322,43 +322,16 @@ export class ClinicalService {
     session.status = 'processing';
     await session.save();
 
-    // TODO: In production, send video to AI model for analysis
-    // For now, simulate AI processing with mock data
-    setTimeout(async () => {
-      const mockAnalysis = {
-        behaviors: [
-          {
-            type: 'Movement Pattern',
-            timestamp: 5,
-            confidence: 0.87,
-            severity: 'Mild',
-          },
-          {
-            type: 'Coordination',
-            timestamp: 12,
-            confidence: 0.92,
-            severity: 'Normal',
-          },
-        ],
-        summary: 'The patient demonstrates good motor coordination with minor variations in movement patterns.',
-        recommendations: [
-          'Continue with current therapy exercises',
-          'Focus on arm coordination activities',
-          'Monitor progress over next 2 weeks',
-        ],
-      };
-
-      session.status = 'analyzed';
-      session.aiAnalysis = mockAnalysis;
-      session.aiConfidence = 89;
-      await session.save();
-    }, 3000); // Simulate 3 second processing time
+    // Call the dedicated AI Analysis service
+    this.aiAnalysisService.analyzeVideo(sessionId).catch(error => {
+      console.error(`AI Analysis Service error for session ${sessionId}:`, error);
+    });
 
     return {
       success: true,
       message: 'AI analysis has been triggered. Results will be available shortly.',
       sessionId: session._id,
-      status: 'Processing',
+      status: 'processing',
     };
   }
 

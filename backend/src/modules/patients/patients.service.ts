@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -23,6 +24,8 @@ export class PatientsService {
 
   // Create new patient (therapist only)
   async createPatient(therapistId: string, dto: CreatePatientDto) {
+    const logger = new Logger('PatientsService');
+
     // Check if MRN already exists
     const existingPatient = await this.patientModel.findOne({ mrn: dto.mrn });
 
@@ -32,38 +35,59 @@ export class PatientsService {
       );
     }
 
-    const user = new this.userModel({
-      fullName: dto.fullName,
-      email: `${dto.mrn}@patient.neurocare.com`, // Generated placeholder email
-      password: dto.mrn, // Default password is MRN
-      role: Role.PATIENT,
-      accountStatus: AccountStatus.ACTIVE,
-      isEmailVerified: true, // Patients created by therapists are pre-verified
-    });
-    const savedUser = await user.save();
+    // Normalize credentials
+    const mrn = dto.mrn.trim();
+    const patientEmail = `${mrn.toLowerCase()}@patient.neurocare.com`;
+    const patientPassword = mrn; // Password is matching the raw MRN
 
-    const patient = new this.patientModel({
-      ...dto,
-      userId: savedUser._id,
-      therapistId,
-      status: 'active',
-      deleted: false,
-    });
+    logger.log(`Creating patient user account: ${patientEmail}`);
 
-    await patient.save();
+    try {
+      // 1. Create the base User account
+      const user = new this.userModel({
+        fullName: dto.fullName.trim(),
+        email: patientEmail,
+        password: patientPassword,
+        role: Role.PATIENT,
+        accountStatus: AccountStatus.ACTIVE,
+        isEmailVerified: true,
+      });
 
-    return {
-      success: true,
-      message: 'Patient created successfully',
-      patient: {
-        id: patient._id,
-        mrn: patient.mrn,
-        fullName: patient.fullName,
-        therapistId: patient.therapistId,
-        status: patient.status,
-        createdAt: patient.createdAt,
-      },
-    };
+      const savedUser = await user.save();
+      logger.log(`User account created successfully: ${savedUser._id}`);
+
+      // 2. Create the Patient profile linked to the User
+      const patient = new this.patientModel({
+        ...dto,
+        userId: savedUser._id,
+        therapistId,
+        status: 'active',
+        deleted: false,
+      });
+
+      await patient.save();
+      logger.log(`Patient profile created for MRN: ${mrn}`);
+
+      return {
+        success: true,
+        message: 'Patient created successfully. Credentials generated.',
+        credentials: {
+          email: patientEmail,
+          password: mrn,
+        },
+        patient: {
+          id: patient._id,
+          mrn: patient.mrn,
+          fullName: patient.fullName,
+          therapistId: patient.therapistId,
+          status: patient.status,
+          createdAt: patient.createdAt,
+        },
+      };
+    } catch (error) {
+      logger.error(`Failed to create patient: ${error.message}`);
+      throw error;
+    }
   }
 
   // Get therapist's OWN patients only

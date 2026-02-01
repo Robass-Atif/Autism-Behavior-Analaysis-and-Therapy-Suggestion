@@ -475,12 +475,14 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
+      console.error(`🔓 LOGIN_FAIL: User not found for email: ${dto.email}`);
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const isPasswordValid = await user.comparePassword(dto.password);
 
     if (!isPasswordValid) {
+      console.error(`🔓 LOGIN_FAIL: Password mismatch for email: ${dto.email}`);
       throw new UnauthorizedException('Invalid email or password');
     }
 

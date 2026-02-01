@@ -2,7 +2,8 @@
 // All API endpoints should use these base URLs
 
 // For development - change this to your actual backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+export const BASE_HOST = API_BASE_URL.replace('/api', '');
 
 // Auth Module
 export const AUTH_ENDPOINTS = {
@@ -135,4 +136,11 @@ export const buildDynamicUrl = (template: string, params: Record<string, string>
     url = url.replace(`:${key}`, value);
   });
   return buildUrl(url);
+};
+
+// Helper to get full file URL
+export const getFileUrl = (path?: string): string => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${BASE_HOST}${path}`;
 };

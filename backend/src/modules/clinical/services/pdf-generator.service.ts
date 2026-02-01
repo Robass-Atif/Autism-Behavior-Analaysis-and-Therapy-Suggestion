@@ -39,7 +39,7 @@ export class PdfGeneratorService {
 
                     // Add password protection if requested
                     if (options.password) {
-                        pdfBuffer = await this.addPasswordProtection(pdfBuffer as any, options.password);
+                        pdfBuffer = await this.addPasswordProtection(pdfBuffer, options.password) as any;
                     }
 
                     resolve(pdfBuffer);
@@ -84,7 +84,7 @@ export class PdfGeneratorService {
     /**
      * Add watermark to PDF
      */
-    private addWatermark(doc: PDFDocument) {
+    private addWatermark(doc: any) {
         doc.save();
         doc.fontSize(60)
             .fillColor('#cccccc', 0.15)
@@ -99,7 +99,7 @@ export class PdfGeneratorService {
     /**
      * Add header section
      */
-    private addHeader(doc: PDFDocument, patientData: any) {
+    private addHeader(doc: any, patientData: any) {
         // Title
         doc.fontSize(24)
             .fillColor('#000000')
@@ -129,7 +129,7 @@ export class PdfGeneratorService {
     /**
      * Add patient information section
      */
-    private addPatientInfo(doc: PDFDocument, patientData: any) {
+    private addPatientInfo(doc: any, patientData: any) {
         doc.fontSize(14)
             .font('Helvetica-Bold')
             .fillColor('#000000')
@@ -178,7 +178,7 @@ export class PdfGeneratorService {
     /**
      * Add therapy goals section
      */
-    private addGoalsSection(doc: PDFDocument, goalsData: any[]) {
+    private addGoalsSection(doc: any, goalsData: any[]) {
         doc.fontSize(14)
             .font('Helvetica-Bold')
             .fillColor('#000000')
@@ -232,7 +232,7 @@ export class PdfGeneratorService {
     /**
      * Add sessions section
      */
-    private addSessionsSection(doc: PDFDocument, sessionsData: any[], includeTables: boolean) {
+    private addSessionsSection(doc: any, sessionsData: any[], includeTables: boolean) {
         doc.fontSize(14)
             .font('Helvetica-Bold')
             .fillColor('#000000')
@@ -293,7 +293,7 @@ export class PdfGeneratorService {
     /**
      * Add therapist notes section
      */
-    private addNotesSection(doc: PDFDocument, notes: string) {
+    private addNotesSection(doc: any, notes: string) {
         if (doc.y > 650) {
             doc.addPage();
         }
@@ -323,7 +323,7 @@ export class PdfGeneratorService {
     /**
      * Add footer
      */
-    private addFooter(doc: PDFDocument, therapistName: string) {
+    private addFooter(doc: any, therapistName: string) {
         const pages = doc.bufferedPageRange();
 
         for (let i = 0; i < pages.count; i++) {

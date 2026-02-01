@@ -842,7 +842,10 @@ export class AdminService {
     let dbLatency = 0;
     try {
       const start = Date.now();
-      await this.usersService.userModel.db.db.admin().command({ ping: 1 });
+      const adminDb = (this.usersService.userModel.db as any).db?.admin();
+      if (adminDb) {
+        await adminDb.command({ ping: 1 });
+      }
       dbLatency = Date.now() - start;
     } catch (error) {
       dbStatus = 'error';
@@ -898,7 +901,10 @@ export class AdminService {
       let dbLatency = 0;
       try {
         const start = Date.now();
-        await this.usersService.userModel.db.db.admin().command({ ping: 1 });
+        const adminDb = (this.usersService.userModel.db as any).db?.admin();
+        if (adminDb) {
+          await adminDb.command({ ping: 1 });
+        }
         dbLatency = Date.now() - start;
       } catch (e) { }
 

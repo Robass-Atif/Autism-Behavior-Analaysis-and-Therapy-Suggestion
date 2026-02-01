@@ -128,10 +128,10 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                             className="w-full bg-zinc-50 border-b border-zinc-200 px-4 py-3 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-zinc-900 transition-all appearance-none cursor-pointer"
                         >
                             <option value="all">ALL_STATUS_MODES</option>
-                            <option value="Uploaded">UPLOADED</option>
-                            <option value="Processing">PROCESSING</option>
-                            <option value="Analyzed">ANALYZED</option>
-                            <option value="Reviewed">REVIEWED</option>
+                            <option value="uploaded">UPLOADED</option>
+                            <option value="processing">PROCESSING</option>
+                            <option value="analyzed">ANALYZED</option>
+                            <option value="reviewed">REVIEWED</option>
                         </select>
                     </div>
 
@@ -195,7 +195,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                                                         {session.recordedAt ? format(new Date(session.recordedAt), 'yyyy.MM.dd // HH:mm') : '0000.00.00'}
                                                     </div>
                                                 </div>
-                                                <div className={`text-[8px] font-black px-2 py-0.5 border ${session.status === 'Analyzed' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-transparent text-zinc-400 border-zinc-200'
+                                                <div className={`text-[8px] font-black px-2 py-0.5 border ${session.status === 'analyzed' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-transparent text-zinc-400 border-zinc-200'
                                                     }`}>
                                                     {session.status.toUpperCase()}
                                                 </div>
@@ -240,7 +240,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                                             <span className="flex items-center gap-1"><Clock size={10} /> {formatDuration(session.duration || 0)}</span>
                                         </div>
                                     </div>
-                                    <div className={`text-[8px] font-black px-3 py-1 border ${session.status === 'Analyzed' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-transparent text-zinc-400 border-zinc-200'
+                                    <div className={`text-[8px] font-black px-3 py-1 border ${session.status === 'analyzed' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-transparent text-zinc-400 border-zinc-200'
                                         }`}>
                                         {session.status.toUpperCase()}
                                     </div>
