@@ -8,11 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { EmailModule } from './modules/email/email.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { InvitationModule } from './modules/invitation/invitation.module';
-import { PatientsModule } from './modules/patients/patients.module';
-import { AdminModule } from './modules/admin/admin.module';
-import { ClinicalModule } from './modules/clinical/clinical.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { TherapyGoalsModule } from './modules/therapy-goals/therapy-goals.module';
+import { PredictModule } from './modules/predict/predict.module';
 import { HealthController } from './health.controller';
 
 import { ScheduleModule } from '@nestjs/schedule';
@@ -48,11 +44,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     EmailModule,
     UploadModule,
     InvitationModule,
-    PatientsModule,
-    AdminModule,
-    ClinicalModule,
-    DashboardModule,
-    TherapyGoalsModule,
+    PredictModule,
   ],
   controllers: [HealthController],
   providers: [

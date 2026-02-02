@@ -57,6 +57,12 @@ export class User {
   @Prop({ default: true })
   isActive: boolean;
 
+  @Prop({ enum: ['M', 'F', 'Other'] })
+  gender?: string;
+
+  @Prop()
+  dateOfBirth?: Date;
+
   @Prop()
   lastLogin?: Date;
 

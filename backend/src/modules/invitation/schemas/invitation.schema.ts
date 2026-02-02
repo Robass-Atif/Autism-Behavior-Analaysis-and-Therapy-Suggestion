@@ -74,10 +74,6 @@ export class Invitation {
 
 export const InvitationSchema = SchemaFactory.createForClass(Invitation);
 
-// Indexes for performance
-InvitationSchema.index({ invitationCode: 1 }, { unique: true });
-InvitationSchema.index({ code: 1 });
-InvitationSchema.index({ status: 1, expiresAt: 1 });
-InvitationSchema.index({ therapistId: 1, status: 1 });
-InvitationSchema.index({ caregiverEmail: 1 });
-InvitationSchema.index({ patientId: 1 });
+// Index for expiration and code lookup
+InvitationSchema.index({ expiresAt: 1 });
+InvitationSchema.index({ therapistId: 1 });

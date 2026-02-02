@@ -33,6 +33,32 @@ export class ProfessionalReferenceDto {
   phone?: string;
 }
 
+export class ProfessionalCredentialsDto {
+  @ApiProperty({ description: 'License Number' })
+  @IsString()
+  @IsNotEmpty()
+  licenseNumber: string;
+
+  @ApiProperty({ enum: LicenseType, description: 'License Type' })
+  @IsEnum(LicenseType)
+  licenseType: LicenseType;
+
+  @ApiPropertyOptional({ description: 'Other License Type' })
+  @IsString()
+  @IsOptional()
+  otherLicenseType?: string;
+
+  @ApiProperty({ description: 'Issuing Authority' })
+  @IsString()
+  @IsNotEmpty()
+  issuingAuthority: string;
+
+  @ApiProperty({ description: 'License Expiry Date' })
+  @IsDateString()
+  @IsNotEmpty()
+  licenseExpiryDate: string;
+}
+
 // Flattened DTO to match FormData structure
 export class RegisterTherapistDto {
   // Personal Information
@@ -61,29 +87,21 @@ export class RegisterTherapistDto {
   @IsNotEmpty()
   phoneNumber: string;
 
-  // Professional Credentials (Flattened)
-  @ApiProperty({ description: 'License number' })
-  @IsString()
-  @IsNotEmpty()
-  licenseNumber: string;
-
-  @ApiProperty({ enum: LicenseType, description: 'Type of license' })
-  @IsEnum(LicenseType)
-  licenseType: LicenseType;
-
-  @ApiPropertyOptional({ description: 'Other license type if selected Other' })
-  @IsString()
+  @ApiPropertyOptional({ enum: ['M', 'F', 'Other'], description: 'Gender' })
+  @IsEnum(['M', 'F', 'Other'])
   @IsOptional()
-  otherLicenseType?: string;
+  gender?: string;
 
-  @ApiProperty({ description: 'Issuing authority' })
-  @IsString()
-  @IsNotEmpty()
-  issuingAuthority: string;
-
-  @ApiProperty({ description: 'License expiry date' })
+  @ApiPropertyOptional({ description: 'Date of birth' })
   @IsDateString()
-  licenseExpiryDate: string;
+  @IsOptional()
+  dateOfBirth?: string;
+
+  // Professional Credentials
+  @ApiProperty({ type: ProfessionalCredentialsDto })
+  @ValidateNested()
+  @Type(() => ProfessionalCredentialsDto)
+  credentials: ProfessionalCredentialsDto;
 
   // Organization/Practice (Flattened)
   @ApiProperty({ description: 'Organization name' })

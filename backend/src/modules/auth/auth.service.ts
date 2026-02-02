@@ -150,46 +150,39 @@ export class AuthService {
     }
 
     // Create therapist
-    let therapist: any;
-    try {
-      therapist = await this.usersService.createTherapist({
-        fullName: dto.fullName,
-        email: dto.email,
-        password: dto.password,
-        phoneNumber: dto.phoneNumber,
-        professionalTitle: dto.professionalTitle,
-        otherProfessionalTitle: dto.otherProfessionalTitle,
-        credentials: {
-          licenseNumber: dto.licenseNumber,
-          licenseType: dto.licenseType,
-          otherLicenseType: dto.otherLicenseType,
-          issuingAuthority: dto.issuingAuthority,
-          licenseExpiryDate: new Date(dto.licenseExpiryDate),
-          isLicenseVerified: false,
-          licenseCertificatePath: file ? `licenses/${file.filename}` : undefined,
-        },
-        organization: {
-          organizationName: dto.organizationName,
-          department: dto.department,
-          workAddress: dto.workAddress,
-          city: dto.city || '',
-          stateProvince: dto.stateProvince || '',
-          zipPostalCode: dto.zipPostalCode || '',
-          country: dto.country || '',
-        },
-        references: dto.references,
-        termsAccepted: termsAccepted,
-        hipaaAccepted: hipaaAccepted,
-        privacyPolicyAccepted: privacyPolicyAccepted,
-        twoFactorEnabled: dto.twoFactorEnabled,
-        twoFactorMethod: dto.twoFactorMethod,
-      });
-    } catch (error: any) {
-      if (error.code === 11000) {
-        throw new BadRequestException('An account with this email already exists');
-      }
-      throw error;
-    }
+    const therapist = await this.usersService.createTherapist({
+      fullName: dto.fullName,
+      email: dto.email,
+      password: dto.password,
+      phoneNumber: dto.phoneNumber,
+      gender: dto.gender,
+      dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      professionalTitle: dto.professionalTitle,
+      otherProfessionalTitle: dto.otherProfessionalTitle,
+      credentials: {
+        licenseNumber: dto.credentials.licenseNumber,
+        licenseType: dto.credentials.licenseType,
+        otherLicenseType: dto.credentials.otherLicenseType,
+        issuingAuthority: dto.credentials.issuingAuthority,
+        licenseExpiryDate: new Date(dto.credentials.licenseExpiryDate),
+        isLicenseVerified: false,
+      },
+      organization: {
+        organizationName: dto.organizationName,
+        department: dto.department,
+        workAddress: dto.workAddress,
+        city: dto.city,
+        stateProvince: dto.stateProvince,
+        zipPostalCode: dto.zipPostalCode,
+        country: dto.country,
+      },
+      references: dto.references,
+      termsAccepted: dto.termsAccepted,
+      hipaaAccepted: dto.hipaaAccepted,
+      privacyPolicyAccepted: dto.privacyPolicyAccepted,
+      twoFactorEnabled: dto.twoFactorEnabled,
+      twoFactorMethod: dto.twoFactorMethod,
+    });
 
     // Generate and save email verification token
     const verificationToken = this.generateVerificationToken();
@@ -271,37 +264,30 @@ export class AuthService {
       linkedPatientName = validationResult.invitation.patientName;
     }
 
-    // Create caregiver account
-    let caregiver: any;
-    try {
-      caregiver = await this.usersService.createCaregiver({
-        fullName: dto.fullName,
-        email: dto.email,
-        password: dto.password,
-        phoneNumber: dto.phoneNumber,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
-        preferredLanguage: dto.preferredLanguage,
-        otherLanguage: dto.otherLanguage,
-        relationshipType: dto.relationshipType,
-        otherRelationshipType: dto.otherRelationshipType,
-        invitationCode: dto.invitationCode,
-        invitedBy: invitedBy as any,
-        emergencyContact: dto.emergencyContact,
-        notificationPreferences: {
-          emailNotifications: dto.notificationPreferences?.emailNotifications ?? true,
-          smsNotifications: dto.notificationPreferences?.smsNotifications ?? false,
-          recordingReminders: dto.notificationPreferences?.recordingReminders ?? true,
-        },
-        termsAccepted: dto.termsAccepted,
-        privacyPolicyAccepted: dto.privacyPolicyAccepted,
-        videoRecordingConsentAccepted: dto.videoRecordingConsentAccepted,
-      });
-    } catch (error: any) {
-      if (error.code === 11000) {
-        throw new BadRequestException('An account with this email already exists');
-      }
-      throw error;
-    }
+    // Create caregiver
+    const caregiver = await this.usersService.createCaregiver({
+      fullName: dto.fullName,
+      email: dto.email,
+      password: dto.password,
+      phoneNumber: dto.phoneNumber,
+      gender: dto.gender,
+      dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      preferredLanguage: dto.preferredLanguage,
+      otherLanguage: dto.otherLanguage,
+      relationshipType: dto.relationshipType,
+      otherRelationshipType: dto.otherRelationshipType,
+      invitationCode: dto.invitationCode,
+      invitedBy: invitedBy as any,
+      emergencyContact: dto.emergencyContact,
+      notificationPreferences: {
+        emailNotifications: dto.notificationPreferences?.emailNotifications ?? true,
+        smsNotifications: dto.notificationPreferences?.smsNotifications ?? false,
+        recordingReminders: dto.notificationPreferences?.recordingReminders ?? true,
+      },
+      termsAccepted: dto.termsAccepted,
+      privacyPolicyAccepted: dto.privacyPolicyAccepted,
+      videoRecordingConsentAccepted: dto.videoRecordingConsentAccepted,
+    });
 
     // Mark invitation as accepted (updates status to ACCEPTED)
     await this.invitationService.markInvitationAsAccepted(
