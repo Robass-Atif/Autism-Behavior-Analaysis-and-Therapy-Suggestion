@@ -42,15 +42,15 @@ export class RegisterAdminDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'Phone number with country code' })
+  @ApiPropertyOptional({ description: 'Phone number with country code' })
   @IsString()
-  @IsNotEmpty()
-  phoneNumber: string;
+  @IsOptional()
+  phoneNumber?: string;
 
-  @ApiProperty({ description: 'Employee ID' })
+  @ApiPropertyOptional({ description: 'Employee ID' })
   @IsString()
-  @IsNotEmpty()
-  employeeId: string;
+  @IsOptional()
+  employeeId?: string;
 
   // Administrative Role
   @ApiProperty({ enum: AdminLevel, description: 'Admin level' })
@@ -58,15 +58,15 @@ export class RegisterAdminDto {
   adminLevel: AdminLevel;
 
   // Organization Details
-  @ApiProperty({ description: 'Organization name' })
+  @ApiPropertyOptional({ description: 'Organization name' })
   @IsString()
-  @IsNotEmpty()
-  organizationName: string;
+  @IsOptional()
+  organizationName?: string;
 
-  @ApiProperty({ description: 'Department' })
+  @ApiPropertyOptional({ description: 'Department' })
   @IsString()
-  @IsNotEmpty()
-  department: string;
+  @IsOptional()
+  department?: string;
 
   // Account Security
   @ApiProperty({
@@ -90,9 +90,10 @@ export class RegisterAdminDto {
   confirmPassword: string;
 
   // Two-Factor Authentication (Mandatory for Admin)
-  @ApiProperty({ enum: TwoFactorMethod, description: '2FA method (mandatory)' })
+  @ApiPropertyOptional({ enum: TwoFactorMethod, description: '2FA method (mandatory)' })
   @IsEnum(TwoFactorMethod)
-  twoFactorMethod: TwoFactorMethod;
+  @IsOptional()
+  twoFactorMethod?: TwoFactorMethod;
 
   @ApiPropertyOptional({ description: 'Phone number for 2FA (if SMS selected)' })
   @IsString()
@@ -105,48 +106,53 @@ export class RegisterAdminDto {
   backupEmail?: string;
 
   // Security Questions (Mandatory)
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [SecurityQuestionDto],
     description: 'Three security questions with answers',
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @ArrayMinSize(3)
+  @ArrayMinSize(0) // Make optional by allowing 0
   @ArrayMaxSize(3)
+  @IsOptional()
   @Type(() => SecurityQuestionDto)
-  securityQuestions: SecurityQuestionDto[];
+  securityQuestions?: SecurityQuestionDto[];
 
   // Access Justification
-  @ApiProperty({ description: 'Reason for admin access' })
+  @ApiPropertyOptional({ description: 'Reason for admin access' })
   @IsString()
-  @IsNotEmpty()
-  accessJustification: string;
+  @IsOptional()
+  accessJustification?: string;
 
   // Terms and Conditions
-  @ApiProperty({ description: 'Admin Code of Conduct acceptance' })
+  @ApiPropertyOptional({ description: 'Admin Code of Conduct acceptance' })
   @IsBoolean()
-  adminCodeOfConductAccepted: boolean;
+  @IsOptional()
+  adminCodeOfConductAccepted?: boolean;
 
-  @ApiProperty({ description: 'System Access Policy acceptance' })
+  @ApiPropertyOptional({ description: 'System Access Policy acceptance' })
   @IsBoolean()
-  systemAccessPolicyAccepted: boolean;
+  @IsOptional()
+  systemAccessPolicyAccepted?: boolean;
 
-  @ApiProperty({ description: 'Security responsibility acknowledgment' })
+  @ApiPropertyOptional({ description: 'Security responsibility acknowledgment' })
   @IsBoolean()
-  securityResponsibilityAccepted: boolean;
+  @IsOptional()
+  securityResponsibilityAccepted?: boolean;
 
-  @ApiProperty({ description: 'HIPAA compliance acceptance' })
+  @ApiPropertyOptional({ description: 'HIPAA compliance acceptance' })
   @IsBoolean()
-  hipaaAccepted: boolean;
+  @IsOptional()
+  hipaaAccepted?: boolean;
 
   // Approval
-  @ApiProperty({ description: 'Approving Super Admin email' })
+  @ApiPropertyOptional({ description: 'Approving Super Admin email' })
   @IsEmail()
-  @IsNotEmpty()
-  approvingSuperAdminEmail: string;
+  @IsOptional()
+  approvingSuperAdminEmail?: string;
 
-  @ApiProperty({ description: 'Approval code from Super Admin' })
+  @ApiPropertyOptional({ description: 'Approval code from Super Admin' })
   @IsString()
-  @IsNotEmpty()
-  approvalCode: string;
+  @IsOptional()
+  approvalCode?: string;
 }

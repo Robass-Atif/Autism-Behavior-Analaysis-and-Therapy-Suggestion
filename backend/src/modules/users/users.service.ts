@@ -10,15 +10,16 @@ import { Therapist, TherapistDocument } from './schemas/therapist.schema';
 import { Caregiver, CaregiverDocument } from './schemas/caregiver.schema';
 import { Admin, AdminDocument } from './schemas/admin.schema';
 import { Role, AccountStatus } from '../../common/enums/role.enum';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(User.name) public userModel: Model<UserDocument>,
     @InjectModel(Therapist.name) private therapistModel: Model<TherapistDocument>,
     @InjectModel(Caregiver.name) private caregiverModel: Model<CaregiverDocument>,
     @InjectModel(Admin.name) private adminModel: Model<AdminDocument>,
-  ) {}
+  ) { }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     const normalizedEmail = email.toLowerCase();
@@ -73,8 +74,19 @@ export class UsersService {
       throw new ConflictException('Email already registered');
     }
 
+    const user = new this.userModel({
+      fullName: data.fullName,
+      email: data.email.toLowerCase(),
+      password: data.password,
+      phoneNumber: data.phoneNumber,
+      role: Role.THERAPIST,
+      accountStatus: AccountStatus.PENDING_VERIFICATION,
+    });
+    const savedUser = await user.save();
+
     const therapist = new this.therapistModel({
       ...data,
+      userId: savedUser._id,
       email: data.email.toLowerCase(),
       role: Role.THERAPIST,
       accountStatus: AccountStatus.PENDING_VERIFICATION,
@@ -89,8 +101,19 @@ export class UsersService {
       throw new ConflictException('Email already registered');
     }
 
+    const user = new this.userModel({
+      fullName: data.fullName,
+      email: data.email.toLowerCase(),
+      password: data.password,
+      phoneNumber: data.phoneNumber,
+      role: Role.CAREGIVER,
+      accountStatus: AccountStatus.PENDING_VERIFICATION,
+    });
+    const savedUser = await user.save();
+
     const caregiver = new this.caregiverModel({
       ...data,
+      userId: savedUser._id,
       email: data.email.toLowerCase(),
       role: Role.CAREGIVER,
       accountStatus: AccountStatus.PENDING_VERIFICATION,
@@ -105,11 +128,24 @@ export class UsersService {
       throw new ConflictException('Email already registered');
     }
 
+    const user = new this.userModel({
+      fullName: data.fullName,
+      email: data.email.toLowerCase(),
+      password: data.password,
+      phoneNumber: data.phoneNumber,
+      role: Role.ADMIN,
+      accountStatus: AccountStatus.ACTIVE,
+      isEmailVerified: true,
+    });
+    const savedUser = await user.save();
+
     const admin = new this.adminModel({
       ...data,
+      userId: savedUser._id,
       email: data.email.toLowerCase(),
       role: Role.ADMIN,
-      accountStatus: AccountStatus.PENDING_VERIFICATION,
+      isEmailVerified: true,
+      accountStatus: AccountStatus.ACTIVE,
     });
 
     return admin.save();
@@ -156,21 +192,41 @@ export class UsersService {
   }
 
   async getAllUsers(role?: Role): Promise<UserDocument[]> {
-    const query = role ? { role } : {};
-    return this.userModel.find(query).select('-password');
+    // Query the correct collection based on role
+    if (role === Role.THERAPIST) {
+      return this.therapistModel.find().select('-password') as unknown as UserDocument[];
+    }
+    if (role === Role.CAREGIVER) {
+      return this.caregiverModel.find().select('-password') as unknown as UserDocument[];
+    }
+    if (role === Role.ADMIN) {
+      return this.adminModel.find().select('-password') as unknown as UserDocument[];
+    }
+    if (role === Role.PATIENT) {
+      return this.userModel.find({ role: Role.PATIENT }).select('-password');
+    }
+    // For no role specified, query all collections
+    const [therapists, caregivers, admins] = await Promise.all([
+      this.therapistModel.find().select('-password'),
+      this.caregiverModel.find().select('-password'),
+      this.adminModel.find().select('-password'),
+    ]);
+    return [...therapists, ...caregivers, ...admins] as unknown as UserDocument[];
   }
 
   async getPendingApprovals(): Promise<UserDocument[]> {
-    return this.userModel
-      .find({ accountStatus: AccountStatus.PENDING_APPROVAL })
-      .select('-password');
+    // Get pending therapists from the therapists collection
+    return this.therapistModel
+      .find({ accountStatus: { $in: [AccountStatus.PENDING_APPROVAL, AccountStatus.PENDING_VERIFICATION] } })
+      .select('-password') as unknown as UserDocument[];
   }
 
   async approveUser(
     userId: string,
     approvedBy: string,
   ): Promise<UserDocument> {
-    const user = await this.userModel.findById(userId);
+    // Find user in the correct collection based on role
+    let user = await this.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -179,19 +235,25 @@ export class UsersService {
 
     if (user.role === Role.THERAPIST) {
       await this.therapistModel.findByIdAndUpdate(userId, {
+        accountStatus: AccountStatus.ACTIVE,
         isAdminApproved: true,
         adminApprovalDate: new Date(),
         adminApprovalBy: approvedBy,
       });
+    } else if (user.role === Role.CAREGIVER) {
+      await this.caregiverModel.findByIdAndUpdate(userId, {
+        accountStatus: AccountStatus.ACTIVE,
+      });
     } else if (user.role === Role.ADMIN) {
       await this.adminModel.findByIdAndUpdate(userId, {
+        accountStatus: AccountStatus.ACTIVE,
         isApproved: true,
         approvalDate: new Date(),
         approvedBy: new Types.ObjectId(approvedBy),
       });
     }
 
-    return user.save();
+    return user;
   }
 
   async rejectUser(
@@ -225,11 +287,40 @@ export class UsersService {
     userId: string,
     status: AccountStatus,
   ): Promise<UserDocument> {
-    const user = await this.userModel.findByIdAndUpdate(
-      userId,
-      { accountStatus: status },
-      { new: true },
-    );
+    // First, find the user to determine their role/collection
+    const existingUser = await this.findById(userId);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update in the correct collection based on role
+    let user: UserDocument | null = null;
+
+    if (existingUser.role === Role.THERAPIST) {
+      user = await this.therapistModel.findByIdAndUpdate(
+        userId,
+        { accountStatus: status },
+        { new: true },
+      ) as unknown as UserDocument;
+    } else if (existingUser.role === Role.CAREGIVER) {
+      user = await this.caregiverModel.findByIdAndUpdate(
+        userId,
+        { accountStatus: status },
+        { new: true },
+      ) as unknown as UserDocument;
+    } else if (existingUser.role === Role.ADMIN) {
+      user = await this.adminModel.findByIdAndUpdate(
+        userId,
+        { accountStatus: status },
+        { new: true },
+      ) as unknown as UserDocument;
+    } else {
+      user = await this.userModel.findByIdAndUpdate(
+        userId,
+        { accountStatus: status },
+        { new: true },
+      );
+    }
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -294,5 +385,86 @@ export class UsersService {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
+  }
+
+  async updateUser(userId: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
+    // First, find the user to determine their role/collection
+    const existingUser = await this.findById(userId);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update in the correct collection based on role
+    let user: UserDocument | null = null;
+
+    if (existingUser.role === Role.THERAPIST) {
+      user = await this.therapistModel.findByIdAndUpdate(userId, updateUserDto, {
+        new: true,
+      }) as unknown as UserDocument;
+    } else if (existingUser.role === Role.CAREGIVER) {
+      user = await this.caregiverModel.findByIdAndUpdate(userId, updateUserDto, {
+        new: true,
+      }) as unknown as UserDocument;
+    } else if (existingUser.role === Role.ADMIN) {
+      user = await this.adminModel.findByIdAndUpdate(userId, updateUserDto, {
+        new: true,
+      }) as unknown as UserDocument;
+    } else {
+      user = await this.userModel.findByIdAndUpdate(userId, updateUserDto, {
+        new: true,
+      });
+    }
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  async updateOnboardingStatus(userId: string, status: boolean): Promise<UserDocument> {
+    // First, find the user to determine their role/collection
+    const existingUser = await this.findById(userId);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update in the correct collection based on role
+    let user: UserDocument | null = null;
+
+    if (existingUser.role === Role.THERAPIST) {
+      user = await this.therapistModel.findByIdAndUpdate(
+        userId,
+        { onboardingCompleted: status },
+        { new: true },
+      ) as unknown as UserDocument;
+    } else if (existingUser.role === Role.CAREGIVER) {
+      user = await this.caregiverModel.findByIdAndUpdate(
+        userId,
+        { onboardingCompleted: status },
+        { new: true },
+      ) as unknown as UserDocument;
+    } else if (existingUser.role === Role.ADMIN) {
+      user = await this.adminModel.findByIdAndUpdate(
+        userId,
+        { onboardingCompleted: status },
+        { new: true },
+      ) as unknown as UserDocument;
+    } else {
+      user = await this.userModel.findByIdAndUpdate(
+        userId,
+        { onboardingCompleted: status },
+        { new: true },
+      );
+    }
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+  async countUsers(filter: any): Promise<number> {
+    return this.userModel.countDocuments(filter);
   }
 }

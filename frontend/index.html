@@ -1,84 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NeuroCare | Clinical Therapy Platform</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-      
-      :root {
-        --primary: #2563EB; /* Professional Blue */
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NeuroCare | Clinical Therapy Platform</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232563EB' rx='20'/><path d='M25 50 L40 50 L50 35 L60 65 L75 50' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+  <!-- We keep the CDN for Tailwind to keep the setup simple, though npm install is preferred for production -->
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --primary: #2563EB;
+      /* Professional Blue */
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F8FAFC;
+      /* Slate 50 */
+      color: #0F172A;
+      /* Slate 900 */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Refined transition */
+    .transition-all-fast {
+      transition-property: all;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 150ms;
+    }
+
+    /* Minimal scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #E2E8F0;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #CBD5E1;
+    }
+
+    /* Utility for glass headers */
+    .glass-header {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #E2E8F0;
+    }
+
+    /* Loading Skeleton Animation */
+    @keyframes pulse-fast {
+
+      0%,
+      100% {
+        opacity: 1;
       }
 
-      body {
-        font-family: 'Inter', sans-serif;
-        background-color: #F8FAFC; /* Slate 50 */
-        color: #0F172A; /* Slate 900 */
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+      50% {
+        opacity: .5;
       }
-      
-      /* Refined transition */
-      .transition-all-fast {
-        transition-property: all;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 150ms;
-      }
+    }
 
-      /* Minimal scrollbar */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent; 
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #E2E8F0; 
-        border-radius: 3px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #CBD5E1; 
-      }
-      
-      /* Utility for glass headers */
-      .glass-header {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid #E2E8F0;
-      }
-      
-      /* Loading Skeleton Animation */
-      @keyframes pulse-fast {
-        0%, 100% { opacity: 1; }
-        50% { opacity: .5; }
-      }
-      .animate-pulse-fast {
-        animation: pulse-fast 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      }
-    </style>
+    .animate-pulse-fast {
+      animation: pulse-fast 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react/": "https://esm.sh/react@18.3.1/",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react,react-dom",
-    "recharts": "https://esm.sh/recharts@2.12.2?external=react,react-dom",
-    "zod": "https://esm.sh/zod@3.22.4",
-    "react-hook-form": "https://esm.sh/react-hook-form@7.51.0?external=react,react-dom",
-    "@hookform/resolvers/zod": "https://esm.sh/@hookform/resolvers@3.3.4/zod?external=react,react-hook-form",
-    "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@5.28.0?external=react,react-dom",
-    "@hookform/resolvers/": "https://esm.sh/@hookform/resolvers@^5.2.2/"
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@^5.90.16",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-hook-form": "https://esm.sh/react-hook-form@^7.69.0",
+    "@hookform/resolvers/": "https://esm.sh/@hookform/resolvers@^5.2.2/",
+    "zod": "https://esm.sh/zod@^4.2.1",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
 </script>
 </head>
-  <body class="bg-slate-50 text-slate-900 antialiased">
-    <div id="root"></div>
-  </body>
+
+<body class="bg-slate-50 text-slate-900 antialiased">
+  <div id="root"></div>
+  <script type="module" src="/src/index.tsx"></script>
+</body>
+
 </html>
