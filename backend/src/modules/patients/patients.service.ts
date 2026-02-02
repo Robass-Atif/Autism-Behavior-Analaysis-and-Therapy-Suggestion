@@ -183,6 +183,11 @@ export class PatientsService {
     return patient;
   }
 
+  // Internal method to find patient by ID without access checks
+  async findByIdInternal(patientId: string) {
+    return this.patientModel.findById(patientId).exec();
+  }
+
   // Get caregivers linked to therapist (for cascade operations)
   async getCaregiversLinkedToTherapist(therapistId: string) {
     // Find all patients belonging to this therapist

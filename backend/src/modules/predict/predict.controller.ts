@@ -25,7 +25,7 @@ export class PredictController {
     constructor(private readonly predictService: PredictService) { }
 
     @Post(':id')
-    @ApiOperation({ summary: 'Predict from video file for a specific patient/user ID' })
+    @ApiOperation({ summary: 'Process video for a specific patient ID' })
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -43,7 +43,7 @@ export class PredictController {
         @UploadedFile(
             new ParseFilePipe({
                 validators: [
-                    // 50MB max size (adjust as needed)
+                    // 50MB max size
                     new MaxFileSizeValidator({ maxSize: 50 * 1024 * 1024 }),
                     // Allow common video mimetypes
                     new FileTypeValidator({ fileType: 'video/*' }),
@@ -51,32 +51,14 @@ export class PredictController {
             }),
         ) file: Express.Multer.File,
         @Req() req: any,
-        @Param('id') targetId: string,
+        @Param('id') patientId: string,
     ) {
-        return this.predictService.predictVideo(file, req.user.userId, targetId);
-    }
-
-    @Get()
-    @ApiOperation({ summary: 'Get all predictions (Admin/Dev only)' })
-    async getAll() {
-        return this.predictService.findAll();
-    }
-
-    @Get('user/me')
-    @ApiOperation({ summary: 'Get all predictions for logged in user' })
-    async getMyPredictions(@Req() req: any) {
-        return this.predictService.findByUser(req.user.userId);
-    }
-
-    @Get('patient/:patientId')
-    @ApiOperation({ summary: 'Get all predictions for a specific patient' })
-    async getPatientPredictions(@Param('patientId') patientId: string) {
-        return this.predictService.findByPatient(patientId);
+        return this.predictService.predictVideo(file, req.user.userId, patientId);
     }
 
     @Get(':id')
-    @ApiOperation({ summary: 'Get prediction by ID' })
-    async getOne(@Param('id') id: string) {
-        return this.predictService.findOne(id);
+    @ApiOperation({ summary: 'Get all predictions for a specific patient ID' })
+    async getPatientPredictions(@Param('id') patientId: string) {
+        return this.predictService.findByPatient(patientId);
     }
 }

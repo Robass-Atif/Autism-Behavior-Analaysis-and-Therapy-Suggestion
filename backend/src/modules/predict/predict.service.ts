@@ -10,6 +10,7 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { Prediction } from './schemas/prediction.schema';
 import { UsersService } from '../users/users.service';
+import { PatientsService } from '../patients/patients.service';
 
 @Injectable()
 export class PredictService {
@@ -19,6 +20,7 @@ export class PredictService {
         private readonly httpService: HttpService,
         private readonly configService: ConfigService,
         private readonly usersService: UsersService,
+        private readonly patientsService: PatientsService,
         @InjectModel(Prediction.name) private predictionModel: Model<Prediction>,
     ) {
         this.uploadDir = this.configService.get<string>('UPLOAD_DIR', './uploads');
@@ -54,17 +56,47 @@ export class PredictService {
             );
         }
 
-        // Fetch user data for metadata
-        const targetUser = await this.usersService.findById(targetId || userId);
         let age = 0;
         let gender = 'M';
 
-        if (targetUser) {
-            if (targetUser.dateOfBirth) {
-                age = this.calculateAge(targetUser.dateOfBirth);
+        if (targetId) {
+            try {
+                // Priority: Fetch patient data if targetId is provided
+                const patient = await this.patientsService.findByIdInternal(targetId);
+                if (patient) {
+                    if (patient.dob) {
+                        age = this.calculateAge(patient.dob);
+                    }
+                    if (patient.gender) {
+                        const g = patient.gender.toLowerCase();
+                        gender = g.startsWith('f') ? 'F' : 'M';
+                    }
+                } else {
+                    // Fallback to user if patient not found (existing behavior)
+                    const targetUser = await this.usersService.findById(targetId);
+                    if (targetUser) {
+                        if (targetUser.dateOfBirth) {
+                            age = this.calculateAge(targetUser.dateOfBirth);
+                        }
+                        if (targetUser.gender) {
+                            gender = targetUser.gender === 'F' ? 'F' : 'M';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching patient/user data:', error);
+                // Continue with default age/gender if lookup fails
             }
-            if (targetUser.gender) {
-                gender = targetUser.gender === 'F' ? 'F' : 'M'; // Default to M if not F
+        } else {
+            // Use current user data if no targetId
+            const targetUser = await this.usersService.findById(userId);
+            if (targetUser) {
+                if (targetUser.dateOfBirth) {
+                    age = this.calculateAge(targetUser.dateOfBirth);
+                }
+                if (targetUser.gender) {
+                    gender = targetUser.gender === 'F' ? 'F' : 'M';
+                }
             }
         }
 

@@ -70,12 +70,12 @@ python main.py
 
 **Option B: Using the run script**
 ```powershell
-python run_server.py --host localhost --port 8000
+python run_server.py --host 0.0.0.0 --port 8000
 ```
 
 **Option C: Using uvicorn directly**
 ```powershell
-uvicorn main:app --reload --host localhost --port 8000
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The server will start on: **http://localhost:8000**
