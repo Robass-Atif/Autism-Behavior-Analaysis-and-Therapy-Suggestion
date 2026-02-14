@@ -147,7 +147,7 @@ export default function LoginScreen() {
 
           {/* Headline */}
           <div className="mb-8">
-            <p className="mb-2 text-zinc-500 text-xs uppercase tracking-widest">// CLINICAL_INTELLIGENCE</p>
+            <p className="mb-2 text-zinc-500 text-xs uppercase tracking-widest">CLINICAL INTELLIGENCE</p>
             <h1 className="font-bold text-white text-3xl lg:text-4xl leading-tight tracking-tight">
               BEHAVIOR<br />
               ANALYSIS<br />

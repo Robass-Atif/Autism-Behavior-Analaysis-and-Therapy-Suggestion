@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   X, Camera, Zap, ZapOff, RotateCw, Play, Info,
   CheckCircle, ChevronRight, AlertTriangle, ArrowLeft,
-  Video, User, Clock, Target, ShieldCheck, Loader2
+  Video, User, Clock, Target, ShieldCheck, Loader2, Upload
 } from 'lucide-react';
 import { useUploadVideoSession } from '../../../api/clinical';
 import { useCaregiverPatients } from '../../../api/caregiver';
@@ -12,7 +12,7 @@ interface GuidedVideoRecordingProps {
   patientId?: string;
 }
 
-type RecordingStep = 'SELECTION' | 'INSTRUCTIONS' | 'RECORDING' | 'REVIEW' | 'SUBMITTING' | 'SUCCESS';
+type RecordingStep = 'SELECTION' | 'INSTRUCTIONS' | 'RECORDING' | 'REVIEW' | 'SUBMITTING' | 'SUCCESS' | 'UPLOAD_REVIEW';
 
 // The 11 Specific Actions from FR-4
 const GUIDED_ACTIONS = [
@@ -20,7 +20,7 @@ const GUIDED_ACTIONS = [
     id: 'arm_swing_left',
     name: 'Arm Swing Left',
     icon: '🦾',
-    description: 'Bilateral arm movement study // Forward and backward swing.',
+    description: 'Bilateral arm movement study | Forward and backward swing.',
     duration: 30,
     instructions: [
       'Position subject facing camera primary axis',
@@ -33,7 +33,7 @@ const GUIDED_ACTIONS = [
     id: 'arm_swing_right',
     name: 'Arm Swing Right',
     icon: '💪',
-    description: 'Bilateral arm movement study // Forward and backward swing.',
+    description: 'Bilateral arm movement study | Forward and backward swing.',
     duration: 30,
     instructions: [
       'Position subject facing camera primary axis',
@@ -180,9 +180,18 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
   const [selectedAction, setSelectedAction] = useState(GUIDED_ACTIONS[0]);
   const [isRecording, setIsRecording] = useState(false);
   const [timer, setTimer] = useState(0);
+  const [uploadedBlob, setUploadedBlob] = useState<Blob | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: patientsData, isLoading: loadingPatients } = useCaregiverPatients();
   const patients = patientsData?.patients || [];
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadedBlob(file);
+    setStep('UPLOAD_REVIEW');
+  };
 
   if (step === 'SELECTION') {
     return (
@@ -194,7 +203,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
           </button>
           <div className="text-center">
             <h2 className="text-xs font-black uppercase tracking-[0.3em]">RECORDING_INTERFACE_V1</h2>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">// Select subject and action node</p>
+            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Select subject and action node</p>
           </div>
           <div className="w-10 h-10 border border-zinc-200 flex items-center justify-center opacity-20">
             <ShieldCheck size={18} />
@@ -266,20 +275,53 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
                 </div>
               </section>
 
-              {/* Initialize BTN */}
-              <button
-                onClick={() => setStep('INSTRUCTIONS')}
-                disabled={!selectedPatient}
-                className="w-full py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-20 group relative overflow-hidden"
-              >
-                <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">INITIALIZE_MOTION_CAPTURE</span>
-                <ChevronRight size={18} className="relative z-10 transition-transform group-hover:translate-x-2" />
-                <div className="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
-              </button>
+              {/* Initialize BTNs */}
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setStep('INSTRUCTIONS')}
+                  disabled={!selectedPatient}
+                  className="flex-1 py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-20 group relative overflow-hidden"
+                >
+                  <Camera size={18} className="relative z-10" />
+                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">CAPTURE_VIDEO</span>
+                  <ChevronRight size={18} className="relative z-10 transition-transform group-hover:translate-x-2" />
+                  <div className="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={!selectedPatient}
+                  className="flex-1 py-6 border-2 border-zinc-900 text-zinc-900 text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-900 hover:text-white transition-all disabled:opacity-20 group relative overflow-hidden"
+                >
+                  <Upload size={18} className="relative z-10" />
+                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">UPLOAD_VIDEO</span>
+                  <ChevronRight size={18} className="relative z-10 transition-transform group-hover:translate-x-2" />
+                  <div className="absolute inset-0 bg-zinc-900/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
             </div>
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (step === 'UPLOAD_REVIEW') {
+    return (
+      <UploadReviewInterface
+        blob={uploadedBlob}
+        action={selectedAction}
+        patientId={selectedPatient}
+        onClose={onClose}
+        onRetake={() => { setStep('SELECTION'); setUploadedBlob(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+        onSuccess={() => setStep('SUCCESS')}
+      />
     );
   }
 
@@ -426,7 +468,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
           />
           <div className="absolute inset-0 border-[24px] border-black/20 pointer-events-none"></div>
           <div className="absolute top-8 left-8">
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">REVIEW_MODE // RAW_BUFFER</p>
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">REVIEW_MODE | RAW_BUFFER</p>
           </div>
         </div>
 
@@ -482,7 +524,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
             Node <span className="text-zinc-900">[{action.id.toUpperCase()}]</span> has been synchronized with clinical database.
           </p>
           <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">
-             // Automated behavioral analysis sequence pending therapist review.
+             Automated behavioral analysis sequence pending therapist review.
           </p>
         </div>
         <div className="w-full max-w-sm flex flex-col gap-4">
@@ -652,8 +694,104 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
       <div className="h-6 bg-black border-t border-white/5 flex items-center overflow-hidden">
         <div className="flex gap-12 animate-marquee-slower whitespace-nowrap overflow-hidden pr-12">
           {Array.from({ length: 10 }).map((_, i) => (
-            <span key={i} className="text-[8px] font-black text-white/10 uppercase tracking-[1em]">CAPTURE_MODE_ACTIVE // SIGNAL_ENCRYPTED // ABA-TS_CORE_LINK</span>
+            <span key={i} className="text-[8px] font-black text-white/10 uppercase tracking-[1em]">CAPTURE_MODE_ACTIVE | SIGNAL_ENCRYPTED | ABA-TS_CORE_LINK</span>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UploadReviewInterface = ({ blob, action, patientId, onClose, onRetake, onSuccess }: {
+  blob: Blob | null;
+  action: typeof GUIDED_ACTIONS[number];
+  patientId: string;
+  onClose: () => void;
+  onRetake: () => void;
+  onSuccess: () => void;
+}) => {
+  const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const uploadMutation = useUploadVideoSession();
+
+  useEffect(() => {
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [blob]);
+
+  const handleUpload = () => {
+    if (!blob) return;
+
+    const formData = new FormData();
+    formData.append('patientId', patientId);
+    formData.append('actionType', action.id);
+    formData.append('duration', '0');
+    formData.append('recordedAt', new Date().toISOString());
+    formData.append('qualityScore', 'high');
+    formData.append('video', blob, `upload-${action.id}.${blob.type.includes('webm') ? 'webm' : 'mp4'}`);
+
+    uploadMutation.mutate(formData, {
+      onSuccess: () => onSuccess(),
+      onError: (err: any) => {
+        console.error('Upload failed:', err);
+        setError(`UPLOAD_FAILED: ${err.message || 'Unknown network error'}`);
+      }
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-white z-50 flex flex-col font-mono text-zinc-900">
+      <div className="flex-1 bg-zinc-950 flex items-center justify-center relative overflow-hidden">
+        {previewUrl && (
+          <video
+            src={previewUrl}
+            className="w-full h-full object-contain"
+            controls
+            autoPlay
+          />
+        )}
+        <div className="absolute inset-0 border-[24px] border-black/20 pointer-events-none"></div>
+        <div className="absolute top-8 left-8">
+          <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">UPLOAD_REVIEW | FILE_BUFFER</p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 p-4 border-l-4 border-red-600 flex items-center gap-4 mx-8 mt-4">
+          <AlertTriangle className="text-red-600" size={18} />
+          <p className="text-[10px] font-black uppercase text-red-900 tracking-widest">{error}</p>
+        </div>
+      )}
+
+      <div className="bg-white p-8 md:p-12 border-t border-zinc-100 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 bg-zinc-900 flex items-center justify-center text-white border border-zinc-900">
+            <Upload size={32} />
+          </div>
+          <div>
+            <h4 className="text-xl font-black uppercase tracking-tight mb-1">VIDEO_UPLOADED</h4>
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+              NODE: {action.id.toUpperCase()} | {blob ? `${(blob.size / (1024 * 1024)).toFixed(1)} MB` : ''}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-4 w-full md:w-auto">
+          <button
+            onClick={onRetake}
+            className="flex-1 md:flex-none px-12 py-4 border border-zinc-200 font-black text-xs uppercase tracking-widest hover:bg-zinc-50 transition-colors"
+          >
+            CHOOSE_DIFFERENT
+          </button>
+          <button
+            onClick={handleUpload}
+            disabled={uploadMutation.isPending || !blob}
+            className="flex-1 md:flex-none px-12 py-4 bg-zinc-900 text-white font-black text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
+          >
+            {uploadMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : 'SUBMIT_FOR_ANALYSIS'}
+          </button>
         </div>
       </div>
     </div>

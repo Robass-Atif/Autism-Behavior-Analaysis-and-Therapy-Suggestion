@@ -81,7 +81,7 @@ export default function CaregiverDashboard() {
               {primaryPatient?.fullName || 'Patient'}<span className="text-zinc-200">_</span>PORTAL
             </h1>
             <p className="mt-2 text-zinc-400 text-xs font-bold uppercase tracking-widest">
-              // Clinical monitoring & therapy support active
+              Clinical monitoring & therapy support active
             </p>
           </div>
 
@@ -103,7 +103,7 @@ export default function CaregiverDashboard() {
                 <Camera size={28} /> Start_Session_Recording
               </h2>
               <p className="text-[10px] uppercase font-bold tracking-[0.1em] opacity-70">
-                Record guided activity videos for clinical analysis // 11 Actions available
+                Record guided activity videos for clinical analysis | 11 Actions available
               </p>
             </div>
             <div className="relative z-10 flex items-center gap-4">

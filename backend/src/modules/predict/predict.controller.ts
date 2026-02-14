@@ -24,6 +24,15 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class PredictController {
     constructor(private readonly predictService: PredictService) { }
 
+    @Post('analyze/:id')
+    @ApiOperation({ summary: 'Trigger AI analysis for an existing video session by session ID' })
+    async analyzeSession(
+        @Param('id') sessionId: string,
+        @Req() req: any,
+    ) {
+        return this.predictService.analyzeVideoSession(sessionId, req.user.sub);
+    }
+
     @Post(':id')
     @ApiOperation({ summary: 'Process video for a specific patient ID' })
     @ApiConsumes('multipart/form-data')
@@ -53,7 +62,7 @@ export class PredictController {
         @Req() req: any,
         @Param('id') patientId: string,
     ) {
-        return this.predictService.predictVideo(file, req.user.userId, patientId);
+        return this.predictService.predictVideo(file, req.user.sub, patientId);
     }
 
     @Get(':id')

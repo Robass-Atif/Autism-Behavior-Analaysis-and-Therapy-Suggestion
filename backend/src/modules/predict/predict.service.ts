@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { Prediction } from './schemas/prediction.schema';
+import { VideoSession } from '../clinical/schemas/video-session.schema';
 import { UsersService } from '../users/users.service';
 import { PatientsService } from '../patients/patients.service';
 
@@ -22,6 +23,7 @@ export class PredictService {
         private readonly usersService: UsersService,
         private readonly patientsService: PatientsService,
         @InjectModel(Prediction.name) private predictionModel: Model<Prediction>,
+        @InjectModel(VideoSession.name) private videoSessionModel: Model<VideoSession>,
     ) {
         this.uploadDir = this.configService.get<string>('UPLOAD_DIR', './uploads');
         this.ensureVideoDirExists();
@@ -126,7 +128,7 @@ export class PredictService {
         console.log("2")
         // 3. Send video to prediction service
         const formData = new FormData();
-        formData.append('video', file.buffer, {
+        formData.append('input_file', file.buffer, {
             filename: file.originalname,
             contentType: file.mimetype,
         });
@@ -163,6 +165,78 @@ export class PredictService {
                 error.response?.data || 'Error connecting to prediction service',
                 error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
             );
+        }
+    }
+
+    async analyzeVideoSession(sessionId: string, userId: string) {
+        // 1. Find the video session
+        const session = await this.videoSessionModel.findById(sessionId).exec();
+        if (!session) {
+            throw new HttpException('Video session not found', HttpStatus.NOT_FOUND);
+        }
+
+        // 2. Read video file from disk
+        const videoUrl = session.videoUrl; // e.g. "/uploads/videos/video-123.mp4"
+        // Strip leading slash and resolve relative to cwd
+        const relativePath = videoUrl.startsWith('/') ? videoUrl.substring(1) : videoUrl;
+        const fullVideoPath = path.resolve(relativePath);
+
+        if (!fs.existsSync(fullVideoPath)) {
+            throw new HttpException(
+                `Video file not found on disk: ${fullVideoPath}`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
+        const fileBuffer = await fs.promises.readFile(fullVideoPath);
+        const fileName = path.basename(fullVideoPath);
+        const ext = path.extname(fileName).toLowerCase();
+        const mimeType = ext === '.mp4' ? 'video/mp4' : ext === '.webm' ? 'video/webm' : 'video/mp4';
+
+        // 3. Build a Multer-like file object and reuse predictVideo
+        const file: Express.Multer.File = {
+            fieldname: 'video',
+            originalname: fileName,
+            encoding: '7bit',
+            mimetype: mimeType,
+            buffer: fileBuffer,
+            size: fileBuffer.length,
+            stream: null as any,
+            destination: '',
+            filename: fileName,
+            path: fullVideoPath,
+        };
+
+        const patientId = session.patientId?.toString();
+
+        // 4. Update session status to processing
+        session.status = 'processing';
+        await session.save();
+
+        try {
+            const result = await this.predictVideo(file, userId, patientId);
+
+            // 5. Update video session with AI results
+            session.status = 'analyzed';
+            session.aiConfidence = result.predictionResult?.confidence || 90;
+            session.aiAnalysis = {
+                behaviors: result.predictionResult?.behaviors || [],
+                summary: result.predictionResult?.summary || 'Analysis completed.',
+                recommendations: result.predictionResult?.recommendations || [],
+            };
+            await session.save();
+
+            return {
+                success: true,
+                message: 'AI analysis completed successfully.',
+                sessionId: session._id,
+                status: 'analyzed',
+                prediction: result,
+            };
+        } catch (error) {
+            session.status = 'failed';
+            await session.save();
+            throw error;
         }
     }
 

@@ -81,7 +81,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                         </h3>
                         <h2 className="text-3xl font-black uppercase tracking-tight">Capture_Vault</h2>
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2">
-                           // {sessions.length} RECORDED_MOTION_CYCLES_STORED
+                           {sessions.length} RECORDED_MOTION_CYCLES_STORED
                         </p>
                     </div>
 
@@ -159,7 +159,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                         <Video size={48} className="text-zinc-200 mb-6" />
                         <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2">Null_Entries_Detected</h4>
                         <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
-                           // NO_RECORDS_MATCH_OPERATIONAL_PARAMETERS
+                           NO RECORDS MATCH OPERATIONAL PARAMETERS
                         </p>
                     </div>
                 ) : viewMode === 'grid' ? (
@@ -192,7 +192,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                                                     <h4 className="text-xs font-black uppercase tracking-tight text-zinc-900 truncate mb-1">{actionInfo.name.replace(' ', '_')}</h4>
                                                     <div className="flex items-center gap-2 text-[8px] font-bold text-zinc-400 uppercase tracking-widest">
                                                         <Calendar size={10} />
-                                                        {session.recordedAt ? format(new Date(session.recordedAt), 'yyyy.MM.dd // HH:mm') : '0000.00.00'}
+                                                        {session.recordedAt ? format(new Date(session.recordedAt), 'yyyy.MM.dd | HH:mm') : '0000.00.00'}
                                                     </div>
                                                 </div>
                                                 <div className={`text-[8px] font-black px-2 py-0.5 border ${session.status === 'analyzed' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-transparent text-zinc-400 border-zinc-200'
@@ -236,7 +236,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
                                     <div className="flex-1 min-w-0">
                                         <h4 className="text-xs font-black uppercase tracking-tight text-zinc-900 mb-1">{actionInfo.name.replace(' ', '_')}</h4>
                                         <div className="flex items-center gap-4 text-[8px] font-bold text-zinc-400 uppercase tracking-widest">
-                                            <span className="flex items-center gap-1"><Calendar size={10} /> {session.recordedAt ? format(new Date(session.recordedAt), 'yyyy.MM.dd // HH:mm') : 'NULL'}</span>
+                                            <span className="flex items-center gap-1"><Calendar size={10} /> {session.recordedAt ? format(new Date(session.recordedAt), 'yyyy.MM.dd | HH:mm') : 'NULL'}</span>
                                             <span className="flex items-center gap-1"><Clock size={10} /> {formatDuration(session.duration || 0)}</span>
                                         </div>
                                     </div>
@@ -257,7 +257,7 @@ export default function CaregiverVideoLibrary({ patientId, onRecordNew }: Caregi
             {/* System Log Footer */}
             <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-center overflow-hidden h-10">
                 <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[1em] animate-marquee-slower whitespace-nowrap">
-                    SYSTEM_DATA_SYNC_ID: {Math.random().toString(16).substring(2, 10).toUpperCase()} // SECURITY_LOCK_STATUS: ENGAGED // ENCRYPTION: AES_256
+                    SYSTEM_DATA_SYNC_ID: {Math.random().toString(16).substring(2, 10).toUpperCase()} | SECURITY_LOCK_STATUS: ENGAGED | ENCRYPTION: AES_256
                 </div>
             </div>
         </div>

@@ -12,7 +12,7 @@ export default function CaregiverReportsScreen() {
             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">SHARED_DOCUMENTATION</h3>
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Clinical_Reports</h1>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2 underline decoration-zinc-100 underline-offset-4">
-              // SECURE_LINK_TO_THERAPIST_ANALYSIS
+              SECURE LINK TO THERAPIST ANALYSIS
             </p>
           </div>
           <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-100 px-4 py-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
@@ -66,7 +66,7 @@ export default function CaregiverReportsScreen() {
 
         {/* Bottom Metadata */}
         <footer className="mt-24 pt-8 border-t border-zinc-100 flex justify-between">
-          <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">SYSTEM_FS_EXT4 // ENCRYPTED</div>
+          <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">SYSTEM_FS_EXT4 | ENCRYPTED</div>
           <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">HASH_CHECK_OK</div>
         </footer>
 

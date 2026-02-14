@@ -12,7 +12,7 @@ export default function RecordingScheduleScreen() {
             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">TEMPORAL_PLANNING</h3>
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Recording_Schedule</h1>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2 underline decoration-zinc-100 underline-offset-4">
-              // UPCOMING_THERAPY_CAPTURE_WINDOWS
+              UPCOMING THERAPY CAPTURE WINDOWS
             </p>
           </div>
           <div className="flex items-baseline gap-2 text-zinc-300">
@@ -98,7 +98,7 @@ export default function RecordingScheduleScreen() {
           </div>
 
           <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em] text-right">
-            RECURRENCE_PROTOCOL: ACTIVE // NODE_ID: CR-SCHED-01
+            RECURRENCE_PROTOCOL: ACTIVE | NODE_ID: CR-SCHED-01
           </div>
         </div>
       </div>
