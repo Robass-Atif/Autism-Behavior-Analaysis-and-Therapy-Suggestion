@@ -22,8 +22,8 @@ export class User {
   @Prop({ required: true, minlength: 8, select: false })
   password: string;
 
-  @Prop({ required: true })
-  phoneNumber: string;
+  @Prop()
+  phoneNumber?: string;
 
   @Prop({
     type: String,
@@ -57,6 +57,12 @@ export class User {
   @Prop({ default: true })
   isActive: boolean;
 
+  @Prop({ enum: ['M', 'F', 'Other'] })
+  gender?: string;
+
+  @Prop()
+  dateOfBirth?: Date;
+
   @Prop()
   lastLogin?: Date;
 
@@ -68,6 +74,33 @@ export class User {
 
   @Prop()
   twoFactorSecret?: string;
+
+  // TASK 8: Rejection tracking for therapists (3-attempt limit)
+  @Prop({ default: 0 })
+  rejectionCount?: number;
+
+  // Therapist onboarding completion flag
+  @Prop({ default: false })
+  onboardingCompleted?: boolean;
+
+  // Therapist clinic information (populated after onboarding)
+  @Prop()
+  clinicName?: string;
+
+  @Prop()
+  clinicAddress?: string;
+
+  @Prop({ type: [String] })
+  specialties?: string[];
+
+  @Prop({ type: Object })
+  workingHours?: {
+    start: string;
+    end: string;
+  };
+
+  @Prop()
+  consultationFee?: number;
 
   // Method to compare password
   comparePassword: (candidatePassword: string) => Promise<boolean>;

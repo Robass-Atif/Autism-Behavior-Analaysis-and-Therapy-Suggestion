@@ -1,6 +1,7 @@
 export enum Role {
   THERAPIST = 'therapist',
   CAREGIVER = 'caregiver',
+  PATIENT = 'patient',
   ADMIN = 'admin',
   SUPER_ADMIN = 'super_admin',
 }
@@ -45,9 +46,13 @@ export enum TwoFactorMethod {
 export enum AccountStatus {
   PENDING_VERIFICATION = 'pending_verification',
   PENDING_APPROVAL = 'pending_approval',
+  PENDING = 'pending',
   ACTIVE = 'active',
+  REJECTED = 'rejected',
   SUSPENDED = 'suspended',
+  REVOKED = 'revoked',
   DEACTIVATED = 'deactivated',
+  DELETED = 'deleted',
 }
 
 export enum Language {
