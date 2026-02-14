@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional, List
-import os
 from pathlib import Path
+import os
 
 # Get the base directory (ados_server/)
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,8 +12,9 @@ class Settings(BaseSettings):
     API_VERSION: str = "1.0.0"
     API_DESCRIPTION: str = "Multi-task ADOS prediction with 2D/3D models"
     
-    # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-this")
+    # Security - these will be loaded from .env file
+    SECRET_KEY: str = "your-secret-key-change-this"
+    API_KEY: str = "your-api-key-change-this-please"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     
