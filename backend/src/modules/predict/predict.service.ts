@@ -123,7 +123,7 @@ export class PredictService {
             mimetype: file.mimetype,
         });
         await predictionRecord.save();
-
+        console.log("2")
         // 3. Send video to prediction service
         const formData = new FormData();
         formData.append('video', file.buffer, {
@@ -134,6 +134,8 @@ export class PredictService {
         formData.append('gender', gender);
 
         try {
+            console.log('Sending video to prediction service at:', predictionUrl);
+            console.log('API Key:', apiKey ? 'Present' : 'Missing');
             const response = await firstValueFrom(
                 this.httpService.post(predictionUrl, formData, {
                     headers: {

@@ -109,7 +109,7 @@ export const CLINICAL_ENDPOINTS = {
   GET_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}`,
   UPDATE_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}`,
   DELETE_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}`,
-  TRIGGER_AI_ANALYSIS: (id: string) => `/clinical/video-sessions/${id}/analyze`,
+  TRIGGER_AI_ANALYSIS: (id: string) => `/predict/${id}`,
 
   // Reports (BACKEND NOT IMPLEMENTED)
   GET_INDIVIDUAL_REPORT: (patientId: string) => `/clinical/reports/individual/${patientId}`,
