@@ -83,7 +83,7 @@ class InferencePipeline:
                 features = defensive_preprocessing(features)
             
             # 6. Scale features
-            features_scaled = self.scalers['sequence_scaler'].transform(
+            features_scaled = self.scalers['feature_scaler'].transform(
                 features.reshape(-1, features.shape[-1])
             ).reshape(features.shape)
             
@@ -102,33 +102,56 @@ class InferencePipeline:
             with torch.no_grad():
                 outputs = self.model(x_seq, x_demo, seq_len)
             
-            # 10. Inverse transform predictions
-            predictions_scaled = outputs[0].cpu().numpy().reshape(1, -1)
+            logger.debug(f"Model outputs keys: {outputs.keys()}")
+            logger.debug(f"Severity shape: {outputs['severity'].shape}")
+            logger.debug(f"Social affect shape: {outputs['social_affect'].shape}")
+            logger.debug(f"RRB shape: {outputs['rrb'].shape}")
+            logger.debug(f"Comparison shape: {outputs['comparison'].shape}")
             
-            severity_pred = self.scalers['target_scalers'][0].inverse_transform(
-                predictions_scaled[:, 0:1]
-            )[0, 0]
-            social_affect_pred = self.scalers['target_scalers'][1].inverse_transform(
-                predictions_scaled[:, 1:2]
-            )[0, 0]
-            rrb_pred = self.scalers['target_scalers'][2].inverse_transform(
-                predictions_scaled[:, 2:3]
-            )[0, 0]
-            comparison_pred = self.scalers['target_scalers'][3].inverse_transform(
-                predictions_scaled[:, 3:4]
-            )[0, 0]
+            # 10. Process outputs (model returns dict with classification/regression heads)
+            # Severity: classification (softmax for probabilities)
+            severity_logits = outputs['severity'][0] if outputs['severity'].dim() > 1 else outputs['severity']  # [num_severity_classes]
+            severity_probs = torch.softmax(severity_logits, dim=0).cpu().numpy()
+            severity_pred = int(np.argmax(severity_probs))
+            severity_confidence = float(severity_probs[severity_pred])
             
-            # Round severity and comparison to integers
-            severity_pred = int(round(severity_pred))
-            comparison_pred = int(round(comparison_pred))
+            # Social Affect: regression
+            social_affect_tensor = outputs['social_affect']
+            if social_affect_tensor.dim() > 1:
+                social_affect_pred = social_affect_tensor[0, 0].cpu().numpy()
+            else:
+                social_affect_pred = social_affect_tensor[0].cpu().numpy() if social_affect_tensor.dim() > 0 else social_affect_tensor.cpu().numpy()
+            
+            social_affect_pred_reshaped = np.array([[float(social_affect_pred)]])
+            social_affect_pred = float(self.scalers['social_affect_scaler'].inverse_transform(
+                social_affect_pred_reshaped
+            ).flatten()[0])
+            
+            # RRB: regression
+            rrb_tensor = outputs['rrb']
+            if rrb_tensor.dim() > 1:
+                rrb_pred = rrb_tensor[0, 0].cpu().numpy()
+            else:
+                rrb_pred = rrb_tensor[0].cpu().numpy() if rrb_tensor.dim() > 0 else rrb_tensor.cpu().numpy()
+            
+            rrb_pred_reshaped = np.array([[float(rrb_pred)]])
+            rrb_pred = float(self.scalers['rrb_scaler'].inverse_transform(
+                rrb_pred_reshaped
+            ).flatten()[0])
+            
+            # Comparison Score: classification (softmax for probabilities)
+            comparison_logits = outputs['comparison'][0] if outputs['comparison'].dim() > 1 else outputs['comparison']  # [num_comparison_classes]
+            comparison_probs = torch.softmax(comparison_logits, dim=0).cpu().numpy()
+            comparison_pred = int(np.argmax(comparison_probs))
+            comparison_confidence = float(comparison_probs[comparison_pred])
             
             result = {
                 'severity': severity_pred,
-                'severity_confidence': 1.0,  # Placeholder, will be updated by explainability
+                'severity_confidence': severity_confidence,
                 'social_affect': float(social_affect_pred),
                 'rrb': float(rrb_pred),
                 'comparison_score': comparison_pred,
-                'comparison_confidence': 1.0,  # Placeholder
+                'comparison_confidence': comparison_confidence,
                 'input_age': float(age),
                 'input_gender': gender.upper(),
                 'model_type': self.model_type,
@@ -138,9 +161,11 @@ class InferencePipeline:
             # 11. Compute explainability if requested
             if include_explainability:
                 logger.info("Computing explainability...")
+                # Reconstruct target_scalers array for explainability module
+                target_scalers = [None, self.scalers['social_affect_scaler'], self.scalers['rrb_scaler'], None]
                 explainer = MultiTaskADOSExplainer(
                     model=self.model,
-                    target_scalers=self.scalers['target_scalers'],
+                    target_scalers=target_scalers,
                     demographic_scaler=self.scalers['demographic_scaler'],
                     fps=30,
                     device='cpu'
@@ -148,18 +173,13 @@ class InferencePipeline:
                 
                 explanation = explainer.explain_all_tasks(x_seq, x_demo, seq_len)
                 result['explainability'] = explanation
-                
-                # Update confidence scores from explainability
-                if 'task_explanations' in explanation:
-                    if 'Severity' in explanation['task_explanations']:
-                        result['severity_confidence'] = explanation['task_explanations']['Severity']['confidence']['confidence_score'] / 100.0
-                    if 'Comparison Score' in explanation['task_explanations']:
-                        result['comparison_confidence'] = explanation['task_explanations']['Comparison Score']['confidence']['confidence_score'] / 100.0
             
             logger.info(f"✅ Prediction successful: Severity={severity_pred}, SA={social_affect_pred:.2f}, RRB={rrb_pred:.2f}, Comparison={comparison_pred}")
             
             return result
         
         except Exception as e:
+            import traceback
             logger.error(f"Error during inference: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise

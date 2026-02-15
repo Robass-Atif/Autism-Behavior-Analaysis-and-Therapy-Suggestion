@@ -32,9 +32,6 @@ export class NotificationPreferences {
 
 @Schema({ timestamps: true })
 export class Caregiver extends User {
-  @Prop()
-  dateOfBirth?: Date;
-
   @Prop({ type: String, enum: Language, default: Language.ENGLISH })
   preferredLanguage: Language;
 

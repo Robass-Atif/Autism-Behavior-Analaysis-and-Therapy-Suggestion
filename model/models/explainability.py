@@ -54,13 +54,29 @@ class MultiTaskADOSExplainer:
             self.baseline_sequence = torch.zeros_like(x_seq).to(self.device)
         baseline_demo = torch.zeros_like(x_demo).to(self.device)
         
+        # Task output key mapping
+        task_keys = ['severity', 'social_affect', 'rrb', 'comparison']
+        task_key = task_keys[task_idx]
+        
         # Get predictions
         with torch.no_grad():
             baseline_out = self.model(self.baseline_sequence, baseline_demo, seq_len)
-            baseline_pred = baseline_out[0, task_idx].item()
-            
             actual_out = self.model(x_seq, x_demo, seq_len)
-            actual_pred = actual_out[0, task_idx].item()
+            
+            # Handle dict output format
+            if isinstance(baseline_out, dict):
+                baseline_task_out = baseline_out[task_key]
+                actual_task_out = actual_out[task_key]
+                # For classification heads, use argmax; for regression, use the value
+                if task_key in ['severity', 'comparison']:
+                    baseline_pred = torch.argmax(baseline_task_out[0]).item()
+                    actual_pred = torch.argmax(actual_task_out[0]).item()
+                else:
+                    baseline_pred = baseline_task_out[0, 0].item()
+                    actual_pred = actual_task_out[0, 0].item()
+            else:
+                baseline_pred = baseline_out[0, task_idx].item()
+                actual_pred = actual_out[0, task_idx].item()
         
         # Compute integrated gradients
         integrated_grads_seq = torch.zeros_like(x_seq)
@@ -75,7 +91,17 @@ class MultiTaskADOSExplainer:
             interpolated_demo.requires_grad_(True)
             
             output = self.model(interpolated_seq, interpolated_demo, seq_len)
-            task_output = output[:, task_idx]
+            
+            # Handle dict output format
+            if isinstance(output, dict):
+                task_output = output[task_key]
+                if task_key in ['severity', 'comparison']:
+                    # For classification, sum all logits for gradient
+                    task_output = task_output.sum(dim=1)
+                else:
+                    task_output = task_output[:, 0]
+            else:
+                task_output = output[:, task_idx]
             
             self.model.zero_grad()
             task_output.sum().backward()
@@ -166,12 +192,36 @@ class MultiTaskADOSExplainer:
         self.model.train()  # Enable dropout for uncertainty estimation
         predictions = []
         
+        # Task output key mapping
+        task_keys = ['severity', 'social_affect', 'rrb', 'comparison']
+        task_key = task_keys[task_idx]
+        
         with torch.no_grad():
             for _ in range(n_samples):
                 out = self.model(x_seq.to(self.device), x_demo.to(self.device), seq_len.to(self.device))
-                pred_scaled = out[0, task_idx].item()
-                pred_original = self.target_scalers[task_idx].inverse_transform([[pred_scaled]])[0, 0]
-                predictions.append(pred_original)
+                
+                # Handle dict output format
+                if isinstance(out, dict):
+                    task_out = out[task_key]
+                    if task_key in ['severity', 'comparison']:
+                        # For classification, get predicted class
+                        pred_scaled = torch.argmax(task_out[0]).item()
+                        predictions.append(float(pred_scaled))
+                    else:
+                        # For regression, get the value and inverse transform
+                        pred_scaled = task_out[0, 0].item()
+                        if self.target_scalers[task_idx] is not None:
+                            pred_original = self.target_scalers[task_idx].inverse_transform([[pred_scaled]])[0, 0]
+                        else:
+                            pred_original = pred_scaled
+                        predictions.append(float(pred_original))
+                else:
+                    pred_scaled = out[0, task_idx].item()
+                    if self.target_scalers[task_idx] is not None:
+                        pred_original = self.target_scalers[task_idx].inverse_transform([[pred_scaled]])[0, 0]
+                    else:
+                        pred_original = pred_scaled
+                    predictions.append(float(pred_original))
         
         self.model.eval()  # Back to eval mode
         
@@ -227,13 +277,34 @@ class MultiTaskADOSExplainer:
             seq_len_device = seq_len.to(self.device)
             all_outputs = self.model(x_seq_device, x_demo_device, seq_len_device)
         
-        # Convert to original scale
+        # Convert to original scale - handle dict output
         predictions = {}
+        task_keys = ['severity', 'social_affect', 'rrb', 'comparison']
+        
         for i, name in enumerate(self.target_names):
-            pred_scaled = all_outputs[0, i].item()
-            predictions[name.lower().replace(' ', '_')] = float(
-                self.target_scalers[i].inverse_transform([[pred_scaled]])[0, 0]
-            )
+            task_key = task_keys[i]
+            if isinstance(all_outputs, dict):
+                task_out = all_outputs[task_key]
+                if task_key in ['severity', 'comparison']:
+                    # For classification, get predicted class
+                    pred_value = torch.argmax(task_out[0]).item()
+                    predictions[name.lower().replace(' ', '_')] = int(pred_value)
+                else:
+                    # For regression, get the value and inverse transform
+                    pred_scaled = task_out[0, 0].item()
+                    if self.target_scalers[i] is not None:
+                        pred_value = float(self.target_scalers[i].inverse_transform([[pred_scaled]])[0, 0])
+                    else:
+                        pred_value = float(pred_scaled)
+                    predictions[name.lower().replace(' ', '_')] = pred_value
+            else:
+                pred_scaled = all_outputs[0, i].item()
+                if self.target_scalers[i] is not None:
+                    predictions[name.lower().replace(' ', '_')] = float(
+                        self.target_scalers[i].inverse_transform([[pred_scaled]])[0, 0]
+                    )
+                else:
+                    predictions[name.lower().replace(' ', '_')] = float(pred_scaled)
         
         # Get demographic values (original scale)
         demo_original = self.demographic_scaler.inverse_transform(x_demo.cpu().numpy())[0]

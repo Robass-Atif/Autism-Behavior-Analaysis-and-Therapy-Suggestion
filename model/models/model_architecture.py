@@ -3,11 +3,14 @@ import torch.nn as nn
 
 class Model(nn.Module):
     def __init__(self, sequence_input_size, demographic_input_size=2, 
-                 hidden_size=128, num_layers=2, dropout=0.4, num_outputs=4):
+                 hidden_size=128, num_layers=2, dropout=0.4, num_outputs=4,
+                 num_severity_classes=2, num_comparison_classes=10):
         super(Model, self).__init__()
         
         self.num_outputs = num_outputs
         self.demographic_input_size = demographic_input_size
+        self.num_severity_classes = num_severity_classes
+        self.num_comparison_classes = num_comparison_classes
         
         # Bidirectional LSTM for sequence processing (shared for all tasks)
         self.lstm = nn.LSTM(
@@ -44,18 +47,18 @@ class Model(nn.Module):
             nn.Dropout(dropout)
         )
         
-        # Task-specific heads (all regression)
-        # Output 0: Severity
-        self.severity_head = nn.Linear(64, 1)
+        # Task-specific heads
+        # Output 0: Severity (classification with num_severity_classes)
+        self.severity_head = nn.Linear(64, num_severity_classes)
         
-        # Output 1: Social Affect
+        # Output 1: Social Affect (regression)
         self.social_affect_head = nn.Linear(64, 1)
         
-        # Output 2: RRB
+        # Output 2: RRB (regression)
         self.rrb_head = nn.Linear(64, 1)
         
-        # Output 3: Comparison Score
-        self.comparison_head = nn.Linear(64, 1)
+        # Output 3: Comparison Score (classification with num_comparison_classes)
+        self.comparison_head = nn.Linear(64, num_comparison_classes)
     
     def forward(self, x_sequence, x_demographic, seq_lengths=None):
         # LSTM processing for sequence data
@@ -81,12 +84,15 @@ class Model(nn.Module):
         shared_repr = self.shared_fc(combined)
         
         # Task-specific predictions
-        severity = self.severity_head(shared_repr)
-        social_affect = self.social_affect_head(shared_repr)
-        rrb = self.rrb_head(shared_repr)
-        comparison = self.comparison_head(shared_repr)
+        severity = self.severity_head(shared_repr)  # [batch, num_severity_classes]
+        social_affect = self.social_affect_head(shared_repr)  # [batch, 1]
+        rrb = self.rrb_head(shared_repr)  # [batch, 1]
+        comparison = self.comparison_head(shared_repr)  # [batch, num_comparison_classes]
         
-        # Concatenate outputs: [batch, 4]
-        outputs = torch.cat([severity, social_affect, rrb, comparison], dim=1)
-        
-        return outputs
+        # Return as dictionary for flexibility
+        return {
+            'severity': severity,
+            'social_affect': social_affect,
+            'rrb': rrb,
+            'comparison': comparison
+        }

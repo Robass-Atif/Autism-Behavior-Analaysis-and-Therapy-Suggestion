@@ -72,6 +72,11 @@ export class RegisterCaregiverDto {
   @IsOptional()
   dateOfBirth?: string;
 
+  @ApiPropertyOptional({ enum: ['M', 'F', 'Other'], description: 'Gender' })
+  @IsEnum(['M', 'F', 'Other'])
+  @IsOptional()
+  gender?: string;
+
   @ApiProperty({ enum: Language, description: 'Preferred language' })
   @IsEnum(Language)
   preferredLanguage: Language;

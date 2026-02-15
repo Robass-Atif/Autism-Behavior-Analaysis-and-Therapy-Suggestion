@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form
+from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Header
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import Optional, Literal
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 import json
 from pathlib import Path
@@ -16,7 +16,6 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent))
 
 from config.settings import settings
-from security.authentication import authenticate_user, create_access_token, get_current_user
 from security.rate_limiting import limiter
 from services import VideoProcessingService, PoseEstimationService, PredictionService
 
@@ -26,6 +25,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+async def verify_api_key(x_api_key: str = Header(..., description="API Key for authentication")):
+    """Verify API key from header"""
+    if x_api_key != settings.API_KEY:
+        logger.warning(f"Invalid API key attempted: {x_api_key[:8]}...")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key",
+        )
+    return {"name": "API User", "role": "admin"}
 
 # Create FastAPI app
 app = FastAPI(
@@ -48,23 +57,12 @@ app.add_middleware(
 
 # Initialize services
 video_service = VideoProcessingService()
-pose_service = PoseEstimationService(
-    openpose_dir=settings.OPENPOSE_DIR,
-    romp_model_path=settings.ROMP_MODEL_PATH
-)
+pose_service = PoseEstimationService()
 prediction_service = PredictionService(settings)
 
 # =====================
 # Pydantic Models
 # =====================
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 
 class PredictionRequest(BaseModel):
     model_type: Literal["2D", "3D"] = Field(..., description="Type of model to use")
@@ -99,7 +97,7 @@ async def root():
         "version": settings.API_VERSION,
         "endpoints": {
             "health": "/health",
-            "login": "/auth/login",
+            "auth_info": "/auth/api-key-info",
             "predict": "/predict",
             "docs": "/docs"
         }
@@ -117,36 +115,27 @@ async def health_check():
         "timestamp": datetime.utcnow().isoformat(),
         "models_loaded": {
             "2D": model_2d_exists,
-            "3D": model_3d_exists
+            "3D": model_3d_exists if settings.ENABLE_3D_PROCESSING else "disabled",
+            "3d_processing_enabled": settings.ENABLE_3D_PROCESSING
         }
     }
 
-@app.post("/auth/login", response_model=Token, tags=["Authentication"])
-@limiter.limit(f"{settings.RATE_LIMIT_PER_MINUTE}/minute")
-async def login(request: Request, login_data: LoginRequest):
+@app.get("/auth/api-key-info", tags=["Authentication"])
+async def api_key_info():
     """
-    Authenticate user and receive JWT token
+    Get API key authentication information.
     
-    Default credentials:
-    - Username: admin, Password: changeme123
-    - Username: clinician, Password: clinic123
+    This endpoint describes how to authenticate with the API.
+    Include your API key in the X-API-Key header with each request.
     """
-    user = authenticate_user(login_data.username, login_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user["username"]}, expires_delta=access_token_expires
-    )
-    
-    logger.info(f"User {login_data.username} logged in successfully")
-    
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "authentication_type": "API Key",
+        "header_name": "x-api-key",
+        "description": "Include your API key in the x-api-key header",
+        "example": {
+            "header": "x-api-key: your-api-key-here"
+        }
+    }
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Prediction"])
 @limiter.limit(f"{settings.RATE_LIMIT_PER_MINUTE}/minute")
@@ -157,7 +146,7 @@ async def predict(
     gender: str = Form(...),
     include_explainability: bool = Form(default=True),
     apply_defensive_preprocessing: bool = Form(default=True),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(verify_api_key)
 ):
     """
     Unified ADOS prediction endpoint
@@ -175,7 +164,7 @@ async def predict(
     6. Return predictions from both models + ensemble prediction
     
     Requires:
-    - JWT authentication token in Authorization header
+    - API Key in X-API-Key header
     - input_file: Video (.mp4, .avi, .mov) or ZIP (.zip with .npz files)
     - age: Patient age (0-120)
     - gender: M or F
@@ -235,7 +224,7 @@ async def predict(
             # Step 2: Extract 2D poses
             npz_2d_dir = temp_dir / "npz_2d"
             npz_2d_dir.mkdir()
-            
+    
             logger.info("🦴 Step 2/5: Extracting 2D poses (OpenPose)...")
             try:
                 num_poses_2d = pose_service.estimate_2d_poses(
@@ -249,22 +238,27 @@ async def predict(
                     detail=f"2D pose estimation failed: {e}. Ensure OpenPose is installed and configured."
                 )
             
-            # Step 3: Extract 3D poses
+            # Step 3: Extract 3D poses (if enabled)
             npz_3d_dir = temp_dir / "npz_3d"
-            npz_3d_dir.mkdir()
+            num_poses_3d = 0
             
-            logger.info("🦴 Step 3/5: Extracting 3D poses (ROMP)...")
-            try:
-                num_poses_3d = pose_service.estimate_3d_poses(
-                    str(frames_dir),
-                    str(npz_3d_dir)
-                )
-            except Exception as e:
-                logger.error(f"3D pose estimation failed: {e}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"3D pose estimation failed: {e}. Ensure ROMP is installed (pip install simple-romp)."
-                )
+            if settings.ENABLE_3D_PROCESSING:
+                npz_3d_dir.mkdir()
+                
+                logger.info("🦴 Step 3/5: Extracting 3D poses (ROMP)...")
+                try:
+                    num_poses_3d = pose_service.estimate_3d_poses(
+                        str(frames_dir),
+                        str(npz_3d_dir)
+                    )
+                except Exception as e:
+                    logger.error(f"3D pose estimation failed: {e}")
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"3D pose estimation failed: {e}. Ensure ROMP is installed (pip install simple-romp)."
+                    )
+            else:
+                logger.info("⏭️  Step 3/5: Skipping 3D pose extraction (disabled)")
             
             # Step 4 & 5: Run predictions with both models
             logger.info("🧠 Step 4/5: Running preprocessing and model inference...")
@@ -280,14 +274,17 @@ async def predict(
             logger.info("✅ Step 5/5: Complete!")
             
             # Add processing info
-            results["processing_info"] = {
+            processing_info = {
                 "input_type": "video",
                 "video_duration_seconds": duration,
                 "original_fps": fps,
                 "frames_extracted": num_frames,
                 "poses_2d_extracted": num_poses_2d,
-                "poses_3d_extracted": num_poses_3d
+                "3d_processing_enabled": settings.ENABLE_3D_PROCESSING
             }
+            if settings.ENABLE_3D_PROCESSING:
+                processing_info["poses_3d_extracted"] = num_poses_3d
+            results["processing_info"] = processing_info
             
         else:
             # ===== ZIP FILE WORKFLOW (Legacy support) =====
@@ -335,7 +332,7 @@ async def predict(
         # Audit log
         audit_entry = {
             "timestamp": datetime.utcnow().isoformat(),
-            "user": current_user['username'],
+            "user": current_user.get('name', 'api_user'),
             "input_type": "video" if is_video else "zip",
             "input_filename": input_file.filename,
             "age": age,
@@ -351,7 +348,7 @@ async def predict(
         with open(audit_log_path, 'a') as f:
             f.write(json.dumps(audit_entry) + '\n')
         
-        logger.info(f"✅ Prediction complete for user {current_user['username']}")
+        logger.info(f"✅ Prediction complete for user {current_user.get('name', 'api_user')}")
         
         return results
     
@@ -369,7 +366,7 @@ async def predict(
             logger.warning(f"Failed to cleanup temp directory: {e}")
 
 @app.get("/models/info", tags=["Models"])
-async def get_models_info(current_user: dict = Depends(get_current_user)):
+async def get_models_info(current_user: dict = Depends(verify_api_key)):
     """Get information about loaded models"""
     models_info = {}
     

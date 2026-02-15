@@ -61,14 +61,21 @@ class ModelManager:
             
             logger.info(f"Loaded mappings")
             
-            # Initialize model
+            # Get classification head sizes from config
+            num_classes = config.get('num_classes', {})
+            num_severity_classes = num_classes.get('severity', 2)
+            num_comparison_classes = num_classes.get('comparison_score', 10)
+            
+            # Initialize model with correct head sizes
             model = Model(
                 sequence_input_size=config['sequence_input_size'],
                 demographic_input_size=config['demographic_input_size'],
                 hidden_size=config['hidden_size'],
                 num_layers=config['num_layers'],
                 dropout=config['dropout'],
-                num_outputs=config['num_outputs']
+                num_outputs=config['num_outputs'],
+                num_severity_classes=num_severity_classes,
+                num_comparison_classes=num_comparison_classes
             )
             
             # Load model weights
