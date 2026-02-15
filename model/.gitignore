@@ -1,0 +1,11 @@
+2d model/
+3d model/
+venv/
+.env
+*.md
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+models/mediapipe/
