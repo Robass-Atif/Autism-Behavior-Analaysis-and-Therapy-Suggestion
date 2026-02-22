@@ -22,6 +22,8 @@ export default function ResetPasswordScreen({ onLogin }: { onLogin: () => void }
   });
 
   const resetMutation = useUpdatePassword();
+  const searchParams = new URLSearchParams(window.location.search);
+  const token = searchParams.get('token') || '';
 
   if (resetMutation.isSuccess) {
     return (
@@ -48,7 +50,8 @@ export default function ResetPasswordScreen({ onLogin }: { onLogin: () => void }
           <p className="text-slate-500 mt-2 text-base">Please choose a strong password for your account.</p>
         </div>
 
-        <form onSubmit={handleSubmit((d) => resetMutation.mutate(d.password))} className="space-y-6">
+        <form onSubmit={handleSubmit((d) => resetMutation.mutate({ token, password: d.password, confirmPassword: d.confirmPassword }))} className="space-y-6">
+
           <div>
             <label className="block text-sm font-semibold text-slate-800 mb-2">New Password</label>
             <div className="relative">

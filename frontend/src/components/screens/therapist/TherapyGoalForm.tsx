@@ -16,7 +16,7 @@ const goalSchema = z.object({
   target: z.number().min(1),
   startDate: z.string(),
   targetDate: z.string().refine(d => new Date(d) > new Date(), "Target date must be in the future"),
-  priority: z.enum(['High', 'Medium', 'Low'])
+  priority: z.enum(['high', 'medium', 'low'])
 });
 
 type GoalFormInputs = z.infer<typeof goalSchema>;
@@ -26,7 +26,7 @@ export default function TherapyGoalForm({ onBack }: { onBack: () => void }) {
     resolver: zodResolver(goalSchema),
     defaultValues: {
       startDate: new Date().toISOString().split('T')[0],
-      priority: 'Medium',
+      priority: 'medium',
       category: 'Motor Skills'
     }
   });
@@ -63,9 +63,9 @@ export default function TherapyGoalForm({ onBack }: { onBack: () => void }) {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Priority Level</label>
             <select {...register('priority')} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm">
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="Low">Low Priority</option>
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
             </select>
           </div>
 

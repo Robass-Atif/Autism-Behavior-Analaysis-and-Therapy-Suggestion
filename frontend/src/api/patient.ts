@@ -41,7 +41,10 @@ export interface CreatePatientData {
   admissionDate?: string;
   clinicalNotes?: string;
   caregiverNotes?: string;
+  caregiverId?: string;
+  caregiverName?: string;
 }
+
 
 export interface UpdatePatientData extends Partial<CreatePatientData> {
   status?: 'Active' | 'Inactive' | 'Discharged';

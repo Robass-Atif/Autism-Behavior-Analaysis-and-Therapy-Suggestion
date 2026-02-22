@@ -15,7 +15,9 @@ export const AUTH_ENDPOINTS = {
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
   COMPLETE_ONBOARDING: '/auth/complete-onboarding',
+  VERIFY_EMAIL: '/auth/verify-email',
   ME: '/auth/me',
+
   LOGOUT: '/auth/logout',
 };
 
@@ -94,7 +96,7 @@ export const THERAPY_GOALS_ENDPOINTS = {
   DELETE: (id: string) => `/therapy-goals/${id}`,
 };
 
-// Clinical Module (Video Sessions - BACKEND NOT IMPLEMENTED)
+// Clinical Module
 export const CLINICAL_ENDPOINTS = {
   // Therapy Goals - USE THERAPY_GOALS_ENDPOINTS above
   CREATE_THERAPY_GOAL: '/therapy-goals',
@@ -103,15 +105,25 @@ export const CLINICAL_ENDPOINTS = {
   UPDATE_THERAPY_GOAL: (id: string) => `/therapy-goals/${id}`,
   DELETE_THERAPY_GOAL: (id: string) => `/therapy-goals/${id}`,
 
-  // Video Sessions (BACKEND NOT IMPLEMENTED)
+  // Video Sessions
   CREATE_VIDEO_SESSION: '/clinical/video-sessions',
   LIST_VIDEO_SESSIONS: '/clinical/video-sessions',
   GET_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}`,
   UPDATE_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}`,
   DELETE_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}`,
-  TRIGGER_AI_ANALYSIS: (id: string) => `/predict/analyze/${id}`,
 
-  // Reports (BACKEND NOT IMPLEMENTED)
+  // Video Session Workflow
+  APPROVE_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}/approve`,
+  TRIGGER_AI_ANALYSIS: (id: string) => `/clinical/video-sessions/${id}/analyze`,
+  CANCEL_AI_ANALYSIS: (id: string) => `/clinical/video-sessions/${id}/cancel`,
+  RETRY_AI_ANALYSIS: (id: string) => `/clinical/video-sessions/${id}/retry`,
+  REVIEW_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}/review`,
+  PUBLISH_VIDEO_SESSION: (id: string) => `/clinical/video-sessions/${id}/publish`,
+
+  // Longitudinal Data
+  PATIENT_LONGITUDINAL: (patientId: string) => `/clinical/patients/${patientId}/longitudinal`,
+
+  // Reports
   GET_INDIVIDUAL_REPORT: (patientId: string) => `/clinical/reports/individual/${patientId}`,
   GET_CONSOLIDATED_REPORT: '/clinical/reports/consolidated',
   GENERATE_REPORT: '/clinical/reports/generate-pdf',

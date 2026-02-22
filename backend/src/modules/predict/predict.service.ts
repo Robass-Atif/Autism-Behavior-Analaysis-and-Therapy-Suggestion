@@ -211,33 +211,89 @@ export class PredictService {
 
         // 4. Update session status to processing
         session.status = 'processing';
+        session.lastError = undefined as any;
         await session.save();
 
-        try {
-            const result = await this.predictVideo(file, userId, patientId);
+        const maxRetries = session.maxRetries || 3;
+        let lastError: any = null;
 
-            // 5. Update video session with AI results
-            session.status = 'analyzed';
-            session.aiConfidence = result.predictionResult?.confidence || 90;
-            session.aiAnalysis = {
-                behaviors: result.predictionResult?.behaviors || [],
-                summary: result.predictionResult?.summary || 'Analysis completed.',
-                recommendations: result.predictionResult?.recommendations || [],
-            };
-            await session.save();
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`🔄 AI analysis attempt ${attempt}/${maxRetries} for session ${sessionId}`);
+                const result = await this.predictVideo(file, userId, patientId);
+                const predData = result.predictionResult || {};
 
-            return {
-                success: true,
-                message: 'AI analysis completed successfully.',
-                sessionId: session._id,
-                status: 'analyzed',
-                prediction: result,
-            };
-        } catch (error) {
-            session.status = 'failed';
-            await session.save();
-            throw error;
+                // 5. Store the FULL raw JSON for audit purposes
+                session.rawPredictionResponse = predData;
+
+                // 6. Extract ensemble_prediction as the primary clinical decision layer
+                if (predData.ensemble_prediction) {
+                    session.ensemblePrediction = {
+                        severity: predData.ensemble_prediction.severity,
+                        severity_confidence: predData.ensemble_prediction.severity_confidence,
+                        social_affect: predData.ensemble_prediction.social_affect,
+                        rrb: predData.ensemble_prediction.rrb,
+                        comparison_score: predData.ensemble_prediction.comparison_score,
+                        comparison_confidence: predData.ensemble_prediction.comparison_confidence,
+                        method: predData.ensemble_prediction.method || 'average',
+                    };
+                    session.aiConfidence = Math.round(
+                        (predData.ensemble_prediction.severity_confidence || 0) * 100
+                    );
+                } else {
+                    session.aiConfidence = result.predictionResult?.confidence || 90;
+                }
+
+                // 7. Legacy aiAnalysis field for backward compatibility
+                session.aiAnalysis = {
+                    behaviors: predData.behaviors || [],
+                    summary: predData.predictions_2d?.explainability?.summary ||
+                             predData.predictions_3d?.explainability?.summary ||
+                             'Analysis completed.',
+                    recommendations: predData.recommendations || [],
+                };
+
+                // 8. Set status to 'completed' (awaiting therapist review)
+                session.status = 'completed';
+                session.retryCount = attempt - 1; // record how many retries were needed
+                session.lastError = undefined as any;
+                await session.save();
+
+                console.log(`✅ AI analysis succeeded on attempt ${attempt} for session ${sessionId}`);
+
+                return {
+                    success: true,
+                    message: `AI analysis completed${attempt > 1 ? ` after ${attempt} attempts` : ''}. Awaiting therapist review.`,
+                    sessionId: session._id,
+                    status: 'completed',
+                    attempts: attempt,
+                    prediction: result,
+                };
+            } catch (error: any) {
+                lastError = error;
+                const errorMsg = error?.message || error?.toString() || 'Unknown error';
+                console.error(`❌ AI analysis attempt ${attempt}/${maxRetries} failed for session ${sessionId}: ${errorMsg}`);
+
+                session.retryCount = attempt;
+                session.lastError = errorMsg;
+                await session.save();
+
+                // If not the last attempt, wait before retrying (exponential backoff)
+                if (attempt < maxRetries) {
+                    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                    console.log(`⏳ Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
         }
+
+        // All attempts exhausted
+        session.status = 'failed';
+        session.lastError = lastError?.message || 'All retry attempts exhausted';
+        await session.save();
+
+        console.error(`💀 AI analysis failed after ${maxRetries} attempts for session ${sessionId}`);
+        throw lastError;
     }
 
     async findAll() {

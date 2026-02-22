@@ -160,6 +160,7 @@ export class ClinicalController {
   @ApiOperation({ summary: 'Get video sessions' })
   @ApiQuery({ name: 'patientId', required: false })
   @ApiQuery({ name: 'actionType', required: false })
+  @ApiQuery({ name: 'status', required: false })
   @ApiResponse({ status: 200, description: 'Sessions retrieved' })
   async getVideoSessions(
     @CurrentUser() user: any,
@@ -215,19 +216,133 @@ export class ClinicalController {
     return this.clinicalService.deleteVideoSession(id, user.sub, user.role);
   }
 
-  // ========== AI ANALYSIS ==========
+  // ========== VIDEO SESSION WORKFLOW ==========
+
+  @Post('video-sessions/:id/approve')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Approve video session for AI analysis',
+    description: 'Therapist approves a pending_review video for AI analysis. Transitions status to approved_for_ai.',
+  })
+  @ApiResponse({ status: 200, description: 'Session approved for AI' })
+  @ApiResponse({ status: 400, description: 'Invalid status transition' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async approveForAI(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.approveForAI(id, user.sub);
+  }
 
   @Post('video-sessions/:id/analyze')
   @Roles(Role.THERAPIST, Role.ADMIN)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Trigger AI analysis on video session' })
+  @ApiOperation({
+    summary: 'Trigger AI analysis on video session',
+    description: 'Triggers AI analysis on an approved_for_ai session. Only works after therapist approval.',
+  })
   @ApiResponse({ status: 200, description: 'Analysis triggered' })
+  @ApiResponse({ status: 400, description: 'Session not approved for AI' })
   @ApiResponse({ status: 404, description: 'Session not found' })
   async triggerAIAnalysis(
     @Param('id') id: string,
     @CurrentUser() user: any,
   ) {
     return this.clinicalService.triggerAIAnalysis(id, user.sub);
+  }
+
+  @Post('video-sessions/:id/review')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Submit therapist review for video session',
+    description: 'Therapist submits review with optional severity override, notes, and therapy plan adjustments.',
+  })
+  @ApiResponse({ status: 200, description: 'Review submitted' })
+  @ApiResponse({ status: 400, description: 'Invalid status transition' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async submitTherapistReview(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Body() reviewData: {
+      overrideSeverity?: number;
+      reviewNotes?: string;
+      therapyPlanAdjustments?: string;
+    },
+  ) {
+    return this.clinicalService.submitTherapistReview(id, user.sub, reviewData);
+  }
+
+  @Post('video-sessions/:id/publish')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Publish session report',
+    description: 'Publishes the therapist-reviewed report, making it visible to caregivers.',
+  })
+  @ApiResponse({ status: 200, description: 'Report published' })
+  @ApiResponse({ status: 400, description: 'Session not in therapist_review status' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async publishReport(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.publishReport(id, user.sub);
+  }
+
+  // ========== CANCEL AI ANALYSIS ==========
+
+  @Post('video-sessions/:id/cancel')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Cancel AI analysis',
+    description: 'Cancels an in-progress or approved-for-AI session, returning it to approved_for_ai status.',
+  })
+  @ApiResponse({ status: 200, description: 'AI analysis cancelled' })
+  @ApiResponse({ status: 400, description: 'Invalid status for cancel' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async cancelAIAnalysis(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.cancelAIAnalysis(id, user.sub);
+  }
+
+  // ========== RETRY AI ANALYSIS ==========
+
+  @Post('video-sessions/:id/retry')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Retry failed AI analysis',
+    description: 'Resets a failed session back to approved_for_ai so AI analysis can be triggered again.',
+  })
+  @ApiResponse({ status: 200, description: 'Session reset for retry' })
+  @ApiResponse({ status: 400, description: 'Session is not in failed status' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async retryAIAnalysis(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.retryAIAnalysis(id, user.sub);
+  }
+
+  // ========== LONGITUDINAL DATA ==========
+
+  @Get('patients/:patientId/longitudinal')
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get longitudinal data for patient',
+    description: 'Returns ensemble_prediction metrics across all completed sessions for trend analysis.',
+  })
+  @ApiResponse({ status: 200, description: 'Longitudinal data retrieved' })
+  async getPatientLongitudinal(
+    @Param('patientId') patientId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.getPatientLongitudinal(patientId, user.sub);
   }
 
   // ========== REPORTS ==========

@@ -1,16 +1,30 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useNavigate } from '@tanstack/react-router';
-import { UserStatus } from '../../../types';
-import { useLogin } from '../../../api/auth';
-import { Eye, EyeOff, Lock, Mail, ArrowRight, Terminal, Shield, Key, Loader2, AlertTriangle, Clock, XCircle, UserX } from 'lucide-react';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useNavigate } from "@tanstack/react-router";
+import { UserStatus } from "../../../types";
+import { useLogin } from "../../../api/auth";
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  ArrowRight,
+  Activity,
+  Shield,
+  Key,
+  Loader2,
+  AlertTriangle,
+  Clock,
+  XCircle,
+  UserX,
+} from "lucide-react";
 
 // Zod Schema for Validation
 const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: z.string().min(1, "Email is required").email("Invalid email format"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
@@ -24,13 +38,13 @@ export default function LoginScreen() {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: ''
-    }
+      email: "",
+      password: "",
+    },
   });
 
   const loginMutation = useLogin();
@@ -39,46 +53,49 @@ export default function LoginScreen() {
     setLoginError(null);
     setUserStatus(null);
 
-    loginMutation.mutate({ email: data.email, password: data.password }, {
-      onSuccess: (response: any) => {
-        const userData = response.data || response.user || response;
-        const status = userData?.accountStatus || userData?.status;
+    loginMutation.mutate(
+      { email: data.email, password: data.password },
+      {
+        onSuccess: (response: any) => {
+          const userData = response.data || response.user || response;
+          const status = userData?.accountStatus || userData?.status;
 
-        if (status === UserStatus.PENDING || status === 'pending') {
-          setUserStatus(UserStatus.PENDING);
-          setLoginError('Account pending approval');
-          return;
-        }
-
-        if (status === UserStatus.REJECTED || status === 'rejected') {
-          setUserStatus(UserStatus.REJECTED);
-          setLoginError('Account application rejected');
-          return;
-        }
-
-        if (status === UserStatus.SUSPENDED || status === 'suspended') {
-          setUserStatus(UserStatus.SUSPENDED);
-          setLoginError('Account suspended');
-          return;
-        }
-
-        navigate({ to: '/dashboard' });
-      },
-      onError: (error: any) => {
-        if (error.response?.data?.status) {
-          setUserStatus(error.response.data.status);
-          if (error.response.data.status === UserStatus.PENDING) {
-            setLoginError('Account pending approval');
-          } else if (error.response.data.status === UserStatus.REJECTED) {
-            setLoginError('Account rejected');
-          } else if (error.response.data.status === UserStatus.SUSPENDED) {
-            setLoginError('Account suspended');
+          if (status === UserStatus.PENDING || status === "pending") {
+            setUserStatus(UserStatus.PENDING);
+            setLoginError("Account pending approval");
+            return;
           }
-        } else {
-          setLoginError('Invalid credentials');
-        }
-      }
-    });
+
+          if (status === UserStatus.REJECTED || status === "rejected") {
+            setUserStatus(UserStatus.REJECTED);
+            setLoginError("Account application rejected");
+            return;
+          }
+
+          if (status === UserStatus.SUSPENDED || status === "suspended") {
+            setUserStatus(UserStatus.SUSPENDED);
+            setLoginError("Account suspended");
+            return;
+          }
+
+          navigate({ to: "/dashboard" });
+        },
+        onError: (error: any) => {
+          if (error.response?.data?.status) {
+            setUserStatus(error.response.data.status);
+            if (error.response.data.status === UserStatus.PENDING) {
+              setLoginError("Account pending approval");
+            } else if (error.response.data.status === UserStatus.REJECTED) {
+              setLoginError("Account rejected");
+            } else if (error.response.data.status === UserStatus.SUSPENDED) {
+              setLoginError("Account suspended");
+            }
+          } else {
+            setLoginError("Invalid credentials");
+          }
+        },
+      },
+    );
   };
 
   const getStatusMessage = () => {
@@ -88,8 +105,12 @@ export default function LoginScreen() {
           <div className="flex items-start gap-3 bg-zinc-900 p-4 border border-zinc-700">
             <Clock className="flex-shrink-0 mt-0.5 w-4 h-4 text-yellow-500" />
             <div className="font-mono text-xs">
-              <p className="text-yellow-500 uppercase tracking-wider">&gt; STATUS: PENDING_APPROVAL</p>
-              <p className="mt-1 text-zinc-400">Your application is under review. Await admin verification.</p>
+              <p className="text-yellow-500 uppercase tracking-wider">
+                &gt; STATUS: PENDING_APPROVAL
+              </p>
+              <p className="mt-1 text-zinc-400">
+                Your application is under review. Await admin verification.
+              </p>
             </div>
           </div>
         );
@@ -98,8 +119,12 @@ export default function LoginScreen() {
           <div className="flex items-start gap-3 bg-zinc-900 p-4 border border-zinc-700">
             <XCircle className="flex-shrink-0 mt-0.5 w-4 h-4 text-red-500" />
             <div className="font-mono text-xs">
-              <p className="text-red-500 uppercase tracking-wider">&gt; STATUS: REJECTED</p>
-              <p className="mt-1 text-zinc-400">Application not approved. Contact support for details.</p>
+              <p className="text-red-500 uppercase tracking-wider">
+                &gt; STATUS: REJECTED
+              </p>
+              <p className="mt-1 text-zinc-400">
+                Application not approved. Contact support for details.
+              </p>
             </div>
           </div>
         );
@@ -108,8 +133,12 @@ export default function LoginScreen() {
           <div className="flex items-start gap-3 bg-zinc-900 p-4 border border-zinc-700">
             <UserX className="flex-shrink-0 mt-0.5 w-4 h-4 text-orange-500" />
             <div className="font-mono text-xs">
-              <p className="text-orange-500 uppercase tracking-wider">&gt; STATUS: SUSPENDED</p>
-              <p className="mt-1 text-zinc-400">Account temporarily suspended. Contact administrator.</p>
+              <p className="text-orange-500 uppercase tracking-wider">
+                &gt; STATUS: SUSPENDED
+              </p>
+              <p className="mt-1 text-zinc-400">
+                Account temporarily suspended. Contact administrator.
+              </p>
             </div>
           </div>
         );
@@ -130,34 +159,46 @@ export default function LoginScreen() {
 
         {/* Subtle Grid Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="w-full h-full" style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
-            backgroundSize: '20px 20px'
-          }} />
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
+              backgroundSize: "20px 20px",
+            }}
+          />
         </div>
 
         <div className="z-10 relative">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div className="flex justify-center items-center border-2 border-white w-10 h-10">
-              <Terminal size={20} className="text-white" />
+              <Activity size={20} className="text-white" />
             </div>
-            <span className="font-bold text-white text-xl uppercase tracking-widest">NEUROCARE</span>
+            <span className="font-bold text-white text-xl uppercase tracking-widest">
+              NEUROCARE
+            </span>
           </div>
 
           {/* Headline */}
           <div className="mb-8">
-            <p className="mb-2 text-zinc-500 text-xs uppercase tracking-widest">CLINICAL INTELLIGENCE</p>
+            <p className="mb-2 text-zinc-500 text-xs uppercase tracking-widest">
+              CLINICAL INTELLIGENCE
+            </p>
             <h1 className="font-bold text-white text-3xl lg:text-4xl leading-tight tracking-tight">
-              BEHAVIOR<br />
-              ANALYSIS<br />
+              BEHAVIOR
+              <br />
+              ANALYSIS
+              <br />
               PLATFORM_
             </h1>
           </div>
 
           {/* Description */}
           <p className="max-w-sm text-zinc-400 text-sm leading-relaxed">
-            Secure, AI-powered analysis for autism therapy tracking and behavioral insights. Enterprise-grade security with HIPAA compliance.
+            Secure, AI-powered analysis for autism therapy tracking and
+            behavioral insights. Enterprise-grade security with HIPAA
+            compliance.
           </p>
         </div>
 
@@ -166,15 +207,22 @@ export default function LoginScreen() {
           <div className="gap-px grid grid-cols-2 bg-zinc-800">
             <div className="flex items-center gap-2 bg-black p-4">
               <Shield size={14} className="text-green-500" />
-              <span className="text-zinc-300 text-xs uppercase tracking-wider">HIPAA_COMPLIANT</span>
+              <span className="text-zinc-300 text-xs uppercase tracking-wider">
+                HIPAA_COMPLIANT
+              </span>
             </div>
             <div className="flex items-center gap-2 bg-black p-4">
               <Key size={14} className="text-green-500" />
-              <span className="text-zinc-300 text-xs uppercase tracking-wider">AES_256_ENCRYPTED</span>
+              <span className="text-zinc-300 text-xs uppercase tracking-wider">
+                AES_256_ENCRYPTED
+              </span>
             </div>
           </div>
           <div className="bg-zinc-900 p-3 border-zinc-800 border-t">
-            <p className="text-[10px] text-zinc-500 tracking-wider">&gt; <span className="text-green-500">AUTISM_SUPPORT</span> | THERAPY_TRACKING | 24/7_CARE</p>
+            <p className="text-[10px] text-zinc-500 tracking-wider">
+              &gt; <span className="text-green-500">AUTISM_SUPPORT</span> |
+              THERAPY_TRACKING | 24/7_CARE
+            </p>
           </div>
         </div>
       </div>
@@ -185,16 +233,22 @@ export default function LoginScreen() {
           {/* Mobile Logo */}
           <div className="md:hidden flex items-center gap-3 mb-8">
             <div className="flex justify-center items-center border-2 border-black w-10 h-10">
-              <Terminal size={20} className="text-black" />
+              <Activity size={20} className="text-black" />
             </div>
-            <span className="font-bold text-black text-xl uppercase tracking-widest">NEUROCARE</span>
+            <span className="font-bold text-black text-xl uppercase tracking-widest">
+              NEUROCARE
+            </span>
           </div>
 
           <div className="bg-white p-8 lg:p-10 border-2 border-zinc-200">
             {/* Header */}
             <div className="mb-8">
-              <p className="mb-1 text-zinc-400 text-xs tracking-widest">&gt; AUTH_MODULE</p>
-              <h2 className="font-bold text-black text-2xl uppercase tracking-tight">SIGN_IN</h2>
+              <p className="mb-1 text-zinc-400 text-xs tracking-widest">
+                &gt; AUTH_MODULE
+              </p>
+              <h2 className="font-bold text-black text-2xl uppercase tracking-tight">
+                SIGN_IN
+              </h2>
               <div className="bg-black mt-2 w-12 h-0.5" />
             </div>
 
@@ -205,40 +259,52 @@ export default function LoginScreen() {
               {!userStatus && loginError && (
                 <div className="flex items-center gap-3 bg-zinc-900 p-4 border border-zinc-700">
                   <AlertTriangle size={16} className="text-red-500" />
-                  <span className="font-mono text-red-400 text-xs uppercase tracking-wider">&gt; ERROR: {loginError}</span>
+                  <span className="font-mono text-red-400 text-xs uppercase tracking-wider">
+                    &gt; ERROR: {loginError}
+                  </span>
                 </div>
               )}
 
               {/* Email Field */}
               <div>
-                <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">EMAIL_</label>
+                <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
+                  EMAIL_
+                </label>
                 <div className="relative">
                   <Mail className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
                   <input
                     type="email"
-                    {...register('email')}
-                    className={`block w-full pl-11 pr-4 py-3 bg-white border-2 text-black placeholder-zinc-400 focus:outline-none transition-colors text-sm font-mono ${errors.email
-                      ? 'border-red-500 focus:border-red-600'
-                      : 'border-zinc-200 focus:border-black'
-                      }`}
+                    {...register("email")}
+                    className={`block w-full pl-11 pr-4 py-3 bg-white border-2 text-black placeholder-zinc-400 focus:outline-none transition-colors text-sm font-mono ${
+                      errors.email
+                        ? "border-red-500 focus:border-red-600"
+                        : "border-zinc-200 focus:border-black"
+                    }`}
                     placeholder="user@clinic.org"
                   />
                 </div>
-                {errors.email && <p className="mt-2 text-red-600 text-xs">&gt; {errors.email.message}</p>}
+                {errors.email && (
+                  <p className="mt-2 text-red-600 text-xs">
+                    &gt; {errors.email.message}
+                  </p>
+                )}
               </div>
 
               {/* Password Field */}
               <div>
-                <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">PASSWORD_</label>
+                <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
+                  PASSWORD_
+                </label>
                 <div className="relative">
                   <Lock className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    {...register('password')}
-                    className={`block w-full pl-11 pr-12 py-3 bg-white border-2 text-black placeholder-zinc-400 focus:outline-none transition-colors text-sm font-mono ${errors.password
-                      ? 'border-red-500 focus:border-red-600'
-                      : 'border-zinc-200 focus:border-black'
-                      }`}
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className={`block w-full pl-11 pr-12 py-3 bg-white border-2 text-black placeholder-zinc-400 focus:outline-none transition-colors text-sm font-mono ${
+                      errors.password
+                        ? "border-red-500 focus:border-red-600"
+                        : "border-zinc-200 focus:border-black"
+                    }`}
                     placeholder="••••••••••"
                   />
                   <button
@@ -246,21 +312,34 @@ export default function LoginScreen() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="top-3.5 right-4 absolute text-zinc-400 hover:text-black transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
-                {errors.password && <p className="mt-2 text-red-600 text-xs">&gt; {errors.password.message}</p>}
+                {errors.password && (
+                  <p className="mt-2 text-red-600 text-xs">
+                    &gt; {errors.password.message}
+                  </p>
+                )}
               </div>
 
               {/* Remember & Forgot */}
               <div className="flex justify-between items-center">
                 <label className="group flex items-center cursor-pointer">
-                  <input type="checkbox" className="border-2 border-zinc-300 focus:ring-0 w-4 h-4 text-black" />
-                  <span className="ml-2 text-zinc-600 group-hover:text-black text-xs uppercase tracking-wider transition-colors">REMEMBER_ME</span>
+                  <input
+                    type="checkbox"
+                    className="border-2 border-zinc-300 focus:ring-0 w-4 h-4 text-black"
+                  />
+                  <span className="ml-2 text-zinc-600 group-hover:text-black text-xs uppercase tracking-wider transition-colors">
+                    REMEMBER_ME
+                  </span>
                 </label>
                 <button
                   type="button"
-                  onClick={() => navigate({ to: '/forgot-password' })}
+                  onClick={() => navigate({ to: "/forgot-password" })}
                   className="font-bold text-zinc-500 hover:text-black text-xs uppercase tracking-wider transition-colors"
                 >
                   FORGOT_PASSWORD?
@@ -289,14 +368,16 @@ export default function LoginScreen() {
             {/* Divider */}
             <div className="flex items-center my-8">
               <div className="flex-1 border-zinc-100 border-t-2" />
-              <span className="px-4 font-bold text-zinc-400 text-xs uppercase tracking-wider">OR</span>
+              <span className="px-4 font-bold text-zinc-400 text-xs uppercase tracking-wider">
+                OR
+              </span>
               <div className="flex-1 border-zinc-100 border-t-2" />
             </div>
 
             {/* Register Link */}
             <button
               type="button"
-              onClick={() => navigate({ to: '/register/therapist' })}
+              onClick={() => navigate({ to: "/register/therapist" })}
               className="flex justify-center items-center bg-white hover:bg-zinc-50 py-4 border-2 border-zinc-200 hover:border-black w-full font-bold text-black text-sm uppercase tracking-widest transition-all"
             >
               REGISTER_AS_THERAPIST

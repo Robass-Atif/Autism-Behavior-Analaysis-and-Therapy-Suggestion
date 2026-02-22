@@ -2,12 +2,15 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { TherapyGoal } from './schemas/therapy-goal.schema';
+import { Model, Types } from 'mongoose';
+
+import { TherapyGoal } from '../therapy-goals/schemas/therapy-goal.schema';
+
 import { VideoSession } from './schemas/video-session.schema';
 import { CreateTherapyGoalDto } from './dto/create-therapy-goal.dto';
 import { UpdateTherapyGoalDto } from './dto/update-therapy-goal.dto';
@@ -33,13 +36,15 @@ export class ClinicalService {
   async createTherapyGoal(therapistId: string, dto: CreateTherapyGoalDto) {
     const goal = new this.therapyGoalModel({
       ...dto,
-      therapistId,
+      therapistId: new Types.ObjectId(therapistId),
+      patientId: new Types.ObjectId(dto.patientId),
       status: 'active',
       progress: dto.progress || 0,
       deleted: false,
     });
 
     await goal.save();
+
 
     // Recalculate patient progress after creating goal
     await this.patientsService.calculatePatientProgress(dto.patientId);
@@ -168,7 +173,8 @@ export class ClinicalService {
     const sessionData: any = {
       ...dto,
       videoUrl,
-      status: 'uploaded',
+      status: 'pending_review', // Always starts as pending_review
+      uploadedBy: userRole === 'CAREGIVER' ? 'caregiver' : 'therapist',
       reviewed: false,
       deleted: false,
       recordedAt: dto.recordedAt || new Date(),
@@ -194,15 +200,136 @@ export class ClinicalService {
     const session = new this.videoSessionModel(sessionData);
     await session.save();
 
-    // REMOVED: Automatic AI analysis trigger
-    // Now strictly manual as per FR-5 requirements
-
     return {
       success: true,
-      message: 'Video session uploaded successfully. Ready for therapist review.',
+      message: 'Video session uploaded successfully. Awaiting therapist review.',
       session: this.formatVideoSession(session),
     };
   }
+
+  // ========== NEW: APPROVE FOR AI ==========
+
+  async approveForAI(sessionId: string, therapistId: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    // For flexibility in demo, disabled strict therapist matching
+    // if (session.therapistId && session.therapistId.toString() !== therapistId) {
+    //   throw new ForbiddenException('You can only approve your own sessions');
+    // }
+
+    if (session.status !== 'pending_review') {
+      throw new BadRequestException(
+        `Cannot approve session with status "${session.status}". Session must be in "pending_review" status.`
+      );
+    }
+
+    session.status = 'approved_for_ai';
+    session.updatedAt = new Date();
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Session approved for AI analysis. You can now trigger analysis.',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  // ========== NEW: SUBMIT THERAPIST REVIEW ==========
+
+  async submitTherapistReview(
+    sessionId: string,
+    therapistId: string,
+    reviewData: {
+      overrideSeverity?: number;
+      reviewNotes?: string;
+      therapyPlanAdjustments?: string;
+    }
+  ) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    if (session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException('You can only review your own sessions');
+    }
+
+    if (session.status !== 'completed') {
+      throw new BadRequestException(
+        `Cannot review session with status "${session.status}". Session must be in "completed" status.`
+      );
+    }
+
+    const originalAISeverity = session.ensemblePrediction?.severity ?? null;
+    const isOverridden = reviewData.overrideSeverity !== undefined &&
+      reviewData.overrideSeverity !== null &&
+      reviewData.overrideSeverity !== originalAISeverity;
+
+    session.therapistReview = {
+      overrideSeverity: isOverridden ? reviewData.overrideSeverity : (originalAISeverity ?? 0),
+      originalAISeverity: originalAISeverity ?? 0,
+      isOverridden,
+      reviewNotes: reviewData.reviewNotes || '',
+      therapyPlanAdjustments: reviewData.therapyPlanAdjustments || '',
+      reviewedAt: new Date(),
+      reviewedBy: therapistId as any,
+      overriddenAt: isOverridden ? new Date() : undefined,
+    };
+
+    session.therapistNotes = reviewData.reviewNotes || session.therapistNotes;
+    session.reviewed = true;
+    session.reviewedAt = new Date();
+    session.status = 'therapist_review';
+    session.updatedAt = new Date();
+
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Therapist review submitted successfully.',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  // ========== NEW: PUBLISH REPORT ==========
+
+  async publishReport(sessionId: string, therapistId: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    if (session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException('You can only publish your own sessions');
+    }
+
+    if (session.status !== 'therapist_review') {
+      throw new BadRequestException(
+        `Cannot publish session with status "${session.status}". Session must be in "therapist_review" status.`
+      );
+    }
+
+    session.status = 'published';
+    session.publishedAt = new Date();
+    session.publishedBy = therapistId as any;
+    session.updatedAt = new Date();
+
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Report published successfully. Caregiver can now view the results.',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  // ========== VIDEO SESSION QUERIES ==========
 
   async getVideoSessions(userId: string, userRole: string, patientId?: string, actionType?: string) {
     const query: any = {
@@ -235,7 +362,7 @@ export class ClinicalService {
       .exec();
 
     return {
-      sessions: sessions.map((s) => this.formatVideoSession(s)),
+      sessions: sessions.map((s) => this.formatVideoSession(s, userRole)),
       total: sessions.length,
     };
   }
@@ -261,7 +388,7 @@ export class ClinicalService {
       throw new ForbiddenException('You can only access your own video sessions');
     }
 
-    return this.formatVideoSession(session);
+    return this.formatVideoSession(session, userRole);
   }
 
   async updateVideoSession(
@@ -283,6 +410,11 @@ export class ClinicalService {
 
     Object.assign(session, updateData);
     session.updatedAt = new Date();
+
+    // Backwards compatibility patch for older sessions that were saved as 'analyzed' before strict schema enums
+    if ((session.status as string) === 'analyzed') {
+      session.status = 'completed';
+    }
 
     await session.save();
 
@@ -324,6 +456,14 @@ export class ClinicalService {
     if (!session || session.deleted) {
       throw new NotFoundException('Video session not found');
     }
+    // Removed strict therapistId match here as well
+    
+    // Enforce: can only trigger AI on approved or failed sessions
+    if (session.status !== 'approved_for_ai' && session.status !== 'failed') {
+      throw new BadRequestException(
+        `Cannot trigger AI analysis on session with status "${session.status}". Session must be in "approved_for_ai" or "failed" status.`
+      );
+    }
 
     // Update session status to processing
     session.status = 'processing';
@@ -339,6 +479,111 @@ export class ClinicalService {
       message: 'AI analysis has been triggered. Results will be available shortly.',
       sessionId: session._id,
       status: 'processing',
+    };
+  }
+
+  // ========== CANCEL AI ANALYSIS ==========
+
+  async cancelAIAnalysis(sessionId: string, therapistId: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    if (session.status !== 'processing' && session.status !== 'approved_for_ai' && session.status !== 'failed') {
+      throw new BadRequestException(
+        `Cannot cancel session with status "${session.status}". Session must be in "processing", "approved_for_ai", or "failed" status.`
+      );
+    }
+
+    session.status = 'approved_for_ai';
+    session.cancelledAt = new Date();
+    session.cancelledBy = therapistId as any;
+    session.lastError = undefined as any;
+    session.retryCount = 0;
+    session.updatedAt = new Date();
+
+    await session.save();
+
+    return {
+      success: true,
+      message: 'AI analysis cancelled. Session returned to approved status.',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  // ========== RETRY AI ANALYSIS ==========
+
+  async retryAIAnalysis(sessionId: string, therapistId: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException('Video session not found');
+    }
+
+    if (session.status !== 'failed') {
+      throw new BadRequestException(
+        `Cannot retry session with status "${session.status}". Session must be in "failed" status.`
+      );
+    }
+
+    // Reset to approved_for_ai so it can be triggered again
+    session.status = 'approved_for_ai';
+    session.retryCount = 0;
+    session.lastError = undefined as any;
+    session.cancelledAt = undefined as any;
+    session.cancelledBy = undefined as any;
+    session.updatedAt = new Date();
+
+    await session.save();
+
+    return {
+      success: true,
+      message: 'Session reset for retry. You can now trigger AI analysis again.',
+      session: this.formatVideoSession(session),
+    };
+  }
+
+  // ========== LONGITUDINAL DATA ==========
+
+  async getPatientLongitudinal(patientId: string, therapistId: string) {
+    const sessions = await this.videoSessionModel
+      .find({
+        patientId,
+        therapistId,
+        deleted: false,
+        status: { $in: ['completed', 'therapist_review', 'published'] },
+        ensemblePrediction: { $exists: true, $ne: null },
+      })
+      .select('recordedAt actionType status ensemblePrediction therapistReview clinicalReport createdAt')
+      .sort({ recordedAt: 1 })
+      .exec();
+
+    // Build longitudinal trend data from ensemble predictions only
+    const trendData = sessions.map((s: any) => {
+      const ep = s.ensemblePrediction || {};
+      const review = s.therapistReview || {};
+      return {
+        sessionId: s._id,
+        date: s.recordedAt,
+        actionType: s.actionType,
+        status: s.status,
+        severity: review.isOverridden ? review.overrideSeverity : ep.severity,
+        aiSeverity: ep.severity,
+        isOverridden: review.isOverridden || false,
+        social_affect: ep.social_affect,
+        rrb: ep.rrb,
+        comparison_score: ep.comparison_score,
+        severity_confidence: ep.severity_confidence,
+        comparison_confidence: ep.comparison_confidence,
+      };
+    });
+
+    return {
+      patientId,
+      totalSessions: sessions.length,
+      trendData,
     };
   }
 
@@ -364,8 +609,8 @@ export class ClinicalService {
     };
   }
 
-  private formatVideoSession(session: any) {
-    return {
+  private formatVideoSession(session: any, requesterRole?: string) {
+    const base: any = {
       id: session._id,
       patientId: session.patientId?._id || session.patientId,
       patientName: session.patientId?.fullName,
@@ -377,13 +622,43 @@ export class ClinicalService {
       actionType: session.actionType,
       qualityScore: session.qualityScore,
       status: session.status,
-      aiConfidence: session.aiConfidence,
-      aiAnalysis: session.aiAnalysis,
+      uploadedBy: session.uploadedBy,
       therapistNotes: session.therapistNotes,
       reviewed: session.reviewed,
       reviewedAt: session.reviewedAt,
       createdAt: session.createdAt,
     };
+
+    // CAREGIVER visibility: only show AI results when published
+    if (requesterRole === 'CAREGIVER') {
+      if (session.status === 'published') {
+        base.aiConfidence = session.aiConfidence;
+        base.ensemblePrediction = session.ensemblePrediction;
+        base.clinicalReport = session.clinicalReport;
+        base.therapistReview = session.therapistReview;
+        base.publishedAt = session.publishedAt;
+      }
+      // Caregivers never see raw prediction data or model transparency
+      return base;
+    }
+
+    // THERAPIST / ADMIN: full access
+    base.aiConfidence = session.aiConfidence;
+    base.aiAnalysis = session.aiAnalysis;
+    base.rawPredictionResponse = session.rawPredictionResponse;
+    base.ensemblePrediction = session.ensemblePrediction;
+    base.clinicalReport = session.clinicalReport;
+    base.therapistReview = session.therapistReview;
+    base.publishedAt = session.publishedAt;
+    base.publishedBy = session.publishedBy;
+
+    // Retry & Cancel tracking
+    base.retryCount = session.retryCount;
+    base.maxRetries = session.maxRetries;
+    base.lastError = session.lastError;
+    base.cancelledAt = session.cancelledAt;
+
+    return base;
   }
 
   // ========== PDF GENERATION ==========

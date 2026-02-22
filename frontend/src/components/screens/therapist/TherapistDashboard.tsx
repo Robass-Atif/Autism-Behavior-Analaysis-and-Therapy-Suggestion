@@ -79,7 +79,7 @@ export default function TherapistDashboard({ onNavigate }: TherapistDashboardPro
           <StatCard label="Goals" value={stats?.totalGoals || 0} sub={`${stats?.achievedGoals || 0} achieved`} onClick={() => onNavigate?.(Screen.THERAPY_GOALS)} />
           <StatCard label="Sessions" value={stats?.totalSessions || 0} sub={`${stats?.pendingSessions || 0} pending`} onClick={() => onNavigate?.(Screen.VIDEO_LIBRARY)} />
           <StatCard label="Progress" value={`${stats?.avgProgress || 0}%`} sub="avg score" />
-          <StatCard label="Reviews" value={stats?.pendingReviews || 0} sub="pending" onClick={() => onNavigate?.(Screen.VIDEO_LIBRARY)} />
+          <StatCard label="Reviews" value={stats?.pendingReviews || 0} sub="pending" onClick={() => onNavigate?.(Screen.PENDING_REVIEW_QUEUE)} />
           <StatCard label="Rate" value={`${stats?.goalAchievementRate || 0}%`} sub="achievement" onClick={() => onNavigate?.(Screen.THERAPY_GOALS)} />
         </div>
 

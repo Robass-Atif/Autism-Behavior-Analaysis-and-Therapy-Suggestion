@@ -94,13 +94,27 @@ export class InvitationService {
 
   // Task 7: Validate invitation code (PUBLIC endpoint - no auth required)
   async validateInvitationCode(invitationCode: string) {
-    const code = invitationCode.toUpperCase();
+    if (!invitationCode) {
+      return {
+        valid: false,
+        reason: 'INVALID_INPUT',
+        message: 'Invitation code is required',
+      };
+    }
+
+    const trimmedCode = invitationCode.trim().toUpperCase();
 
     const invitation = await this.invitationModel
-      .findOne({ invitationCode: code })
-      .populate('therapistId', 'fullName email phone')
+      .findOne({
+        $or: [
+          { invitationCode: trimmedCode },
+          { code: trimmedCode }
+        ]
+      })
+      .populate('therapistId', 'fullName email phone phoneNumber')
       .populate('patientId', 'fullName')
       .exec();
+
 
     // Not found
     if (!invitation) {

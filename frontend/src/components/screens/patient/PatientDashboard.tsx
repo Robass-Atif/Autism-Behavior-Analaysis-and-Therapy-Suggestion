@@ -12,7 +12,7 @@ export default function PatientDashboard() {
     const { data: sessionsData, isLoading: sessionsLoading } = useMyVideoSessions();
 
     const goals = goalsData?.goals || [];
-    const activeGoals = goals.filter(g => g.status === 'active' || g.status === 'In Progress');
+    const activeGoals = goals.filter(g => g.status === 'active' || g.status === ('In Progress' as any));
     const sessions = sessionsData?.sessions || [];
     const progress = profile?.progressScore || 0;
 
@@ -209,7 +209,7 @@ export default function PatientDashboard() {
                                                     {session.actionType || 'General Session'}
                                                 </h3>
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 ${session.status === 'analyzed' ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-400'
+                                                    <span className={`text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 ${(session.status === 'completed' || session.status === 'therapist_review' || session.status === 'published') ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-400'
                                                         }`}>
                                                         {session.status}
                                                     </span>

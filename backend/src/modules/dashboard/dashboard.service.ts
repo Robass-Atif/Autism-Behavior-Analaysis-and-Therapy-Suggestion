@@ -1,20 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+
 import { Patient } from '../patients/schemas/patient.schema';
+import { PatientCaregiver } from '../patients/schemas/patient-caregiver.schema';
 import { User } from '../users/schemas/user.schema';
+
 import { Therapist } from '../users/schemas/therapist.schema';
 import { Caregiver } from '../users/schemas/caregiver.schema';
 import { Admin } from '../users/schemas/admin.schema';
-import { TherapyGoal } from '../clinical/schemas/therapy-goal.schema';
+import { TherapyGoal } from '../therapy-goals/schemas/therapy-goal.schema';
 import { VideoSession } from '../clinical/schemas/video-session.schema';
 import { Invitation } from '../invitation/schemas/invitation.schema';
+
 
 @Injectable()
 export class DashboardService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
+    @InjectModel(PatientCaregiver.name) private patientCaregiverModel: Model<PatientCaregiver>,
     @InjectModel(User.name) private userModel: Model<User>,
+
     @InjectModel(Therapist.name) private therapistModel: Model<Therapist>,
     @InjectModel(Caregiver.name) private caregiverModel: Model<Caregiver>,
     @InjectModel(Admin.name) private adminModel: Model<Admin>,
@@ -24,6 +30,8 @@ export class DashboardService {
   ) { }
 
   async getTherapistStats(therapistId: string) {
+    const tId = new Types.ObjectId(therapistId);
+
     const [
       totalPatients,
       activePatients,
@@ -33,20 +41,22 @@ export class DashboardService {
       achievedGoals,
       totalSessions,
     ] = await Promise.all([
-      this.patientModel.countDocuments({ therapistId, deleted: false }),
-      this.patientModel.countDocuments({ therapistId, status: 'active', deleted: false }),
-      this.videoSessionModel.countDocuments({ therapistId, status: 'analyzed', reviewed: false }),
-      this.therapyGoalModel.countDocuments({ therapistId, deleted: false }),
-      this.therapyGoalModel.countDocuments({ therapistId, status: 'active', deleted: false }),
-      this.therapyGoalModel.countDocuments({ therapistId, status: { $in: ['achieved', 'completed'] }, deleted: false }),
-      this.videoSessionModel.countDocuments({ therapistId, deleted: false }),
+      this.patientModel.countDocuments({ therapistId: tId, deleted: false }),
+      this.patientModel.countDocuments({ therapistId: tId, status: 'active', deleted: false }),
+      this.videoSessionModel.countDocuments({ therapistId: tId, status: 'completed', reviewed: false }),
+      this.therapyGoalModel.countDocuments({ therapistId: tId, deleted: false }),
+      this.therapyGoalModel.countDocuments({ therapistId: tId, status: 'active', deleted: false }),
+      this.therapyGoalModel.countDocuments({ therapistId: tId, status: { $in: ['achieved', 'completed'] }, deleted: false }),
+      this.videoSessionModel.countDocuments({ therapistId: tId, deleted: false }),
     ]);
+
 
     // Calculate average progress
     const patients = await this.patientModel
-      .find({ therapistId, deleted: false })
+      .find({ therapistId: tId, deleted: false })
       .select('progressScore')
       .exec();
+
 
     const avgProgress = patients.length > 0
       ? patients.reduce((sum, p) => sum + (p.progressScore || 0), 0) / patients.length
@@ -64,10 +74,11 @@ export class DashboardService {
       const dayEnd = new Date(date.setHours(23, 59, 59, 999));
 
       const sessionCount = await this.videoSessionModel.countDocuments({
-        therapistId,
+        therapistId: tId,
         createdAt: { $gte: dayStart, $lte: dayEnd },
         deleted: false,
       });
+
 
       weeklySessions.push({
         day: days[dayStart.getDay()],
@@ -86,17 +97,19 @@ export class DashboardService {
 
       // Simulate weekly progress based on goals achieved ratio
       const weekGoals = await this.therapyGoalModel.countDocuments({
-        therapistId,
+        therapistId: tId,
         updatedAt: { $gte: weekStart, $lte: weekEnd },
         deleted: false,
       });
 
+
       const weekAchieved = await this.therapyGoalModel.countDocuments({
-        therapistId,
+        therapistId: tId,
         status: { $in: ['achieved', 'completed'] },
         updatedAt: { $gte: weekStart, $lte: weekEnd },
         deleted: false,
       });
+
 
       const weekProgress = weekGoals > 0 ? Math.round((weekAchieved / weekGoals) * 100) : 0;
 
@@ -119,9 +132,10 @@ export class DashboardService {
       achievedGoals,
       totalSessions,
       pendingSessions: await this.videoSessionModel.countDocuments({
-        therapistId,
-        status: { $in: ['uploaded', 'processing'] }
+        therapistId: tId,
+        status: { $in: ['uploaded', 'processing', 'pending_review', 'approved_for_ai'] }
       }),
+
       // Chart data
       weeklySessions,
       progressTrend,
@@ -130,6 +144,9 @@ export class DashboardService {
   }
 
   async getCaregiverStats(caregiverId: string) {
+    const cId = new Types.ObjectId(caregiverId);
+    const linkedPatientIds = await this.getLinkedPatientIds(caregiverId);
+
     const [
       linkedPatients,
       uploadedVideos,
@@ -137,13 +154,14 @@ export class DashboardService {
       completedReports,
     ] = await Promise.all([
       this.patientModel.countDocuments({
-        _id: { $in: await this.getLinkedPatientIds(caregiverId) },
+        _id: { $in: linkedPatientIds },
         deleted: false
       }),
-      this.videoSessionModel.countDocuments({ caregiverId, deleted: false }),
-      this.videoSessionModel.countDocuments({ caregiverId, reviewed: false }),
-      this.videoSessionModel.countDocuments({ caregiverId, reviewed: true }),
+      this.videoSessionModel.countDocuments({ caregiverId: cId, deleted: false }),
+      this.videoSessionModel.countDocuments({ caregiverId: cId, reviewed: false }),
+      this.videoSessionModel.countDocuments({ caregiverId: cId, reviewed: true }),
     ]);
+
 
     return {
       linkedPatients,
@@ -216,9 +234,14 @@ export class DashboardService {
     };
   }
 
-  private async getLinkedPatientIds(caregiverId: string): Promise<string[]> {
-    // This would query the patient-caregiver linking table
-    // For now, return empty array - would need proper implementation
-    return [];
+  private async getLinkedPatientIds(caregiverId: string): Promise<Types.ObjectId[]> {
+    const cId = new Types.ObjectId(caregiverId);
+    const links = await this.patientCaregiverModel.find({
+      caregiverId: cId,
+      status: 'active'
+    }).select('patientId').exec();
+    
+    return links.map(link => link.patientId);
   }
+
 }

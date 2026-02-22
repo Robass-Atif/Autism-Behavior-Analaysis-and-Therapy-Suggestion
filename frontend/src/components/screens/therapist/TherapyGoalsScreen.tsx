@@ -21,7 +21,7 @@ export default function TherapyGoalsScreen({ onNavigate }: TherapyGoalsScreenPro
     title: '',
     description: '',
     category: 'Other',
-    priority: 'Medium' as 'High' | 'Medium' | 'Low',
+    priority: 'medium' as 'high' | 'medium' | 'low',
     targetDate: '',
     patientId: '',
   });
@@ -335,12 +335,12 @@ export default function TherapyGoalsScreen({ onNavigate }: TherapyGoalsScreenPro
                   </label>
                   <select
                     value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'High' | 'Medium' | 'Low' })}
+                    onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'high' | 'medium' | 'low' })}
                     className="w-full px-4 py-3 bg-zinc-50 border-2 border-zinc-200 text-sm focus:border-zinc-900 outline-none transition-all font-bold uppercase"
                   >
-                    <option value="Low">LOW</option>
-                    <option value="Medium">MEDIUM</option>
-                    <option value="High">HIGH</option>
+                    <option value="low">LOW</option>
+                    <option value="medium">MEDIUM</option>
+                    <option value="high">HIGH</option>
                   </select>
                 </div>
               </div>

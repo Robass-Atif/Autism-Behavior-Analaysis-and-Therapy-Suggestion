@@ -260,6 +260,20 @@ export const useResetPassword = () => {
   });
 };
 
+// Verify Email
+export const useVerifyEmail = () => {
+  return useMutation({
+    mutationFn: async (token: string): Promise<{ success: boolean; message: string }> => {
+      return apiClient.get<{ success: boolean; message: string }>(
+        `${AUTH_ENDPOINTS.VERIFY_EMAIL}?token=${token}`,
+        false
+      );
+    },
+
+  });
+};
+
+
 // Complete Onboarding
 export const useCompleteOnboarding = () => {
   const queryClient = useQueryClient();

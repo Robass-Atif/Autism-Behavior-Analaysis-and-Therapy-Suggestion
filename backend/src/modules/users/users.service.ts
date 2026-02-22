@@ -152,44 +152,127 @@ export class UsersService {
   }
 
   async verifyEmail(userId: string): Promise<UserDocument> {
+    const normalizedEmail = await this.getEmailById(userId);
+    
+    // Update in all collections
+    const update = {
+      isEmailVerified: true,
+      emailVerificationToken: undefined,
+      emailVerificationExpires: undefined,
+    };
+
+    const therapist = await this.therapistModel.findById(userId);
+    if (therapist) {
+      therapist.isEmailVerified = true;
+      therapist.emailVerificationToken = undefined;
+      therapist.emailVerificationExpires = undefined;
+      therapist.accountStatus = AccountStatus.PENDING_APPROVAL;
+      await therapist.save();
+    }
+
+    const caregiver = await this.caregiverModel.findById(userId);
+    if (caregiver) {
+      caregiver.isEmailVerified = true;
+      caregiver.emailVerificationToken = undefined;
+      caregiver.emailVerificationExpires = undefined;
+      caregiver.accountStatus = AccountStatus.ACTIVE;
+      await caregiver.save();
+    }
+
+    const admin = await this.adminModel.findById(userId);
+    if (admin) {
+      admin.isEmailVerified = true;
+      admin.emailVerificationToken = undefined;
+      admin.emailVerificationExpires = undefined;
+      admin.accountStatus = AccountStatus.PENDING_APPROVAL;
+      await admin.save();
+    }
+
     const user = await this.userModel.findById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (user) {
+      user.isEmailVerified = true;
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      // Also update linked user if this was a role-specific account
+      if (user.role === Role.THERAPIST || user.role === Role.ADMIN) {
+        user.accountStatus = AccountStatus.PENDING_APPROVAL;
+      } else if (user.role === Role.CAREGIVER) {
+        user.accountStatus = AccountStatus.ACTIVE;
+      }
+      await user.save();
     }
 
-    user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-
-    // Update account status based on role
-    if (user.role === Role.THERAPIST) {
-      user.accountStatus = AccountStatus.PENDING_APPROVAL;
-    } else if (user.role === Role.CAREGIVER) {
-      user.accountStatus = AccountStatus.ACTIVE;
-    } else if (user.role === Role.ADMIN) {
-      user.accountStatus = AccountStatus.PENDING_APPROVAL;
+    // If we have an email, ensure BOTH documents are synced
+    if (normalizedEmail) {
+      await this.syncVerificationStatus(normalizedEmail);
     }
 
-    return user.save();
+    return (user || therapist || caregiver || admin) as UserDocument;
   }
+
+  private async getEmailById(id: string): Promise<string | null> {
+    const user = await this.findById(id);
+    return user?.email || null;
+  }
+
+  private async syncVerificationStatus(email: string) {
+    const update = {
+      isEmailVerified: true,
+      emailVerificationToken: undefined,
+      emailVerificationExpires: undefined,
+    };
+    
+    await Promise.all([
+      this.userModel.findOneAndUpdate({ email }, update),
+      this.therapistModel.findOneAndUpdate({ email }, update),
+      this.caregiverModel.findOneAndUpdate({ email }, update),
+      this.adminModel.findOneAndUpdate({ email }, update),
+    ]);
+  }
+
 
   async setEmailVerificationToken(
     userId: string,
     token: string,
     expires: Date,
   ): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
+    const user = await this.findById(userId);
+    if (!user) return;
+
+    const email = user.email;
+    const update = {
       emailVerificationToken: token,
       emailVerificationExpires: expires,
-    });
+      accountStatus: AccountStatus.PENDING_VERIFICATION,
+    };
+
+    await Promise.all([
+      this.userModel.findOneAndUpdate({ email }, update),
+      this.therapistModel.findOneAndUpdate({ email }, update),
+      this.caregiverModel.findOneAndUpdate({ email }, update),
+      this.adminModel.findOneAndUpdate({ email }, update),
+    ]);
   }
 
+
   async findByVerificationToken(token: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({
+    const query = {
       emailVerificationToken: token,
       emailVerificationExpires: { $gt: new Date() },
-    });
+    };
+
+    let user = await this.therapistModel.findOne(query);
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.caregiverModel.findOne(query);
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.adminModel.findOne(query);
+    if (user) return user as unknown as UserDocument;
+
+    return this.userModel.findOne(query);
   }
+
 
   async getAllUsers(role?: Role): Promise<UserDocument[]> {
     // Query the correct collection based on role

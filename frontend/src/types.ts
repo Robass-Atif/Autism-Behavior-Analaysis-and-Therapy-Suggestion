@@ -40,6 +40,11 @@ export enum Screen {
   CAREGIVER_INVITATIONS = 'CAREGIVER_INVITATIONS',
   PATIENT_CREATE = 'PATIENT_CREATE',
 
+  // New: AI Review Workflow
+  PENDING_REVIEW_QUEUE = 'PENDING_REVIEW_QUEUE',
+  SESSION_REPORT = 'SESSION_REPORT',
+  PATIENT_LONGITUDINAL = 'PATIENT_LONGITUDINAL',
+
   // Caregiver
   CAREGIVER_DASHBOARD = 'CAREGIVER_DASHBOARD',
   VIDEO_RECORDING = 'VIDEO_RECORDING',
@@ -56,6 +61,16 @@ export enum Screen {
   // Shared
   ERROR = 'ERROR'
 }
+
+// ========== SESSION STATUS LIFECYCLE ==========
+export type SessionStatus =
+  | 'pending_review'
+  | 'approved_for_ai'
+  | 'processing'
+  | 'completed'
+  | 'therapist_review'
+  | 'published'
+  | 'failed';
 
 export interface User {
   id: string;
@@ -268,12 +283,201 @@ export interface TherapyGoal {
   title: string;
   category: string;
   description: string;
-  status: 'Active' | 'Achieved' | 'On Hold' | 'Discontinued';
+  status: 'active' | 'completed' | 'achieved' | 'on hold' | 'archived' | 'discontinued';
   progress: number;
   startDate: string;
   targetDate: string;
-  priority: 'High' | 'Medium' | 'Low';
+  priority: 'high' | 'medium' | 'low';
 }
+
+// ========== AI PREDICTION TYPES (API 1) ==========
+
+export interface EnsemblePrediction {
+  severity: number;
+  severity_confidence: number;
+  social_affect: number;
+  rrb: number;
+  comparison_score: number;
+  comparison_confidence: number;
+  method: string;
+}
+
+export interface JointContribution {
+  joint: string;
+  contribution: number;
+}
+
+export interface TaskExplanation {
+  prediction: number;
+  baseline: number;
+  confidence: {
+    confidence_score: number;
+    confidence_level: string;
+    prediction_std: number;
+    prediction_mean: number;
+  };
+  joints: {
+    positive_contributors: JointContribution[];
+    negative_contributors: JointContribution[];
+  };
+  temporal_segments: {
+    positive_segments: any[];
+    negative_segments: any[];
+    all_segments: any[];
+  };
+  demographic_contributions: {
+    age_contribution: number;
+    gender_contribution: number;
+  };
+  total_sequence_attribution: number;
+  total_demographic_attribution: number;
+}
+
+export interface ModelPrediction {
+  severity: number;
+  severity_confidence: number;
+  social_affect: number;
+  rrb: number;
+  comparison_score: number;
+  comparison_confidence: number;
+  input_age: number;
+  input_gender: string;
+  model_type: string;
+  sequence_length: number;
+  explainability: {
+    predictions: Record<string, number>;
+    video_metadata: {
+      duration_seconds: number;
+      num_frames: number;
+      fps: number;
+    };
+    task_explanations: {
+      Severity: TaskExplanation;
+      'Social Affect': TaskExplanation;
+      RRB: TaskExplanation;
+      'Comparison Score': TaskExplanation;
+    };
+    summary: string;
+  };
+}
+
+export interface RawPredictionResponse {
+  predictions_2d: ModelPrediction;
+  predictions_3d: ModelPrediction;
+  ensemble_prediction: EnsemblePrediction;
+  input_age: number;
+  input_gender: string;
+  status: string;
+  processing_info: {
+    input_type: string;
+    video_duration_seconds: number;
+    original_fps: number;
+    frames_extracted: number;
+    poses_2d_extracted: number;
+    '3d_processing_enabled': boolean;
+    poses_3d_extracted: number;
+  };
+}
+
+// ========== CLINICAL REPORT TYPES (API 2) ==========
+
+export interface TherapyRecommendation {
+  therapy_name: string;
+  nice_category: string;
+  all_categories: string;
+  evidence_basis: string;
+  intervention_targets: string;
+  summary: string;
+  source_link: string;
+  organization: string;
+  relevance_score: number;
+}
+
+export interface DSM5Classification {
+  severity_level: string;
+  label: string;
+  social_communication: {
+    verbatim: string;
+    derived_support_characteristics: string[];
+  };
+  restricted_repetitive_behaviors: {
+    verbatim: string;
+    derived_support_characteristics: string[];
+  };
+}
+
+export interface NICEGuidelines {
+  support_needs_profile: {
+    communication: string;
+    social_interaction: string;
+    behavioral_flexibility: string;
+    support_intensity: string;
+  };
+  allowed_intervention_categories: string[];
+  recommended_characteristics: {
+    intensity: string;
+    setting: string[];
+    format: string[];
+    provider: string[];
+  };
+  explicit_exclusions: string[];
+  notes: string;
+}
+
+export interface ClinicalReportData {
+  metadata: {
+    generated_at: string;
+    report_type: string;
+    version: string;
+  };
+  patient_info: {
+    age: number;
+    gender: string;
+  };
+  assessment_results: {
+    severity_level: number;
+    severity_confidence: number;
+    scores: {
+      ensemble: {
+        social_affect: number;
+        rrb: number;
+        comparison_score: number;
+        comparison_confidence: number;
+      };
+      model_2d: {
+        social_affect: number;
+        rrb: number;
+        comparison_score: number;
+        severity_confidence: number;
+      };
+      model_3d: {
+        social_affect: number;
+        rrb: number;
+        comparison_score: number;
+        severity_confidence: number;
+      };
+    };
+  };
+  clinical_report: string; // markdown narrative
+  therapies_recommended: TherapyRecommendation[];
+  dsm5_classification: DSM5Classification;
+  nice_guidelines: NICEGuidelines;
+}
+
+// ========== THERAPIST REVIEW ==========
+
+export interface TherapistReview {
+  overrideSeverity?: number;
+  originalAISeverity?: number;
+  isOverridden: boolean;
+  reviewNotes: string;
+  therapyPlanAdjustments: string;
+  reviewedAt: string;
+  reviewedBy?: string;
+  overriddenAt?: string;
+}
+
+// ========== VIDEO SESSION (UPDATED) ==========
 
 export interface VideoSession {
   id: string;
@@ -283,7 +487,10 @@ export interface VideoSession {
   duration: number;
   actionType: string;
   qualityScore: 'high' | 'medium' | 'low';
-  status: 'uploaded' | 'processing' | 'analyzed' | 'reviewed' | 'failed';
+  status: SessionStatus;
+  uploadedBy?: 'therapist' | 'caregiver';
+
+  // AI results
   aiConfidence?: number;
   aiAnalysis?: {
     behaviors: Array<{
@@ -295,13 +502,58 @@ export interface VideoSession {
     summary: string;
     recommendations: string[];
   };
-  videoUrl?: string;
-  thumbnailUrl?: string;
-  caregiverName?: string;
+  rawPredictionResponse?: RawPredictionResponse;
+  ensemblePrediction?: EnsemblePrediction;
+  clinicalReport?: ClinicalReportData;
+
+  // Therapist review
+  therapistReview?: TherapistReview;
   therapistNotes?: string;
   reviewed?: boolean;
   reviewedAt?: string;
+
+  // Publishing
+  publishedAt?: string;
+  publishedBy?: string;
+
+  // Retry & Cancel tracking
+  retryCount?: number;
+  maxRetries?: number;
+  lastError?: string;
+  cancelledAt?: string;
+
+  // Media
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  caregiverName?: string;
+
+  createdAt?: string;
 }
+
+// ========== LONGITUDINAL DATA ==========
+
+export interface LongitudinalDataPoint {
+  sessionId: string;
+  date: string;
+  actionType: string;
+  status: SessionStatus;
+  severity: number;
+  aiSeverity: number;
+  isOverridden: boolean;
+  social_affect: number;
+  rrb: number;
+  comparison_score: number;
+  severity_confidence: number;
+  comparison_confidence: number;
+}
+
+export interface PatientLongitudinalData {
+  patientId: string;
+  totalSessions: number;
+  trendData: LongitudinalDataPoint[];
+}
+
+// ========== OTHER ==========
 
 export interface AuditLogEntry {
   id: string;

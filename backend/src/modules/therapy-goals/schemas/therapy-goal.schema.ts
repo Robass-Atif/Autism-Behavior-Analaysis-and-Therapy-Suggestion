@@ -64,7 +64,12 @@ export class TherapyGoal {
     notes: string;
 
     @Prop({ type: [String], default: [] })
+    interventions: string[];
+
+
+    @Prop({ type: [String], default: [] })
     milestones: string[];
+
 
     @Prop({ default: false })
     deleted: boolean;

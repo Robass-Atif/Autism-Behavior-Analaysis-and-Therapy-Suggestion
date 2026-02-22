@@ -1,85 +1,54 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { MailtrapClient } from 'mailtrap';
-
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private transporter: nodemailer.Transporter;
-  private mailtrapClient: MailtrapClient;
-  private useMailtrap: boolean = false;
+
 
   constructor(private configService: ConfigService) {
     const smtpHost = this.configService.get<string>('SMTP_HOST');
-    const mailtrapToken = this.configService.get<string>('MAILTRAP_TOKEN');
+    const smtpPort = this.configService.get<number>('SMTP_PORT');
+    const smtpUser = this.configService.get<string>('SMTP_USER');
+    const smtpPass = this.configService.get<string>('SMTP_PASS');
 
-    // Prioritize Sandbox SMTP for development/testing if configured
-    if (smtpHost?.includes('sandbox.smtp.mailtrap.io')) {
-      this.transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: this.configService.get<number>('SMTP_PORT'),
-        auth: {
-          user: this.configService.get<string>('SMTP_USER'),
-          pass: this.configService.get<string>('SMTP_PASS'),
-        },
-      });
-      this.useMailtrap = false; // Use SMTP transporter instead of API client
-      this.logger.log('✅ Email service initialized with Mailtrap Sandbox (SMTP)');
-    } else if (mailtrapToken) {
-      // Use Mailtrap Node.js Client (Production API)
-      this.mailtrapClient = new MailtrapClient({ token: mailtrapToken });
-      this.useMailtrap = true;
-      this.logger.log('✅ Email service initialized with Mailtrap API Client');
-    } else {
-      // Fallback to SMTP
-      this.logger.warn('⚠️ No Mailtrap token found, falling back to SMTP');
-      this.transporter = nodemailer.createTransport({
-        host: this.configService.get<string>('SMTP_HOST'),
-        port: this.configService.get<number>('SMTP_PORT'),
-        secure: false,
-        auth: {
-          user: this.configService.get<string>('SMTP_USER'),
-          pass: this.configService.get<string>('SMTP_PASS'),
-        },
-      });
-      this.logger.log('✅ Email service initialized with SMTP');
-    }
+    this.transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for other ports (587)
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false // Often needed for Gmail with some node versions
+      }
+    });
+
+    this.logger.log(`✅ Email service initialized with SMTP: ${smtpHost}:${smtpPort}`);
   }
+
 
   private async sendEmail(to: string, subject: string, html: string): Promise<void> {
-    const fromEmail = this.configService.get<string>('MAILTRAP_SENDER_EMAIL') || 'hello@demomailtrap.com';
-    const fromName = this.configService.get<string>('MAILTRAP_SENDER_NAME') || 'ASD Therapy Platform';
+    const from = this.configService.get<string>('EMAIL_FROM') || 'mohammad.abdullah.5434@gmail.com';
 
     try {
-      if (this.useMailtrap) {
-        const sender = { email: fromEmail, name: fromName };
-        const recipients = [{ email: to }];
+      const mailOptions = {
+        from: from,
+        to,
+        subject,
+        html,
+      };
 
-        await this.mailtrapClient.send({
-          from: sender,
-          to: recipients,
-          subject,
-          html,
-          category: 'Transactional Email',
-        });
-        this.logger.log(`📧 Mailtrap: Email sent to ${to}`);
-      } else {
-        // Fallback SMTP / Sandbox
-        const mailOptions = {
-          from: `"${fromName}" <${this.configService.get<string>('EMAIL_FROM')}>`,
-          to,
-          subject,
-          html,
-        };
-        await this.transporter.sendMail(mailOptions);
-        this.logger.log(`📧 SMTP/Sandbox: Email sent to ${to}`);
-      }
+      await this.transporter.sendMail(mailOptions);
+      this.logger.log(`📧 Email sent to ${to}`);
     } catch (error) {
       this.logger.error(`❌ Failed to send email to ${to}`, error);
-      // Don't throw - email failure shouldn't block registration
+      // Don't throw - email failure shouldn't block the main process in many cases
     }
   }
+
 
   async sendVerificationEmail(
     email: string,

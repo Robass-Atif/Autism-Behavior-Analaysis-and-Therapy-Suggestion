@@ -438,7 +438,9 @@ export class AuthService {
   }
 
   async verifyEmail(token: string) {
+    console.log(`📧 Verifying email with token: ${token}`);
     const user = await this.usersService.findByVerificationToken(token);
+
 
     if (!user) {
       throw new BadRequestException('Invalid or expired verification token');

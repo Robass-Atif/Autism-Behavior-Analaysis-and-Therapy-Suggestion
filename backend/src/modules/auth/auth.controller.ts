@@ -6,7 +6,9 @@ import {
   UseGuards,
   Req,
   Res,
+  Query,
   UseInterceptors,
+
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -200,4 +202,17 @@ export class AuthController {
   async registerAdmin(@Body() dto: RegisterAdminDto) {
     return this.authService.registerAdmin(dto);
   }
+  
+  // 2️⃣2️⃣ GET /api/auth/verify-email
+  @Get('verify-email')
+  @ApiOperation({
+    summary: 'Verify email with token',
+    description: 'Validates email verification token and activates the account or sets it to pending approval'
+  })
+  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
 }
+

@@ -3,9 +3,10 @@ import { useParams } from '@tanstack/react-router';
 import {
   Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward,
   ChevronLeft, Activity, Brain, Clock, TrendingUp, FileText,
-  Loader2, Sparkles, CheckCircle2, AlertCircle, Zap, Target
+  Loader2, Sparkles, CheckCircle2, AlertCircle, Zap, Target, RotateCcw
 } from 'lucide-react';
-import { useVideoSession, useTriggerAIAnalysis, useUpdateVideoSession } from '../../../api/clinical';
+import { useVideoSession, useTriggerAIAnalysis, useUpdateVideoSession, useRetryAIAnalysis } from '../../../api/clinical';
+import toast from 'react-hot-toast';
 import { getFileUrl } from '../../../config/apiConfig';
 
 export default function VideoReviewInterface() {
@@ -15,6 +16,7 @@ export default function VideoReviewInterface() {
 
   const { data: session, isLoading } = useVideoSession(id || '');
   const triggerAnalysis = useTriggerAIAnalysis();
+  const retryAnalysis = useRetryAIAnalysis();
   const updateSession = useUpdateVideoSession();
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,6 +27,7 @@ export default function VideoReviewInterface() {
   const [playbackRate, setPlaybackRate] = useState(1);
   const [notes, setNotes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     if (session?.therapistNotes) {
@@ -104,11 +107,26 @@ export default function VideoReviewInterface() {
 
     try {
       await triggerAnalysis.mutateAsync(id);
-      setTimeout(() => {
-        window.location.reload();
-      }, 3500);
-    } catch (error) {
+      toast.success('AI analysis triggered! Results will appear automatically.', { id: 'trigger_toast' });
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to trigger AI analysis.';
+      toast.error(errorMsg, { id: 'trigger_toast' });
       console.error('Failed to trigger AI analysis:', error);
+    }
+  };
+
+  const handleRetryAnalysis = async () => {
+    if (!id) return;
+    setIsRetrying(true);
+    try {
+      await retryAnalysis.mutateAsync(id);
+      await triggerAnalysis.mutateAsync(id);
+      toast.success('Retry triggered! Results will appear automatically.', { id: 'retry_toast' });
+    } catch (error: any) {
+      console.error('Failed to retry AI analysis:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to retry analysis.';
+      toast.error(errorMsg, { id: 'retry_toast' });
+      setIsRetrying(false);
     }
   };
 
@@ -134,7 +152,7 @@ export default function VideoReviewInterface() {
       await updateSession.mutateAsync({
         id: session.id,
         data: {
-          status: 'reviewed',
+          status: 'therapist_review',
           therapistNotes: notes,
           reviewed: true,
           reviewedAt: new Date().toISOString()
@@ -158,14 +176,18 @@ export default function VideoReviewInterface() {
 
   const getStatusStyle = (status?: string) => {
     switch (status) {
-      case 'analyzed':
+      case 'completed':
         return 'bg-zinc-900 text-white border-zinc-900';
       case 'processing':
         return 'bg-amber-500 text-white border-amber-500 animate-pulse';
-      case 'uploaded':
+      case 'pending_review':
+      case 'approved_for_ai':
         return 'bg-zinc-400 text-white border-zinc-400';
-      case 'reviewed':
+      case 'therapist_review':
+      case 'published':
         return 'bg-green-600 text-white border-green-600';
+      case 'failed':
+        return 'bg-red-500 text-white border-red-500';
       default:
         return 'bg-zinc-200 text-zinc-700 border-zinc-300';
     }
@@ -401,7 +423,7 @@ export default function VideoReviewInterface() {
               <div className="p-6">
 
                 {/* No Analysis State */}
-                {session.status === 'uploaded' && (
+                {(session.status === 'pending_review' || session.status === 'approved_for_ai') && (
                   <div className="text-center py-8">
                     <div className="bg-zinc-100 p-8 border-2 border-zinc-300 mb-6 inline-block">
                       <Sparkles className="text-zinc-900" size={48} />
@@ -441,8 +463,38 @@ export default function VideoReviewInterface() {
                   </div>
                 )}
 
+                {/* Failed State */}
+                {session.status === 'failed' && (
+                  <div className="text-center py-8">
+                    <div className="bg-red-100 p-6 border-2 border-red-300 mb-6 inline-block">
+                      <AlertCircle className="text-red-500" size={48} />
+                    </div>
+                    <h4 className="text-base font-black text-red-900 mb-2 uppercase tracking-tight">Analysis Failed</h4>
+                    <p className="text-red-700 text-xs mb-6 max-w-sm mx-auto">
+                      {session.lastError || "The automated analysis could not be completed."}
+                    </p>
+                    <button
+                      onClick={handleRetryAnalysis}
+                      disabled={isRetrying}
+                      className="px-6 py-3 bg-red-50 text-red-700 border-2 border-red-300 hover:border-red-600 font-bold uppercase text-xs tracking-widest transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+                    >
+                      {isRetrying ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          Retrying...
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw size={16} />
+                          Retry Analysis
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
                 {/* Analysis Results */}
-                {session.status === 'analyzed' && session.aiAnalysis && (
+                {(session.status === 'completed' || session.status === 'therapist_review' || session.status === 'published') && session.aiAnalysis && (
                   <div className="space-y-6">
 
                     {/* Confidence Score */}
@@ -556,7 +608,7 @@ export default function VideoReviewInterface() {
             </div>
 
             {/* Mark as Reviewed Button */}
-            {session.status === 'analyzed' && (
+            {session.status === 'completed' && (
               <button
                 onClick={handleMarkReviewed}
                 disabled={updateSession.isPending || session.reviewed}

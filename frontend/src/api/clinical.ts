@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../lib/apiClient';
 import { CLINICAL_ENDPOINTS } from '../config/apiConfig';
-import { TherapyGoal, VideoSession } from '../types';
+import { TherapyGoal, VideoSession, PatientLongitudinalData } from '../types';
 
 // ============ THERAPY GOALS ============
 
@@ -116,7 +116,31 @@ export const useRecentSessions = () => {
     queryFn: async (): Promise<{ sessions: VideoSession[]; total: number }> => {
       return apiClient.get<{ sessions: VideoSession[]; total: number }>(CLINICAL_ENDPOINTS.LIST_VIDEO_SESSIONS);
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * 1000,
+    refetchInterval: 10 * 1000, // Auto-poll every 10s
+  });
+};
+
+export const usePendingReviewSessions = () => {
+  return useQuery({
+    queryKey: ['pending-review-sessions'],
+    queryFn: async (): Promise<{ sessions: VideoSession[]; total: number }> => {
+      return apiClient.get<{ sessions: VideoSession[]; total: number }>(
+        CLINICAL_ENDPOINTS.LIST_VIDEO_SESSIONS
+      );
+    },
+    staleTime: 2 * 1000,
+    refetchInterval: 5 * 1000, // Auto-poll every 5s for processing queue
+    select: (data) => ({
+      sessions: data.sessions.filter(s =>
+        s.status === 'pending_review' || s.status === 'approved_for_ai' ||
+        s.status === 'processing' || s.status === 'failed' || s.status === 'completed'
+      ),
+      total: data.sessions.filter(s =>
+        s.status === 'pending_review' || s.status === 'approved_for_ai' ||
+        s.status === 'processing' || s.status === 'failed' || s.status === 'completed'
+      ).length,
+    }),
   });
 };
 
@@ -127,7 +151,8 @@ export const useVideoSession = (sessionId: string) => {
       return apiClient.get<VideoSession>(CLINICAL_ENDPOINTS.GET_VIDEO_SESSION(sessionId));
     },
     enabled: !!sessionId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 1000,
+    refetchInterval: 5 * 1000, // Auto-poll every 5s for live updates
   });
 };
 
@@ -141,6 +166,7 @@ export const useUploadVideoSession = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
     },
   });
 };
@@ -156,6 +182,7 @@ export const useUpdateVideoSession = () => {
       queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['video-session', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
     },
   });
 };
@@ -170,6 +197,28 @@ export const useDeleteVideoSession = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
+    },
+  });
+};
+
+// ============ VIDEO SESSION WORKFLOW ============
+
+export const useApproveForAI = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ success: boolean; message: string; session: VideoSession }> => {
+      return apiClient.post<{ success: boolean; message: string; session: VideoSession }>(
+        CLINICAL_ENDPOINTS.APPROVE_VIDEO_SESSION(id),
+        {}
+      );
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['video-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
     },
   });
 };
@@ -188,7 +237,107 @@ export const useTriggerAIAnalysis = () => {
       queryClient.invalidateQueries({ queryKey: ['video-session', sessionId] });
       queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
     },
+  });
+};
+
+export const useCancelAIAnalysis = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ success: boolean; message: string; session: VideoSession }> => {
+      return apiClient.post<{ success: boolean; message: string; session: VideoSession }>(
+        CLINICAL_ENDPOINTS.CANCEL_AI_ANALYSIS(id),
+        {}
+      );
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['video-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
+    },
+  });
+};
+
+export const useRetryAIAnalysis = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ success: boolean; message: string; session: VideoSession }> => {
+      return apiClient.post<{ success: boolean; message: string; session: VideoSession }>(
+        CLINICAL_ENDPOINTS.RETRY_AI_ANALYSIS(id),
+        {}
+      );
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['video-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-review-sessions'] });
+    },
+  });
+};
+
+export const useSubmitTherapistReview = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        overrideSeverity?: number;
+        reviewNotes?: string;
+        therapyPlanAdjustments?: string;
+      };
+    }): Promise<{ success: boolean; message: string; session: VideoSession }> => {
+      return apiClient.post<{ success: boolean; message: string; session: VideoSession }>(
+        CLINICAL_ENDPOINTS.REVIEW_VIDEO_SESSION(id),
+        data
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['video-session', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+    },
+  });
+};
+
+export const usePublishReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ success: boolean; message: string; session: VideoSession }> => {
+      return apiClient.post<{ success: boolean; message: string; session: VideoSession }>(
+        CLINICAL_ENDPOINTS.PUBLISH_VIDEO_SESSION(id),
+        {}
+      );
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ['video-session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['video-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
+    },
+  });
+};
+
+// ============ LONGITUDINAL DATA ============
+
+export const usePatientLongitudinal = (patientId: string) => {
+  return useQuery({
+    queryKey: ['patient-longitudinal', patientId],
+    queryFn: async (): Promise<PatientLongitudinalData> => {
+      return apiClient.get<PatientLongitudinalData>(
+        CLINICAL_ENDPOINTS.PATIENT_LONGITUDINAL(patientId)
+      );
+    },
+    enabled: !!patientId,
+    staleTime: 5 * 60 * 1000,
   });
 };
 

@@ -4,7 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ClinicalController } from './clinical.controller';
 import { ClinicalService } from './clinical.service';
 import { PdfGeneratorService } from './services/pdf-generator.service';
-import { TherapyGoal, TherapyGoalSchema } from './schemas/therapy-goal.schema';
+import { TherapyGoal, TherapyGoalSchema } from '../therapy-goals/schemas/therapy-goal.schema';
+
 import { VideoSession, VideoSessionSchema } from './schemas/video-session.schema';
 import { PatientsModule } from '../patients/patients.module';
 import { AiAnalysisService } from './services/ai-analysis.service';
