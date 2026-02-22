@@ -14,11 +14,23 @@ export interface AuthResponse {
   user: {
     id: string;
     email: string;
-    name: string;
+    fullName: string;
     role: UserRole;
-    onboardingCompleted?: boolean;
+    accountStatus: string;
   };
   token: string;
+}
+
+export interface RegistrationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    fullName: string;
+    email: string;
+    role: string;
+    accountStatus: string;
+  };
 }
 
 export interface RegisterTherapistData {
@@ -164,7 +176,7 @@ export const useRegisterTherapist = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: RegisterTherapistData): Promise<AuthResponse> => {
+    mutationFn: async (data: RegisterTherapistData): Promise<RegistrationResponse> => {
       const formData = new FormData();
       formData.append('email', data.email);
       formData.append('password', data.password);
@@ -185,18 +197,13 @@ export const useRegisterTherapist = () => {
         formData.append('licenseCertificate', data.licenseCertificate);
       }
 
-      return apiClient.postFormData<AuthResponse>(
+      return apiClient.postFormData<RegistrationResponse>(
         AUTH_ENDPOINTS.REGISTER_THERAPIST,
         formData
       );
     },
     onSuccess: (data) => {
-      try {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userRole', JSON.stringify(data.user));
-      } catch (error) {
-        console.error('❌ Failed to save to localStorage:', error);
-      }
+      console.log('✅ Therapist registration successful:', data.message);
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
   });
