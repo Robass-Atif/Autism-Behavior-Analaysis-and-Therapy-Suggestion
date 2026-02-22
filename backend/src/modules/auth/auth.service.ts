@@ -149,6 +149,15 @@ export class AuthService {
       throw new BadRequestException('All terms and conditions must be accepted');
     }
 
+    // Handle credentials from either nested object (JSON) or flat FormData keys
+    const creds = dto.credentials || {} as any;
+    const dtoAny = dto as any;
+    const licenseNumber = creds.licenseNumber || dtoAny.licenseNumber || dtoAny['credentials.licenseNumber'] || dtoAny['credentials[licenseNumber]'] || '';
+    const licenseType = creds.licenseType || dtoAny.licenseType || dtoAny['credentials.licenseType'] || dtoAny['credentials[licenseType]'] || '';
+    const otherLicenseType = creds.otherLicenseType || dtoAny.otherLicenseType || dtoAny['credentials.otherLicenseType'] || undefined;
+    const issuingAuthority = creds.issuingAuthority || dtoAny.issuingAuthority || dtoAny['credentials.issuingAuthority'] || dtoAny['credentials[issuingAuthority]'] || '';
+    const licenseExpiryDateRaw = creds.licenseExpiryDate || dtoAny.licenseExpiryDate || dtoAny['credentials.licenseExpiryDate'] || dtoAny['credentials[licenseExpiryDate]'] || '';
+
     // Create therapist
     const therapist = await this.usersService.createTherapist({
       fullName: dto.fullName,
@@ -160,11 +169,11 @@ export class AuthService {
       professionalTitle: dto.professionalTitle,
       otherProfessionalTitle: dto.otherProfessionalTitle,
       credentials: {
-        licenseNumber: dto.credentials.licenseNumber,
-        licenseType: dto.credentials.licenseType,
-        otherLicenseType: dto.credentials.otherLicenseType,
-        issuingAuthority: dto.credentials.issuingAuthority,
-        licenseExpiryDate: new Date(dto.credentials.licenseExpiryDate),
+        licenseNumber,
+        licenseType,
+        otherLicenseType,
+        issuingAuthority,
+        licenseExpiryDate: licenseExpiryDateRaw ? new Date(licenseExpiryDateRaw) : new Date(),
         isLicenseVerified: false,
       },
       organization: {

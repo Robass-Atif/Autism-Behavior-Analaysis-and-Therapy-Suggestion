@@ -449,11 +449,14 @@ export default function PendingReviewScreen({
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-[10px] font-black text-red-700 uppercase tracking-widest mb-1 decoration-red-500/30 underline underline-offset-4">
-                                    ERROR DETECTED — {session.retryCount || 0}/
+                                    NEURAL_ENGINE_ERROR —{" "}
+                                    {session.retryCount || 0}/
                                     {session.maxRetries || 3} RETRIES FAILED
                                   </p>
-                                  <p className="text-xs text-red-900 font-mono break-all leading-tight">
-                                    {session.lastError}
+                                  <p className="text-xs text-red-900 font-mono leading-tight font-bold">
+                                    THE ANALYSIS ENGINE WAS UNABLE TO PROCESS
+                                    THIS TRANSMISSION. PLEASE INITIATE A RETRY
+                                    SEQUENCE.
                                   </p>
                                 </div>
                               </div>

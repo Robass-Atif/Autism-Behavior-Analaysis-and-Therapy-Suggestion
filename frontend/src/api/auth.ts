@@ -172,10 +172,10 @@ export const useRegisterTherapist = () => {
       formData.append('fullName', data.fullName);
       formData.append('professionalTitle', data.professionalTitle);
       formData.append('phoneNumber', data.phoneNumber);
-      formData.append('licenseNumber', data.licenseNumber);
-      formData.append('licenseType', data.licenseType);
-      formData.append('issuingAuthority', data.issuingAuthority);
-      formData.append('licenseExpiryDate', data.licenseExpiryDate);
+      formData.append('credentials[licenseNumber]', data.licenseNumber);
+      formData.append('credentials[licenseType]', data.licenseType);
+      formData.append('credentials[issuingAuthority]', data.issuingAuthority);
+      formData.append('credentials[licenseExpiryDate]', data.licenseExpiryDate);
       if (data.organizationName) formData.append('organizationName', data.organizationName);
       if (data.workAddress) formData.append('workAddress', data.workAddress);
       formData.append('termsAccepted', String(data.termsAccepted));

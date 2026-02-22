@@ -38,6 +38,11 @@ export class AiAnalysisService {
 
             const videoPath = join(process.cwd(), session.videoUrl);
 
+            // Fail fast if the video file is missing
+            if (!fs.existsSync(videoPath)) {
+                throw new Error(`Video file not found at path: ${videoPath}. The file may have been deleted.`);
+            }
+
             // Execute retry logic loop
             await this.performAnalysisRequest(session, videoPath);
 

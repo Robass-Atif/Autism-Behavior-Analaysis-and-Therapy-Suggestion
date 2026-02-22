@@ -1,20 +1,42 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useParams } from '@tanstack/react-router';
+import React, { useState, useRef, useEffect } from "react";
+import { useParams } from "@tanstack/react-router";
 import {
-  Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward,
-  ChevronLeft, Activity, Brain, Clock, TrendingUp, FileText,
-  Loader2, Sparkles, CheckCircle2, AlertCircle, Zap, Target, RotateCcw
-} from 'lucide-react';
-import { useVideoSession, useTriggerAIAnalysis, useUpdateVideoSession, useRetryAIAnalysis } from '../../../api/clinical';
-import toast from 'react-hot-toast';
-import { getFileUrl } from '../../../config/apiConfig';
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  SkipBack,
+  SkipForward,
+  ChevronLeft,
+  Activity,
+  Brain,
+  Clock,
+  TrendingUp,
+  FileText,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  Zap,
+  Target,
+  RotateCcw,
+} from "lucide-react";
+import {
+  useVideoSession,
+  useTriggerAIAnalysis,
+  useUpdateVideoSession,
+  useRetryAIAnalysis,
+} from "../../../api/clinical";
+import toast from "react-hot-toast";
+import { getFileUrl } from "../../../config/apiConfig";
 
 export default function VideoReviewInterface() {
   const { videoId } = useParams({ strict: false });
   const id = videoId as string;
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const { data: session, isLoading } = useVideoSession(id || '');
+  const { data: session, isLoading } = useVideoSession(id || "");
   const triggerAnalysis = useTriggerAIAnalysis();
   const retryAnalysis = useRetryAIAnalysis();
   const updateSession = useUpdateVideoSession();
@@ -25,13 +47,13 @@ export default function VideoReviewInterface() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     if (session?.therapistNotes) {
-      setNotes(session.therapistNotes || '');
+      setNotes(session.therapistNotes || "");
     }
     if (session?.duration && (!duration || duration === Infinity)) {
       setDuration(session.duration);
@@ -58,7 +80,11 @@ export default function VideoReviewInterface() {
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       const videoDuration = videoRef.current.duration;
-      if (videoDuration && videoDuration !== Infinity && !isNaN(videoDuration)) {
+      if (
+        videoDuration &&
+        videoDuration !== Infinity &&
+        !isNaN(videoDuration)
+      ) {
         setDuration(videoDuration);
       }
     }
@@ -107,11 +133,17 @@ export default function VideoReviewInterface() {
 
     try {
       await triggerAnalysis.mutateAsync(id);
-      toast.success('AI analysis triggered! Results will appear automatically.', { id: 'trigger_toast' });
+      toast.success(
+        "AI analysis triggered! Results will appear automatically.",
+        { id: "trigger_toast" },
+      );
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to trigger AI analysis.';
-      toast.error(errorMsg, { id: 'trigger_toast' });
-      console.error('Failed to trigger AI analysis:', error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to trigger AI analysis.";
+      toast.error(errorMsg, { id: "trigger_toast" });
+      console.error("Failed to trigger AI analysis:", error);
     }
   };
 
@@ -121,11 +153,16 @@ export default function VideoReviewInterface() {
     try {
       await retryAnalysis.mutateAsync(id);
       await triggerAnalysis.mutateAsync(id);
-      toast.success('Retry triggered! Results will appear automatically.', { id: 'retry_toast' });
+      toast.success("Retry triggered! Results will appear automatically.", {
+        id: "retry_toast",
+      });
     } catch (error: any) {
-      console.error('Failed to retry AI analysis:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to retry analysis.';
-      toast.error(errorMsg, { id: 'retry_toast' });
+      console.error("Failed to retry AI analysis:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to retry analysis.";
+      toast.error(errorMsg, { id: "retry_toast" });
       setIsRetrying(false);
     }
   };
@@ -136,12 +173,12 @@ export default function VideoReviewInterface() {
     try {
       await updateSession.mutateAsync({
         id,
-        data: { therapistNotes: notes }
+        data: { therapistNotes: notes },
       });
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
     } catch (error) {
-      console.error('Failed to save notes:', error);
+      console.error("Failed to save notes:", error);
     }
   };
 
@@ -152,44 +189,44 @@ export default function VideoReviewInterface() {
       await updateSession.mutateAsync({
         id: session.id,
         data: {
-          status: 'therapist_review',
+          status: "therapist_review",
           therapistNotes: notes,
           reviewed: true,
-          reviewedAt: new Date().toISOString()
-        }
+          reviewedAt: new Date().toISOString(),
+        },
       });
       setShowSuccess(true);
       setTimeout(() => {
-        window.location.href = '/videos';
+        window.location.href = "/videos";
       }, 1500);
     } catch (error) {
-      console.error('Failed to mark as reviewed:', error);
+      console.error("Failed to mark as reviewed:", error);
     }
   };
 
   const formatTime = (seconds: number) => {
-    if (!seconds || isNaN(seconds) || seconds === Infinity) return '0:00';
+    if (!seconds || isNaN(seconds) || seconds === Infinity) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const getStatusStyle = (status?: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-zinc-900 text-white border-zinc-900';
-      case 'processing':
-        return 'bg-amber-500 text-white border-amber-500 animate-pulse';
-      case 'pending_review':
-      case 'approved_for_ai':
-        return 'bg-zinc-400 text-white border-zinc-400';
-      case 'therapist_review':
-      case 'published':
-        return 'bg-green-600 text-white border-green-600';
-      case 'failed':
-        return 'bg-red-500 text-white border-red-500';
+      case "completed":
+        return "bg-zinc-900 text-white border-zinc-900";
+      case "processing":
+        return "bg-amber-500 text-white border-amber-500 animate-pulse";
+      case "pending_review":
+      case "approved_for_ai":
+        return "bg-zinc-400 text-white border-zinc-400";
+      case "therapist_review":
+      case "published":
+        return "bg-green-600 text-white border-green-600";
+      case "failed":
+        return "bg-red-500 text-white border-red-500";
       default:
-        return 'bg-zinc-200 text-zinc-700 border-zinc-300';
+        return "bg-zinc-200 text-zinc-700 border-zinc-300";
     }
   };
 
@@ -198,7 +235,9 @@ export default function VideoReviewInterface() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 font-mono">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="animate-spin text-zinc-900" size={48} />
-          <p className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Loading session...</p>
+          <p className="text-sm font-bold text-zinc-900 uppercase tracking-wider">
+            Loading session...
+          </p>
         </div>
       </div>
     );
@@ -209,10 +248,14 @@ export default function VideoReviewInterface() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 font-mono">
         <div className="bg-white border-2 border-zinc-900 p-12 max-w-md text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <AlertCircle className="mx-auto text-red-500 mb-4" size={64} />
-          <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tight mb-2">Session Not Found</h2>
-          <p className="text-zinc-600 mb-6 text-sm">The video session doesn't exist.</p>
+          <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tight mb-2">
+            Session Not Found
+          </h2>
+          <p className="text-zinc-600 mb-6 text-sm">
+            The video session doesn't exist.
+          </p>
           <button
-            onClick={() => window.location.href = '/videos'}
+            onClick={() => (window.location.href = "/videos")}
             className="px-6 py-3 bg-zinc-900 text-white border-2 border-zinc-900 font-bold uppercase text-xs tracking-widest hover:bg-zinc-800 transition-colors"
           >
             Back to Library
@@ -230,21 +273,25 @@ export default function VideoReviewInterface() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => window.location.href = '/videos'}
+                onClick={() => (window.location.href = "/videos")}
                 className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
               >
                 <ChevronLeft size={16} />
-                <span className="text-xs font-bold uppercase tracking-wider">Back</span>
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  Back
+                </span>
               </button>
 
               <div className="h-8 w-px bg-white/20"></div>
 
               <div>
                 <h1 className="text-lg font-black text-white uppercase tracking-tight">
-                  {session.actionType || 'Video Analysis'}
+                  {session.actionType || "Video Analysis"}
                 </h1>
                 <div className="flex items-center gap-3 mt-1">
-                  <p className="text-xs text-zinc-400 uppercase tracking-wider">{session.patientName}</p>
+                  <p className="text-xs text-zinc-400 uppercase tracking-wider">
+                    {session.patientName}
+                  </p>
                   <span className="text-zinc-600">•</span>
                   <p className="text-xs text-zinc-500 font-bold">
                     {new Date(session.recordedAt).toLocaleDateString()}
@@ -254,14 +301,18 @@ export default function VideoReviewInterface() {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className={`px-3 py-1.5 border-2 text-xs font-bold uppercase tracking-widest ${getStatusStyle(session.status)}`}>
+              <span
+                className={`px-3 py-1.5 border-2 text-xs font-bold uppercase tracking-widest ${getStatusStyle(session.status)}`}
+              >
                 {session.status}
               </span>
 
               {session.aiConfidence && (
                 <div className="flex items-center gap-2 bg-zinc-100 border-2 border-zinc-300 px-3 py-1.5">
                   <Brain size={14} className="text-zinc-900" />
-                  <span className="text-xs font-black text-zinc-900">{session.aiConfidence}%</span>
+                  <span className="text-xs font-black text-zinc-900">
+                    {session.aiConfidence}%
+                  </span>
                 </div>
               )}
             </div>
@@ -272,10 +323,8 @@ export default function VideoReviewInterface() {
       {/* Main Content */}
       <div className="max-w-[1800px] mx-auto px-8 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
           {/* Video Player Section */}
           <div className="xl:col-span-2 space-y-6">
-
             {/* Video Container */}
             <div className="bg-zinc-900 border-2 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
               <div className="aspect-video relative bg-black">
@@ -295,7 +344,11 @@ export default function VideoReviewInterface() {
                     onClick={handlePlayPause}
                   >
                     <div className="bg-white p-6 border-2 border-zinc-900 group-hover:bg-zinc-100 transition-colors">
-                      <Play size={48} className="text-zinc-900" fill="currentColor" />
+                      <Play
+                        size={48}
+                        className="text-zinc-900"
+                        fill="currentColor"
+                      />
                     </div>
                   </div>
                 )}
@@ -320,7 +373,7 @@ export default function VideoReviewInterface() {
                       [&::-webkit-slider-thumb]:border-zinc-900
                       [&::-webkit-slider-thumb]:cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #fff 0%, #fff ${duration > 0 && duration !== Infinity ? (currentTime / duration) * 100 : 0}%, #3f3f46 ${duration > 0 && duration !== Infinity ? (currentTime / duration) * 100 : 0}%, #3f3f46 100%)`
+                      background: `linear-gradient(to right, #fff 0%, #fff ${duration > 0 && duration !== Infinity ? (currentTime / duration) * 100 : 0}%, #3f3f46 ${duration > 0 && duration !== Infinity ? (currentTime / duration) * 100 : 0}%, #3f3f46 100%)`,
                     }}
                   />
                 </div>
@@ -335,10 +388,16 @@ export default function VideoReviewInterface() {
                       {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                     </button>
 
-                    <button onClick={() => skip(-10)} className="p-2 text-white/70 hover:text-white hover:bg-zinc-800 border border-transparent hover:border-zinc-700 transition-all">
+                    <button
+                      onClick={() => skip(-10)}
+                      className="p-2 text-white/70 hover:text-white hover:bg-zinc-800 border border-transparent hover:border-zinc-700 transition-all"
+                    >
                       <SkipBack size={16} />
                     </button>
-                    <button onClick={() => skip(10)} className="p-2 text-white/70 hover:text-white hover:bg-zinc-800 border border-transparent hover:border-zinc-700 transition-all">
+                    <button
+                      onClick={() => skip(10)}
+                      className="p-2 text-white/70 hover:text-white hover:bg-zinc-800 border border-transparent hover:border-zinc-700 transition-all"
+                    >
                       <SkipForward size={16} />
                     </button>
 
@@ -348,13 +407,18 @@ export default function VideoReviewInterface() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <button onClick={handleToggleMute} className="text-white/70 hover:text-white transition-colors">
+                    <button
+                      onClick={handleToggleMute}
+                      className="text-white/70 hover:text-white transition-colors"
+                    >
                       {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
                     </button>
 
                     <select
                       value={playbackRate}
-                      onChange={(e) => handlePlaybackRateChange(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        handlePlaybackRateChange(parseFloat(e.target.value))
+                      }
                       className="bg-zinc-800 text-white text-xs border border-zinc-700 px-2 py-1 font-bold uppercase cursor-pointer"
                     >
                       <option value={0.5}>0.5x</option>
@@ -365,7 +429,10 @@ export default function VideoReviewInterface() {
                       <option value={2}>2.0x</option>
                     </select>
 
-                    <button onClick={() => videoRef.current?.requestFullscreen()} className="text-white/70 hover:text-white transition-colors">
+                    <button
+                      onClick={() => videoRef.current?.requestFullscreen()}
+                      className="text-white/70 hover:text-white transition-colors"
+                    >
                       <Maximize size={18} />
                     </button>
                   </div>
@@ -401,7 +468,7 @@ export default function VideoReviewInterface() {
                   disabled={updateSession.isPending}
                   className="mt-4 px-6 py-3 bg-zinc-900 text-white border-2 border-zinc-900 hover:bg-zinc-800 transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-50"
                 >
-                  {updateSession.isPending ? 'Saving...' : 'Save Notes'}
+                  {updateSession.isPending ? "Saving..." : "Save Notes"}
                 </button>
               </div>
             </div>
@@ -409,7 +476,6 @@ export default function VideoReviewInterface() {
 
           {/* AI Analysis Panel */}
           <div className="space-y-6">
-
             {/* AI Analysis Card */}
             <div className="bg-white border-2 border-zinc-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="bg-zinc-900 px-6 py-4 border-b-2 border-zinc-900">
@@ -417,18 +483,22 @@ export default function VideoReviewInterface() {
                   <Brain size={16} />
                   AI Analysis
                 </h3>
-                <p className="text-zinc-400 text-xs mt-1 uppercase tracking-wider font-bold">Neural Detection System</p>
+                <p className="text-zinc-400 text-xs mt-1 uppercase tracking-wider font-bold">
+                  Neural Detection System
+                </p>
               </div>
 
               <div className="p-6">
-
                 {/* No Analysis State */}
-                {(session.status === 'pending_review' || session.status === 'approved_for_ai') && (
+                {(session.status === "pending_review" ||
+                  session.status === "approved_for_ai") && (
                   <div className="text-center py-8">
                     <div className="bg-zinc-100 p-8 border-2 border-zinc-300 mb-6 inline-block">
                       <Sparkles className="text-zinc-900" size={48} />
                     </div>
-                    <h4 className="text-base font-black text-zinc-900 mb-2 uppercase tracking-tight">Ready for Analysis</h4>
+                    <h4 className="text-base font-black text-zinc-900 mb-2 uppercase tracking-tight">
+                      Ready for Analysis
+                    </h4>
                     <p className="text-zinc-600 text-xs mb-6 uppercase tracking-wider">
                       Behavioral pattern detection
                     </p>
@@ -453,10 +523,15 @@ export default function VideoReviewInterface() {
                 )}
 
                 {/* Processing State */}
-                {session.status === 'processing' && (
+                {session.status === "processing" && (
                   <div className="text-center py-8">
-                    <Loader2 className="mx-auto mb-6 text-zinc-900 animate-spin" size={48} />
-                    <h4 className="text-base font-black text-zinc-900 mb-2 uppercase tracking-tight">Processing Video</h4>
+                    <Loader2
+                      className="mx-auto mb-6 text-zinc-900 animate-spin"
+                      size={48}
+                    />
+                    <h4 className="text-base font-black text-zinc-900 mb-2 uppercase tracking-tight">
+                      Processing Video
+                    </h4>
                     <p className="text-zinc-600 text-xs uppercase tracking-wider">
                       Analyzing patterns...
                     </p>
@@ -464,14 +539,17 @@ export default function VideoReviewInterface() {
                 )}
 
                 {/* Failed State */}
-                {session.status === 'failed' && (
+                {session.status === "failed" && (
                   <div className="text-center py-8">
                     <div className="bg-red-100 p-6 border-2 border-red-300 mb-6 inline-block">
                       <AlertCircle className="text-red-500" size={48} />
                     </div>
-                    <h4 className="text-base font-black text-red-900 mb-2 uppercase tracking-tight">Analysis Failed</h4>
-                    <p className="text-red-700 text-xs mb-6 max-w-sm mx-auto">
-                      {session.lastError || "The automated analysis could not be completed."}
+                    <h4 className="text-base font-black text-red-900 mb-2 uppercase tracking-tight">
+                      Analysis Failed
+                    </h4>
+                    <p className="text-red-700 text-xs mb-6 max-w-sm mx-auto font-bold">
+                      THE NEURAL ENGINE WAS UNABLE TO PROCESS THIS TRANSMISSION.
+                      PLEASE VERIFY DATA INTEGRITY AND RETRY.
                     </p>
                     <button
                       onClick={handleRetryAnalysis}
@@ -494,121 +572,148 @@ export default function VideoReviewInterface() {
                 )}
 
                 {/* Analysis Results */}
-                {(session.status === 'completed' || session.status === 'therapist_review' || session.status === 'published') && session.aiAnalysis && (
-                  <div className="space-y-6">
-
-                    {/* Confidence Score */}
-                    <div className="bg-zinc-50 border-2 border-zinc-300 p-6 text-center">
-                      <div className="inline-flex relative mb-3">
-                        <svg className="w-28 h-28 transform -rotate-90">
-                          <circle
-                            cx="56"
-                            cy="56"
-                            r="50"
-                            stroke="#e4e4e7"
-                            strokeWidth="8"
-                            fill="transparent"
-                          />
-                          <circle
-                            cx="56"
-                            cy="56"
-                            r="50"
-                            stroke="#18181b"
-                            strokeWidth="8"
-                            fill="transparent"
-                            strokeDasharray={`${2 * Math.PI * 50}`}
-                            strokeDashoffset={`${2 * Math.PI * 50 * (1 - (session.aiConfidence || 0) / 100)}`}
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-4xl font-black text-zinc-900">
-                            {session.aiConfidence}%
-                          </span>
-                          <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Confidence</span>
+                {(session.status === "completed" ||
+                  session.status === "therapist_review" ||
+                  session.status === "published") &&
+                  session.aiAnalysis && (
+                    <div className="space-y-6">
+                      {/* Confidence Score */}
+                      <div className="bg-zinc-50 border-2 border-zinc-300 p-6 text-center">
+                        <div className="inline-flex relative mb-3">
+                          <svg className="w-28 h-28 transform -rotate-90">
+                            <circle
+                              cx="56"
+                              cy="56"
+                              r="50"
+                              stroke="#e4e4e7"
+                              strokeWidth="8"
+                              fill="transparent"
+                            />
+                            <circle
+                              cx="56"
+                              cy="56"
+                              r="50"
+                              stroke="#18181b"
+                              strokeWidth="8"
+                              fill="transparent"
+                              strokeDasharray={`${2 * Math.PI * 50}`}
+                              strokeDashoffset={`${2 * Math.PI * 50 * (1 - (session.aiConfidence || 0) / 100)}`}
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-4xl font-black text-zinc-900">
+                              {session.aiConfidence}%
+                            </span>
+                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+                              Confidence
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider">
+                          <Target size={14} className="text-zinc-900" />
+                          <span className="text-zinc-700">High Accuracy</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider">
-                        <Target size={14} className="text-zinc-900" />
-                        <span className="text-zinc-700">High Accuracy</span>
-                      </div>
+
+                      {/* Summary */}
+                      {session.aiAnalysis.summary && (
+                        <div>
+                          <h4 className="text-xs font-black text-zinc-900 mb-3 uppercase tracking-wider flex items-center gap-2">
+                            <Activity size={14} />
+                            Summary
+                          </h4>
+                          <div className="bg-zinc-50 p-4 border-l-4 border-zinc-900">
+                            <p className="text-xs text-zinc-700 leading-relaxed">
+                              {session.aiAnalysis.summary}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Detected Behaviors */}
+                      {session.aiAnalysis.behaviors &&
+                        session.aiAnalysis.behaviors.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-black text-zinc-900 mb-3 uppercase tracking-wider flex items-center gap-2">
+                              <TrendingUp size={14} />
+                              Detected Behaviors
+                            </h4>
+                            <div className="space-y-2">
+                              {session.aiAnalysis.behaviors.map(
+                                (behavior: any, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="bg-white border-2 border-zinc-200 p-3 hover:border-zinc-900 transition-colors"
+                                  >
+                                    <div className="flex items-start justify-between mb-2">
+                                      <span className="font-bold text-zinc-900 text-xs uppercase tracking-tight">
+                                        {behavior.type}
+                                      </span>
+                                      <span className="px-2 py-0.5 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-wider">
+                                        {Math.round(behavior.confidence * 100)}%
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-zinc-600 font-bold uppercase tracking-wider">
+                                      <Clock size={10} />
+                                      <span>
+                                        {formatTime(behavior.timestamp)}
+                                      </span>
+                                      <span className="w-1 h-1 bg-zinc-400"></span>
+                                      <span
+                                        className={`px-1.5 py-0.5 border ${
+                                          behavior.severity === "Normal"
+                                            ? "bg-green-50 border-green-600 text-green-700"
+                                            : behavior.severity === "Mild"
+                                              ? "bg-amber-50 border-amber-600 text-amber-700"
+                                              : "bg-red-50 border-red-600 text-red-700"
+                                        }`}
+                                      >
+                                        {behavior.severity}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Recommendations */}
+                      {session.aiAnalysis.recommendations &&
+                        session.aiAnalysis.recommendations.length > 0 && (
+                          <div>
+                            <h4 className="text-xs font-black text-zinc-900 mb-3 uppercase tracking-wider">
+                              Recommendations
+                            </h4>
+                            <div className="space-y-2">
+                              {session.aiAnalysis.recommendations.map(
+                                (rec: string, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="flex gap-3 items-start"
+                                  >
+                                    <div className="w-5 h-5 bg-zinc-900 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                      <CheckCircle2
+                                        size={12}
+                                        className="text-white"
+                                      />
+                                    </div>
+                                    <p className="text-xs text-zinc-700 leading-relaxed flex-1 font-bold">
+                                      {rec}
+                                    </p>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
                     </div>
-
-                    {/* Summary */}
-                    {session.aiAnalysis.summary && (
-                      <div>
-                        <h4 className="text-xs font-black text-zinc-900 mb-3 uppercase tracking-wider flex items-center gap-2">
-                          <Activity size={14} />
-                          Summary
-                        </h4>
-                        <div className="bg-zinc-50 p-4 border-l-4 border-zinc-900">
-                          <p className="text-xs text-zinc-700 leading-relaxed">
-                            {session.aiAnalysis.summary}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Detected Behaviors */}
-                    {session.aiAnalysis.behaviors && session.aiAnalysis.behaviors.length > 0 && (
-                      <div>
-                        <h4 className="text-xs font-black text-zinc-900 mb-3 uppercase tracking-wider flex items-center gap-2">
-                          <TrendingUp size={14} />
-                          Detected Behaviors
-                        </h4>
-                        <div className="space-y-2">
-                          {session.aiAnalysis.behaviors.map((behavior: any, index: number) => (
-                            <div
-                              key={index}
-                              className="bg-white border-2 border-zinc-200 p-3 hover:border-zinc-900 transition-colors"
-                            >
-                              <div className="flex items-start justify-between mb-2">
-                                <span className="font-bold text-zinc-900 text-xs uppercase tracking-tight">{behavior.type}</span>
-                                <span className="px-2 py-0.5 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-wider">
-                                  {Math.round(behavior.confidence * 100)}%
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-[10px] text-zinc-600 font-bold uppercase tracking-wider">
-                                <Clock size={10} />
-                                <span>{formatTime(behavior.timestamp)}</span>
-                                <span className="w-1 h-1 bg-zinc-400"></span>
-                                <span className={`px-1.5 py-0.5 border ${behavior.severity === 'Normal' ? 'bg-green-50 border-green-600 text-green-700' :
-                                  behavior.severity === 'Mild' ? 'bg-amber-50 border-amber-600 text-amber-700' :
-                                    'bg-red-50 border-red-600 text-red-700'
-                                  }`}>
-                                  {behavior.severity}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Recommendations */}
-                    {session.aiAnalysis.recommendations && session.aiAnalysis.recommendations.length > 0 && (
-                      <div>
-                        <h4 className="text-xs font-black text-zinc-900 mb-3 uppercase tracking-wider">
-                          Recommendations
-                        </h4>
-                        <div className="space-y-2">
-                          {session.aiAnalysis.recommendations.map((rec: string, index: number) => (
-                            <div key={index} className="flex gap-3 items-start">
-                              <div className="w-5 h-5 bg-zinc-900 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <CheckCircle2 size={12} className="text-white" />
-                              </div>
-                              <p className="text-xs text-zinc-700 leading-relaxed flex-1 font-bold">{rec}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )}
               </div>
             </div>
 
             {/* Mark as Reviewed Button */}
-            {session.status === 'completed' && (
+            {session.status === "completed" && (
               <button
                 onClick={handleMarkReviewed}
                 disabled={updateSession.isPending || session.reviewed}
@@ -620,7 +725,7 @@ export default function VideoReviewInterface() {
                     Reviewed
                   </span>
                 ) : updateSession.isPending ? (
-                  'Saving...'
+                  "Saving..."
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <CheckCircle2 size={18} />

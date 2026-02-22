@@ -548,12 +548,24 @@ export class ClinicalService {
   // ========== LONGITUDINAL DATA ==========
 
   async getPatientLongitudinal(patientId: string, therapistId: string) {
+    // 1. Verify that this therapist has access to the patient
+    // This will throw a ForbiddenException if access is denied
+    try {
+      await this.patientsService.getPatientById(patientId, therapistId, 'THERAPIST');
+    } catch (err) {
+      // If therapist doesn't own patient, check if they own any sessions for this patient as fallback
+      const hasSession = await this.videoSessionModel.findOne({ patientId, therapistId });
+      if (!hasSession) throw err;
+    }
+
     const sessions = await this.videoSessionModel
       .find({
-        patientId,
-        therapistId,
+        $or: [
+          { patientId: patientId },
+          { patientId: new Types.ObjectId(patientId) }
+        ],
         deleted: false,
-        status: { $in: ['completed', 'therapist_review', 'published'] },
+        status: { $in: ['completed', 'therapist_review', 'published', 'failed', 'analyzed', 'processing'] },
         ensemblePrediction: { $exists: true, $ne: null },
       })
       .select('recordedAt actionType status ensemblePrediction therapistReview clinicalReport createdAt')

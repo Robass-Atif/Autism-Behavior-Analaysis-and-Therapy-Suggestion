@@ -185,18 +185,29 @@ export default function TherapyRecommendations({
                   </div>
                   <div>
                     <h1 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
-                      Insights |{" "}
+                      Clinical Insights |{" "}
                       <span className="text-zinc-400">
                         {selectedPatient?.fullName}
                       </span>
                     </h1>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-[9px] text-zinc-500 flex items-center gap-1 font-black uppercase tracking-widest">
-                        <Calendar size={12} /> CYCLE_OCT_2023
+                        <Calendar size={12} /> Assessment Cycle:{" "}
+                        {latestSessionWithReport?.recordedAt
+                          ? new Date(
+                              latestSessionWithReport.recordedAt,
+                            ).toLocaleDateString("en-US", {
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : new Date().toLocaleDateString("en-US", {
+                              month: "long",
+                              year: "numeric",
+                            })}
                       </span>
                       <span className="text-[9px] text-zinc-500 flex items-center gap-1 font-black uppercase tracking-widest">
                         <TrendingUp size={12} />{" "}
-                        {longitudinalData?.totalSessions || 0}_SESSIONS_CAPTURED
+                        {longitudinalData?.totalSessions || 0} Sessions Recorded
                       </span>
                     </div>
                   </div>
@@ -206,7 +217,7 @@ export default function TherapyRecommendations({
                     onClick={() => onNavigate?.(Screen.REPORT_GENERATION)}
                     className="px-4 py-2 text-[10px] font-black text-zinc-400 bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 transition-all uppercase tracking-widest flex items-center gap-2"
                   >
-                    <FileText size={14} /> Export_Report
+                    <FileText size={14} /> Export Report
                   </button>
                   <button
                     onClick={() =>
@@ -216,7 +227,7 @@ export default function TherapyRecommendations({
                     }
                     className="px-4 py-2 text-[10px] font-black text-zinc-900 bg-white border-2 border-white hover:bg-zinc-100 transition-all uppercase tracking-widest flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]"
                   >
-                    <BarChart size={14} /> Analytics_v2
+                    <BarChart size={14} /> Full Analytics
                   </button>
                 </div>
               </div>
@@ -227,56 +238,212 @@ export default function TherapyRecommendations({
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Data Matrix */}
                 <div className="lg:col-span-2 bg-white border-2 border-zinc-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <TrendingUp size={16} className="text-zinc-900" />
                       <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">
-                        Longitudinal_Metrics
+                        Severity Trend Over Time
                       </h3>
                     </div>
-                    <span className="text-[8px] font-black text-white bg-zinc-900 px-2 py-0.5 tracking-widest">
-                      REAL_TIME_FEED
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-[3px] bg-zinc-900 rounded-full" />
+                        <span className="text-[7px] font-bold text-zinc-500 uppercase">
+                          Severity
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-[3px] bg-violet-500 rounded-full" />
+                        <span className="text-[7px] font-bold text-zinc-500 uppercase">
+                          Social Affect
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-3 h-[3px] bg-amber-500 rounded-full" />
+                        <span className="text-[7px] font-bold text-zinc-500 uppercase">
+                          RRB
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="h-64">
+                  <div className="h-72">
                     {trendsLoading ? (
-                      <div className="h-full flex items-center justify-center font-black text-[10px] text-zinc-400">
-                        DATA_RECOVERY_IN_PROGRESS...
+                      <div className="h-full flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="w-6 h-6 text-zinc-300 animate-spin" />
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                          Loading clinical data...
+                        </span>
                       </div>
                     ) : longitudinalData?.trendData?.length ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={longitudinalData.trendData}>
+                        <AreaChart
+                          data={longitudinalData.trendData}
+                          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                        >
+                          <defs>
+                            <linearGradient
+                              id="gradSeverity"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="0%"
+                                stopColor="#18181b"
+                                stopOpacity={0.15}
+                              />
+                              <stop
+                                offset="100%"
+                                stopColor="#18181b"
+                                stopOpacity={0.01}
+                              />
+                            </linearGradient>
+                            <linearGradient
+                              id="gradSA"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="0%"
+                                stopColor="#8b5cf6"
+                                stopOpacity={0.12}
+                              />
+                              <stop
+                                offset="100%"
+                                stopColor="#8b5cf6"
+                                stopOpacity={0.01}
+                              />
+                            </linearGradient>
+                            <linearGradient
+                              id="gradRRB"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="0%"
+                                stopColor="#f59e0b"
+                                stopOpacity={0.12}
+                              />
+                              <stop
+                                offset="100%"
+                                stopColor="#f59e0b"
+                                stopOpacity={0.01}
+                              />
+                            </linearGradient>
+                          </defs>
                           <CartesianGrid
-                            strokeDasharray="3 3"
+                            strokeDasharray="4 4"
                             vertical={false}
-                            stroke="#e4e4e7"
+                            stroke="#f4f4f5"
                           />
-                          <XAxis dataKey="date" hide />
-                          <YAxis hide domain={[0, 10]} />
+                          <XAxis
+                            dataKey="date"
+                            tickFormatter={(d: string) =>
+                              new Date(d).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                              })
+                            }
+                            tick={{
+                              fontSize: 9,
+                              fontWeight: 700,
+                              fill: "#a1a1aa",
+                            }}
+                            axisLine={{ stroke: "#e4e4e7" }}
+                            tickLine={false}
+                            dy={8}
+                          />
+                          <YAxis
+                            domain={[0, "auto"]}
+                            tick={{
+                              fontSize: 9,
+                              fontWeight: 700,
+                              fill: "#a1a1aa",
+                            }}
+                            axisLine={false}
+                            tickLine={false}
+                            width={28}
+                          />
                           <Tooltip
                             contentStyle={{
-                              borderRadius: "0",
-                              border: "2px solid #18181b",
-                              boxShadow: "none",
-                              fontSize: "10px",
-                              fontWeight: "bold",
+                              borderRadius: "8px",
+                              border: "1px solid #e4e4e7",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              fontFamily: "monospace",
+                              padding: "10px 14px",
+                            }}
+                            labelFormatter={(d: string) =>
+                              new Date(d).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            }
+                            formatter={(value: number, name: string) => {
+                              const labels: Record<string, string> = {
+                                severity: "Severity Level",
+                                social_affect: "Social Affect",
+                                rrb: "RRB Score",
+                              };
+                              return [
+                                typeof value === "number"
+                                  ? value.toFixed(1)
+                                  : value,
+                                labels[name] || name,
+                              ];
                             }}
                           />
                           <Area
-                            type="stepAfter"
+                            type="monotone"
                             dataKey="severity"
                             stroke="#18181b"
-                            strokeWidth={3}
-                            fillOpacity={0.1}
-                            fill="#18181b"
+                            strokeWidth={2.5}
+                            fill="url(#gradSeverity)"
+                            dot={{ r: 3, fill: "#18181b", strokeWidth: 0 }}
+                            activeDot={{
+                              r: 5,
+                              fill: "#18181b",
+                              stroke: "#fff",
+                              strokeWidth: 2,
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="social_affect"
+                            stroke="#8b5cf6"
+                            strokeWidth={1.5}
+                            strokeDasharray="4 2"
+                            fill="url(#gradSA)"
+                            dot={false}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="rrb"
+                            stroke="#f59e0b"
+                            strokeWidth={1.5}
+                            strokeDasharray="4 2"
+                            fill="url(#gradRRB)"
+                            dot={false}
                           />
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-zinc-300 gap-2 border-2 border-dashed border-zinc-100">
-                        <BarChart size={32} strokeWidth={1} />
-                        <p className="text-[10px] font-bold uppercase tracking-widest">
-                          Null_Dataset_Found
+                      <div className="h-full flex flex-col items-center justify-center text-zinc-300 gap-3 border-2 border-dashed border-zinc-100 rounded-lg">
+                        <BarChart size={36} strokeWidth={1} />
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                          No trend data available yet
+                        </p>
+                        <p className="text-[9px] text-zinc-300 font-medium max-w-xs text-center">
+                          Upload and analyze video sessions to begin tracking
+                          longitudinal patterns.
                         </p>
                       </div>
                     )}
@@ -288,29 +455,107 @@ export default function TherapyRecommendations({
                   <div className="flex items-center gap-2 mb-6">
                     <Sparkles size={16} className="text-zinc-500" />
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
-                      Neural_Narrative
+                      AI Assessment Summary
                     </h3>
                   </div>
                   <div className="space-y-6 flex-1">
                     <p className="text-xs leading-relaxed text-zinc-950 font-bold uppercase tracking-tight line-clamp-6">
                       {aiAnalysis?.summary ||
                         clinicalReport?.clinical_report ||
-                        "INSUFFICIENT_DATA. AWAITING_PROCESSING."}
+                        "Awaiting clinical data. Upload and analyze sessions to generate an AI summary."}
                     </p>
+
+                    {/* ADOS Quick Metrics */}
+                    {latestSessionWithReport?.ensemblePrediction && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-zinc-50 border border-zinc-200 p-2">
+                          <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">
+                            Severity Level
+                          </p>
+                          <p className="text-lg font-black text-zinc-900">
+                            {latestSessionWithReport.ensemblePrediction
+                              .severity ?? "—"}
+                          </p>
+                          <span
+                            className={`text-[7px] font-black px-1 py-0.5 uppercase inline-block mt-1 ${
+                              (latestSessionWithReport.ensemblePrediction
+                                .severity ?? 0) >= 2
+                                ? "bg-red-600 text-white"
+                                : (latestSessionWithReport.ensemblePrediction
+                                      .severity ?? 0) === 1
+                                  ? "bg-amber-600 text-white"
+                                  : "bg-emerald-600 text-white"
+                            }`}
+                          >
+                            {(latestSessionWithReport.ensemblePrediction
+                              .severity ?? 0) === 0
+                              ? "Non-Spectrum"
+                              : (latestSessionWithReport.ensemblePrediction
+                                    .severity ?? 0) === 1
+                                ? "ASD Mild"
+                                : "Severe"}
+                          </span>
+                        </div>
+                        <div className="bg-zinc-50 border border-zinc-200 p-2">
+                          <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">
+                            Social-Emotional
+                          </p>
+                          <p className="text-lg font-black text-zinc-900">
+                            {latestSessionWithReport.ensemblePrediction.social_affect?.toFixed(
+                              1,
+                            ) ?? "—"}
+                          </p>
+                        </div>
+                        <div className="bg-zinc-50 border border-zinc-200 p-2">
+                          <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">
+                            Repetitive Behaviors
+                          </p>
+                          <p className="text-lg font-black text-zinc-900">
+                            {latestSessionWithReport.ensemblePrediction.rrb?.toFixed(
+                              1,
+                            ) ?? "—"}
+                          </p>
+                        </div>
+                        <div className="bg-zinc-50 border border-zinc-200 p-2">
+                          <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">
+                            ADOS-2 Composite
+                          </p>
+                          <p className="text-lg font-black text-zinc-900">
+                            {latestSessionWithReport.ensemblePrediction
+                              .social_affect != null &&
+                            latestSessionWithReport.ensemblePrediction.rrb !=
+                              null
+                              ? (
+                                  latestSessionWithReport.ensemblePrediction
+                                    .social_affect +
+                                  latestSessionWithReport.ensemblePrediction.rrb
+                                ).toFixed(1)
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="pt-6 border-t border-zinc-800 space-y-3">
                       <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 p-3">
                         <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">
-                          CONFIDENCE_INDEX:
+                          Model Confidence:
                         </span>
                         <span className="text-xs font-black text-white">
-                          {latestSessionWithReport?.ensemblePrediction?.severity_confidence?.toFixed(
-                            2,
-                          ) || (aiAnalysis ? "0.90" : "N/A")}
+                          {latestSessionWithReport?.ensemblePrediction
+                            ?.severity_confidence
+                            ? (
+                                latestSessionWithReport.ensemblePrediction
+                                  .severity_confidence * 100
+                              ).toFixed(1) + "%"
+                            : aiAnalysis
+                              ? "90%"
+                              : "N/A"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 p-3">
                         <span className="text-[8px] font-black text-zinc-300 uppercase tracking-widest">
-                          ANOMALY_STATUS:
+                          Behavioral Indicators:
                         </span>
                         <span
                           className={`text-xs font-black ${(aiAnalysis?.behaviors?.length ?? 0) > 0 || clinicalReport ? "text-amber-500" : "text-green-500"}`}
@@ -329,7 +574,7 @@ export default function TherapyRecommendations({
               {/* Protocols */}
               <div>
                 <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-6 px-1 flex items-center gap-2">
-                  <Layout size={12} /> ADAPTIVE_PROTOCOLS_V1
+                  <Layout size={12} /> Recommended Intervention Protocols
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -371,7 +616,7 @@ export default function TherapyRecommendations({
               <div className="bg-white border-2 border-zinc-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div className="p-4 border-b-2 border-zinc-900 bg-zinc-900 text-zinc-500 flex justify-between items-center">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">
-                    Session_Transmission_Log
+                    Session History
                   </h3>
                   <Clock size={14} />
                 </div>
@@ -381,16 +626,16 @@ export default function TherapyRecommendations({
                     <thead>
                       <tr className="bg-zinc-50 border-b-2 border-zinc-100 text-zinc-400">
                         <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest">
-                          Timestamp
+                          Date Recorded
                         </th>
                         <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest">
-                          Task_Type
+                          Observation Type
                         </th>
                         <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest">
-                          Protocol_State
+                          Analysis Status
                         </th>
                         <th className="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-right">
-                          Access
+                          Actions
                         </th>
                       </tr>
                     </thead>
@@ -447,7 +692,7 @@ export default function TherapyRecommendations({
                                   }
                                   className="text-zinc-900 hover:text-white hover:bg-zinc-900 border-2 border-zinc-900 px-3 py-1.5 text-[10px] font-black uppercase transition-all"
                                 >
-                                  OPEN_FILE
+                                  View Report
                                 </button>
                               </td>
                             </tr>
@@ -457,7 +702,7 @@ export default function TherapyRecommendations({
                           <td colSpan={4} className="px-6 py-16 text-center">
                             <FileText className="w-10 h-10 text-zinc-100 mx-auto mb-4" />
                             <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em]">
-                              Zero_Records_Stored
+                              No sessions recorded yet
                             </p>
                           </td>
                         </tr>
@@ -475,7 +720,7 @@ export default function TherapyRecommendations({
               <Activity size={40} strokeWidth={2.5} />
             </div>
             <h2 className="text-3xl font-black text-zinc-900 mb-2 tracking-tighter uppercase whitespace-nowrap">
-              AI_Insights_Terminal
+              Clinical AI Insights
             </h2>
             <p className="text-zinc-400 text-center text-[10px] font-black uppercase tracking-[0.3em] max-w-sm mb-10 leading-relaxed">
               Select identity from registry to initialize clinical analysis
@@ -514,7 +759,7 @@ export default function TherapyRecommendations({
         <div className="w-80 border-l-2 border-zinc-100 flex-col h-full bg-white hidden xl:flex">
           <div className="p-6 border-b border-zinc-200 bg-white">
             <h3 className="font-black text-zinc-900 flex items-center gap-2 uppercase tracking-[0.2em] text-[10px]">
-              <BookOpen size={16} className="text-zinc-400" /> Evidence_Library
+              <BookOpen size={16} className="text-zinc-400" /> Evidence Library
             </h3>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">

@@ -26,9 +26,11 @@ class Settings(BaseSettings):
     MODEL_2D_PATH: str = str(BASE_DIR / "2d model")
     MODEL_3D_PATH: str = str(BASE_DIR / "3d model")
     MAX_SEQUENCE_LENGTH: int = 100
+    OPENPOSE_DIR: Optional[str] = None
     
     # Feature Flags
-    ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "false").lower() in ("true", "1", "yes")
+    ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "true").lower() in ("true", "1", "yes")
+
     
     # Video Processing Settings
     VIDEO_FPS: int = 30  # Target FPS for video processing
