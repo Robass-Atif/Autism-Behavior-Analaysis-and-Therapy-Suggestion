@@ -90,10 +90,11 @@ export class AiAnalysisService {
                 
                 payload.append('gender', genderStr);
 
+                const apiKey = this.configService.get<string>('X-API-Key') || 'your-api-key-change-this-please'
                 const response = await firstValueFrom(
                     this.httpService.post(`${this.aiUrl.replace('/analyze', '')}/predict`, payload, {
                         headers: {
-                            'x-api-key': 'your-api-key-change-this-please',
+                            'X-API-Key': apiKey,
                             ...payload.getHeaders()
                         }
                     })
