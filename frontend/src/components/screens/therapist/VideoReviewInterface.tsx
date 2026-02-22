@@ -661,9 +661,11 @@ export default function VideoReviewInterface() {
                                       <span className="w-1 h-1 bg-zinc-400"></span>
                                       <span
                                         className={`px-1.5 py-0.5 border ${
-                                          behavior.severity === "Normal"
+                                          behavior.severity === "Normal" ||
+                                          behavior.severity === "Low"
                                             ? "bg-green-50 border-green-600 text-green-700"
-                                            : behavior.severity === "Mild"
+                                            : behavior.severity === "Mild" ||
+                                                behavior.severity === "Medium"
                                               ? "bg-amber-50 border-amber-600 text-amber-700"
                                               : "bg-red-50 border-red-600 text-red-700"
                                         }`}

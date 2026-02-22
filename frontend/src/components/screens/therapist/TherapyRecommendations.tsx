@@ -479,21 +479,15 @@ export default function TherapyRecommendations({
                           <span
                             className={`text-[7px] font-black px-1 py-0.5 uppercase inline-block mt-1 ${
                               (latestSessionWithReport.ensemblePrediction
-                                .severity ?? 0) >= 2
+                                .severity ?? 0) >= 1
                                 ? "bg-red-600 text-white"
-                                : (latestSessionWithReport.ensemblePrediction
-                                      .severity ?? 0) === 1
-                                  ? "bg-amber-600 text-white"
-                                  : "bg-emerald-600 text-white"
+                                : "bg-amber-600 text-white"
                             }`}
                           >
                             {(latestSessionWithReport.ensemblePrediction
                               .severity ?? 0) === 0
-                              ? "Non-Spectrum"
-                              : (latestSessionWithReport.ensemblePrediction
-                                    .severity ?? 0) === 1
-                                ? "ASD Mild"
-                                : "Severe"}
+                              ? "ASD Mild"
+                              : "Autism (Severe)"}
                           </span>
                         </div>
                         <div className="bg-zinc-50 border border-zinc-200 p-2">
