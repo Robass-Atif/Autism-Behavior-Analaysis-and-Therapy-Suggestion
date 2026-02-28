@@ -40,7 +40,7 @@ const SectionHeader: React.FC<{ title: string; icon?: any }> = ({ title, icon: I
 );
 
 const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
-    userId, isOpen, onClose, title = 'USER_PROFILE', actions
+    userId, isOpen, onClose, title = 'USER PROFILE', actions
 }) => {
     const { data: user, isLoading, error } = useAdminUserDetails(userId);
 

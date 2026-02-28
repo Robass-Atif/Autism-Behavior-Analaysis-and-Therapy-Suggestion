@@ -70,15 +70,15 @@ export default function VideoProgressTracker({ patientId, onRecordAction }: Vide
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-zinc-100 pb-8">
                 <div>
                     <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-900 flex items-center gap-2 mb-2">
-                        <Video size={14} /> Recording_Registry
+                        <Video size={14} /> Recording Registry
                     </h3>
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                        {completedCount} OF {totalActions} ACTION_NODES_REGISTERED
+                        {completedCount} OF {totalActions} ACTION NODES REGISTERED
                     </p>
                 </div>
                 <div className="flex items-end gap-4">
                     <div className="text-right">
-                        <div className="text-xs font-black uppercase text-zinc-300 mb-1">Status_Cap</div>
+                        <div className="text-xs font-black uppercase text-zinc-300 mb-1">Status Cap</div>
                         <div className="text-4xl font-black tracking-tighter">{progressPercentage}<span className="text-sm text-zinc-300">%</span></div>
                     </div>
                 </div>
@@ -121,7 +121,7 @@ export default function VideoProgressTracker({ patientId, onRecordAction }: Vide
                             <div className="space-y-1">
                                 <div className={`text-[9px] font-black uppercase truncate tracking-tight ${status === 'complete' ? 'text-zinc-400' : 'text-zinc-900'
                                     }`}>
-                                    {action.name.replace(' ', '_')}
+                                    {action.name.replace('_', ' ')}
                                 </div>
                                 <div className={`text-[8px] font-bold uppercase tracking-widest ${status === 'complete' ? 'text-zinc-500' : 'text-zinc-400'
                                     }`}>

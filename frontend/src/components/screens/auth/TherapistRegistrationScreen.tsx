@@ -263,13 +263,12 @@ export default function TherapistRegistrationScreen() {
               onClick={() => navigate({ to: "/login" })}
               className="mb-4 text-xs font-bold text-zinc-400 hover:text-zinc-600 flex items-center gap-2 transition-colors uppercase tracking-widest"
             >
-              <X size={14} /> Cancel_Process
+              <X size={14} /> Cancel Process
             </button>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight text-zinc-900">
-              THERAPIST<span className="text-zinc-300">_</span>REGISTRATION
+              THERAPIST REGISTRATION
             </h1>
             <p className="mt-2 text-zinc-500 text-sm">
-              <span className="text-zinc-300 mr-2">//</span>
               Join the professional network.
             </p>
           </div>
@@ -311,7 +310,7 @@ export default function TherapistRegistrationScreen() {
                       </div>
                       <div className="hidden lg:block">
                         <div className="text-xs font-bold uppercase tracking-wider">
-                          {step === 1 && "Personal_Info"}
+                          {step === 1 && "Personal Info"}
                           {step === 2 && "Credentials"}
                           {step === 3 && "Organization"}
                           {step === 4 && "Security"}
@@ -344,7 +343,7 @@ export default function TherapistRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <Briefcase size={20} /> Personal_Details
+                        <Briefcase size={20} /> Personal Details
                       </h2>
                     </div>
 
@@ -355,7 +354,7 @@ export default function TherapistRegistrationScreen() {
                           className="mt-0.5 flex-shrink-0"
                         />
                         <div>
-                          <p className="font-bold mb-1">REGISTRATION_BLOCKED</p>
+                          <p className="font-bold mb-1">REGISTRATION BLOCKED</p>
                           <p>{emailCheckError}</p>
                         </div>
                       </div>
@@ -387,7 +386,7 @@ export default function TherapistRegistrationScreen() {
                           {...register("professionalTitle")}
                           className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer"
                         >
-                          <option value="">SELECT_TITLE...</option>
+                          <option value="">SELECT TITLE...</option>
                           {PROFESSIONAL_TITLES.map((title) => (
                             <option key={title} value={title}>
                               {title}
@@ -455,7 +454,7 @@ export default function TherapistRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <GraduationCap size={20} /> Professional_Credentials
+                        <GraduationCap size={20} /> Professional Credentials
                       </h2>
                     </div>
 
@@ -485,7 +484,7 @@ export default function TherapistRegistrationScreen() {
                           {...register("licenseType")}
                           className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer"
                         >
-                          <option value="">SELECT_TYPE...</option>
+                          <option value="">SELECT TYPE...</option>
                           {LICENSE_TYPES.map((type) => (
                             <option key={type} value={type}>
                               {type}
@@ -554,10 +553,10 @@ export default function TherapistRegistrationScreen() {
                                 size={24}
                               />
                               <p className="text-sm font-bold text-zinc-600">
-                                CLICK_TO_UPLOAD
+                                CLICK TO UPLOAD
                               </p>
                               <p className="text-xs text-zinc-400 font-mono">
-                                PDF/JPG_MAX_5MB
+                                PDF/JPG MAX 5MB
                               </p>
                             </div>
                           ) : (
@@ -596,7 +595,7 @@ export default function TherapistRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <MapPin size={20} /> Organization_Info
+                        <MapPin size={20} /> Organization Info
                       </h2>
                     </div>
 
@@ -626,7 +625,7 @@ export default function TherapistRegistrationScreen() {
                           {...register("department")}
                           className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer"
                         >
-                          <option value="">SELECT_DEPARTMENT...</option>
+                          <option value="">SELECT DEPARTMENT...</option>
                           {DEPARTMENTS.map((dept) => (
                             <option key={dept} value={dept}>
                               {dept}
@@ -887,7 +886,7 @@ export default function TherapistRegistrationScreen() {
 
             <div className="mt-6 text-center">
               <p className="text-[10px] text-zinc-400 font-mono">
-                SECURE_ENCRYPTED_CONNECTION // AES-256
+                SECURE ENCRYPTED CONNECTION // AES-256
               </p>
             </div>
           </div>

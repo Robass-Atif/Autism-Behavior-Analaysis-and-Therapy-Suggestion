@@ -202,7 +202,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
             <X size={20} />
           </button>
           <div className="text-center">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em]">RECORDING_INTERFACE_V1</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.3em]">RECORDING INTERFACE V1</h2>
             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Select subject and action node</p>
           </div>
           <div className="w-10 h-10 border border-zinc-200 flex items-center justify-center opacity-20">
@@ -217,7 +217,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
             <div className="lg:col-span-12 space-y-12">
               <section>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
-                  <User size={14} /> Subject_Kernel
+                  <User size={14} /> Subject Kernel
                 </h3>
                 <div className="relative group">
                   <select
@@ -225,7 +225,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
                     onChange={(e) => setSelectedPatient(e.target.value)}
                     className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-6 py-4 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer font-bold uppercase tracking-widest"
                   >
-                    <option value="">-- SELECT_SUBJECT_ID --</option>
+                    <option value="">-- SELECT SUBJECT ID --</option>
                     {patients.map((patient: any) => (
                       <option key={patient.id || patient._id} value={patient.id || patient._id}>
                         {patient.fullName.toUpperCase()}
@@ -241,9 +241,9 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
               <section>
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                    <Target size={14} /> Action_Node_Library
+                    <Target size={14} /> Action Node Library
                   </h3>
-                  <span className="text-[10px] font-bold text-zinc-300 tracking-tighter">{GUIDED_ACTIONS.length} TOTAL_NODES</span>
+                  <span className="text-[10px] font-bold text-zinc-300 tracking-tighter">{GUIDED_ACTIONS.length} TOTAL NODES</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-l border-t border-zinc-100">
@@ -259,7 +259,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
                           {action.icon}
                         </span>
                         <div>
-                          <span className="block text-xs font-black uppercase tracking-tight mb-1">{action.name.replace(' ', '_')}</span>
+                          <span className="block text-xs font-black uppercase tracking-tight mb-1">{action.name.replace('_', ' ')}</span>
                           <span className={`block text-[9px] font-bold leading-relaxed opacity-60 line-clamp-2`}>{action.description.toUpperCase()}</span>
                         </div>
                         <div className="flex items-center gap-2 text-[8px] font-bold opacity-40">
@@ -283,7 +283,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
                   className="flex-1 py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-20 group relative overflow-hidden"
                 >
                   <Camera size={18} className="relative z-10" />
-                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">CAPTURE_VIDEO</span>
+                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">CAPTURE VIDEO</span>
                   <ChevronRight size={18} className="relative z-10 transition-transform group-hover:translate-x-2" />
                   <div className="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
                 </button>
@@ -293,7 +293,7 @@ export default function GuidedVideoRecording({ onClose, patientId }: GuidedVideo
                   className="flex-1 py-6 border-2 border-zinc-900 text-zinc-900 text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-900 hover:text-white transition-all disabled:opacity-20 group relative overflow-hidden"
                 >
                   <Upload size={18} className="relative z-10" />
-                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">UPLOAD_VIDEO</span>
+                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">UPLOAD VIDEO</span>
                   <ChevronRight size={18} className="relative z-10 transition-transform group-hover:translate-x-2" />
                   <div className="absolute inset-0 bg-zinc-900/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
                 </button>
@@ -373,7 +373,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
         })
         .catch(err => {
           console.error("Camera access denied:", err);
-          setError("CAMERA_ACCESS_DENIED: Please enable camera and microphone permissions.");
+          setError("CAMERA ACCESS DENIED: Please enable camera and microphone permissions.");
         });
     }
 
@@ -451,7 +451,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
       onSuccess: () => setStep('SUCCESS'),
       onError: (err: any) => {
         console.error('Upload failed:', err);
-        setError(`UPLOAD_FAILED: ${err.message || 'Unknown network error'}`);
+        setError(`UPLOAD FAILED: ${err.message || 'Unknown network error'}`);
       }
     });
   };
@@ -468,7 +468,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
           />
           <div className="absolute inset-0 border-[24px] border-black/20 pointer-events-none"></div>
           <div className="absolute top-8 left-8">
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">REVIEW_MODE | RAW_BUFFER</p>
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">REVIEW MODE | RAW BUFFER</p>
           </div>
         </div>
 
@@ -485,7 +485,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
               <CheckCircle size={32} />
             </div>
             <div>
-              <h4 className="text-xl font-black uppercase tracking-tight mb-1">CAPTURE_COMPLETED</h4>
+              <h4 className="text-xl font-black uppercase tracking-tight mb-1">CAPTURE COMPLETED</h4>
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                 DURATION: {formatTime(timer)} | NODE: {action.id.toUpperCase()}
               </p>
@@ -496,14 +496,14 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
               onClick={() => { setStep('RECORDING'); setTimer(0); setRecordedBlob(null); setError(null); }}
               className="flex-1 md:flex-none px-12 py-4 border border-zinc-200 font-black text-xs uppercase tracking-widest hover:bg-zinc-50 transition-colors"
             >
-              RETAKE_PROCEDURE
+              RETAKE PROCEDURE
             </button>
             <button
               onClick={handleUpload}
               disabled={uploadMutation.isPending || !recordedBlob}
               className="flex-1 md:flex-none px-12 py-4 bg-zinc-900 text-white font-black text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
             >
-              {uploadMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : 'SUBMIT_FOR_ANALYSIS'}
+              {uploadMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : 'SUBMIT FOR ANALYSIS'}
             </button>
           </div>
         </div>
@@ -517,7 +517,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
         <div className="w-24 h-24 bg-zinc-900 flex items-center justify-center mb-8 border border-zinc-900">
           <CheckCircle size={48} className="text-white" />
         </div>
-        <h2 className="text-3xl font-black uppercase tracking-tighter mb-4">UPLOAD_SECURED</h2>
+        <h2 className="text-3xl font-black uppercase tracking-tighter mb-4">UPLOAD SECURED</h2>
         <div className="max-w-md bg-zinc-50 border border-zinc-200 p-8 space-y-4 mb-12 relative">
           <div className="absolute top-0 right-0 p-1"><div className="w-1 h-1 bg-zinc-900"></div></div>
           <p className="text-xs font-bold text-zinc-600 uppercase tracking-wide leading-relaxed">
@@ -532,13 +532,13 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
             onClick={() => { setStep('SELECTION'); setTimer(0); setRecordedBlob(null); setError(null); }}
             className="w-full py-5 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all"
           >
-            CAPTURE_NEW_NODE
+            CAPTURE NEW NODE
           </button>
           <button
             onClick={onClose}
             className="w-full py-5 border border-zinc-200 text-zinc-400 text-xs font-black uppercase tracking-[0.2em] hover:text-zinc-900 hover:bg-zinc-50 transition-all"
           >
-            EXIT_INTERFACE
+            EXIT INTERFACE
           </button>
         </div>
       </div>
@@ -555,14 +555,14 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
               <span className="text-xl">{action.icon}</span>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-white/60">ACTIVE_NODE</p>
-              <h3 className="text-xs font-black uppercase tracking-tighter">{action.name.replace(' ', '_')}</h3>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/60">ACTIVE NODE</p>
+              <h3 className="text-xs font-black uppercase tracking-tighter">{action.name.replace('_', ' ')}</h3>
             </div>
           </div>
           {isRecording && (
             <div className="flex gap-2">
-              <div className="px-2 py-0.5 border border-emerald-500 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest">OPTIC_STABLE</div>
-              <div className="px-2 py-0.5 border border-emerald-500 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest">RAW_SYNC</div>
+              <div className="px-2 py-0.5 border border-emerald-500 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest">OPTIC STABLE</div>
+              <div className="px-2 py-0.5 border border-emerald-500 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest">RAW SYNC</div>
             </div>
           )}
         </div>
@@ -599,7 +599,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
         {isRecording && (
           <div className="absolute top-32 right-12 flex items-center gap-3 animate-pulse">
             <div className="w-3 h-3 bg-red-600"></div>
-            <span className="text-red-600 font-black tracking-[0.4em] text-[10px]">RAW_CAPTURE_ACTIVE</span>
+            <span className="text-red-600 font-black tracking-[0.4em] text-[10px]">RAW CAPTURE ACTIVE</span>
           </div>
         )}
 
@@ -607,9 +607,9 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
         {error && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-950/90 border border-red-500 p-8 max-w-md w-full z-40">
             <AlertTriangle className="text-red-500 mb-4" size={32} />
-            <h3 className="text-sm font-black uppercase mb-2">SYSTEM_FAULT_DETECTED</h3>
+            <h3 className="text-sm font-black uppercase mb-2">SYSTEM FAULT DETECTED</h3>
             <p className="text-[10px] text-red-200/60 uppercase leading-loose">{error}</p>
-            <button onClick={() => window.location.reload()} className="mt-6 w-full py-3 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest">FORCE_REBOOT</button>
+            <button onClick={() => window.location.reload()} className="mt-6 w-full py-3 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest">FORCE REBOOT</button>
           </div>
         )}
 
@@ -619,8 +619,8 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
             <div className="bg-white text-zinc-900 p-10 max-w-lg w-full relative overflow-hidden">
               <header className="mb-8 border-b border-zinc-100 pb-6 flex items-end justify-between">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">PROCEDURAL_GUIDE</p>
-                  <h3 className="text-2xl font-black uppercase tracking-tight">{action.name.replace(' ', '_')}</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">PROCEDURAL GUIDE</p>
+                  <h3 className="text-2xl font-black uppercase tracking-tight">{action.name.replace('_', ' ')}</h3>
                 </div>
                 <div className="text-4xl grayscale mb-2">{action.icon}</div>
               </header>
@@ -640,7 +640,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
                 onClick={() => { setShowInstructions(false); setStep('RECORDING'); }}
                 className="w-full py-5 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.3em] hover:bg-zinc-800 transition-all flex items-center justify-center gap-4"
               >
-                START_PROCEDURE <ArrowLeft className="rotate-180" size={16} />
+                START PROCEDURE <ArrowLeft className="rotate-180" size={16} />
               </button>
             </div>
           </div>
@@ -652,7 +652,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
         <div className="flex flex-col md:flex-row items-center justify-between max-w-4xl mx-auto gap-8">
 
           <div className="flex flex-col items-center md:items-start gap-1 min-w-[120px]">
-            <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em]">CAPTURE_WINDOW</span>
+            <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.4em]">CAPTURE WINDOW</span>
             <div className="flex items-baseline gap-2">
               <span className={`text-4xl font-black tracking-tighter ${timer >= action.duration ? 'text-emerald-500' : 'text-white'}`}>
                 {formatTime(timer)}
@@ -694,7 +694,7 @@ const CameraInterface = ({ action, patientId, onClose, step, setStep, timer, set
       <div className="h-6 bg-black border-t border-white/5 flex items-center overflow-hidden">
         <div className="flex gap-12 animate-marquee-slower whitespace-nowrap overflow-hidden pr-12">
           {Array.from({ length: 10 }).map((_, i) => (
-            <span key={i} className="text-[8px] font-black text-white/10 uppercase tracking-[1em]">CAPTURE_MODE_ACTIVE | SIGNAL_ENCRYPTED | ABA-TS_CORE_LINK</span>
+            <span key={i} className="text-[8px] font-black text-white/10 uppercase tracking-[1em]">CAPTURE MODE ACTIVE | SIGNAL ENCRYPTED | ABA-TS CORE LINK</span>
           ))}
         </div>
       </div>
@@ -737,7 +737,7 @@ const UploadReviewInterface = ({ blob, action, patientId, onClose, onRetake, onS
       onSuccess: () => onSuccess(),
       onError: (err: any) => {
         console.error('Upload failed:', err);
-        setError(`UPLOAD_FAILED: ${err.message || 'Unknown network error'}`);
+        setError(`UPLOAD FAILED: ${err.message || 'Unknown network error'}`);
       }
     });
   };
@@ -755,7 +755,7 @@ const UploadReviewInterface = ({ blob, action, patientId, onClose, onRetake, onS
         )}
         <div className="absolute inset-0 border-[24px] border-black/20 pointer-events-none"></div>
         <div className="absolute top-8 left-8">
-          <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">UPLOAD_REVIEW | FILE_BUFFER</p>
+          <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">UPLOAD REVIEW | FILE BUFFER</p>
         </div>
       </div>
 
@@ -772,7 +772,7 @@ const UploadReviewInterface = ({ blob, action, patientId, onClose, onRetake, onS
             <Upload size={32} />
           </div>
           <div>
-            <h4 className="text-xl font-black uppercase tracking-tight mb-1">VIDEO_UPLOADED</h4>
+            <h4 className="text-xl font-black uppercase tracking-tight mb-1">VIDEO UPLOADED</h4>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
               NODE: {action.id.toUpperCase()} | {blob ? `${(blob.size / (1024 * 1024)).toFixed(1)} MB` : ''}
             </p>
@@ -783,14 +783,14 @@ const UploadReviewInterface = ({ blob, action, patientId, onClose, onRetake, onS
             onClick={onRetake}
             className="flex-1 md:flex-none px-12 py-4 border border-zinc-200 font-black text-xs uppercase tracking-widest hover:bg-zinc-50 transition-colors"
           >
-            CHOOSE_DIFFERENT
+            CHOOSE DIFFERENT
           </button>
           <button
             onClick={handleUpload}
             disabled={uploadMutation.isPending || !blob}
             className="flex-1 md:flex-none px-12 py-4 bg-zinc-900 text-white font-black text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
           >
-            {uploadMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : 'SUBMIT_FOR_ANALYSIS'}
+            {uploadMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : 'SUBMIT FOR ANALYSIS'}
           </button>
         </div>
       </div>

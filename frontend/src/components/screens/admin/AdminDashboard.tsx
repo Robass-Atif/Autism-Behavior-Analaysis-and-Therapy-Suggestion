@@ -94,7 +94,7 @@ const ActivityItem = ({ action, user, time, type }: {
         <Icon size={12} className="text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-zinc-900 text-sm truncate">{action}</div>
+        <div className="font-medium text-zinc-900 text-sm truncate">{action.replace(/_/g, ' ')}</div>
         <div className="font-mono text-zinc-500 text-xs">{user}</div>
       </div>
       <div className="font-mono text-zinc-400 text-xs whitespace-nowrap">{time}</div>

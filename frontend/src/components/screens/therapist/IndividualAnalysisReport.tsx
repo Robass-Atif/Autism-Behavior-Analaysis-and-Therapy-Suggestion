@@ -21,13 +21,13 @@ export default function IndividualAnalysisReport({ sessionId }: IndividualAnalys
   if (isLoading) return (
     <div className="flex flex-col items-center justify-center p-20 font-mono gap-4">
       <div className="w-8 h-8 border-4 border-zinc-900 border-t-transparent animate-spin"></div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Compiling_Matrix...</p>
+      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Compiling Matrix...</p>
     </div>
   );
   
   if (!session) return (
     <div className="p-10 text-center border-4 border-dashed border-zinc-200 font-mono">
-      <h2 className="text-xl font-black uppercase text-zinc-300">File_Not_Accessible</h2>
+      <h2 className="text-xl font-black uppercase text-zinc-300">File Not Accessible</h2>
     </div>
   );
 
@@ -50,8 +50,8 @@ export default function IndividualAnalysisReport({ sessionId }: IndividualAnalys
                <span className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-zinc-400 text-[8px] font-black uppercase tracking-widest">v4.0.2-SECURE</span>
                <span className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-blue-400 text-[8px] font-black uppercase tracking-widest">ENCRYPTED_SHA256</span>
             </div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">Diagnostic_Summary</h1>
-            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">GENERATION_DATE: {new Date().toLocaleDateString()}</p>
+            <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">Diagnostic Summary</h1>
+            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 italic">GENERATION DATE: {new Date().toLocaleDateString()}</p>
           </div>
           <div className="flex gap-2">
              <button className="p-3 bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white hover:border-white transition-all shadow-sm">
@@ -69,13 +69,13 @@ export default function IndividualAnalysisReport({ sessionId }: IndividualAnalys
         <div className="lg:col-span-1 space-y-8">
            <div className="bg-white border-2 border-zinc-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-8">
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                 <Shield size={14} className="text-zinc-900" /> Patient_Identity
+                 <Shield size={14} className="text-zinc-900" /> Patient Identity
               </h3>
               <div className="space-y-6">
-                 <IdentityField label="FULL_NAME" value={session.patientName} />
-                 <IdentityField label="ID_MARKER" value={sessionId.slice(-12).toUpperCase()} />
+                 <IdentityField label="FULL NAME" value={session.patientName} />
+                 <IdentityField label="ID MARKER" value={sessionId.slice(-12).toUpperCase()} />
                  <div className="grid grid-cols-2 gap-4 pt-6 border-t border-zinc-100">
-                    <IdentityField label="AGE_PHASE" value="CHILD" />
+                    <IdentityField label="AGE PHASE" value="CHILD" />
                     <IdentityField label="STATUS" value="PUBLISHED" color="text-green-600" />
                  </div>
               </div>
@@ -83,7 +83,7 @@ export default function IndividualAnalysisReport({ sessionId }: IndividualAnalys
 
            {/* Metrics Radar */}
            <div className="bg-zinc-950 border-2 border-zinc-800 p-8 text-white">
-              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-8">Clinical_Dimensionality</h3>
+              <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-8">Clinical Dimensionality</h3>
               <div className="h-64 -mx-4">
                  <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
@@ -112,26 +112,26 @@ export default function IndividualAnalysisReport({ sessionId }: IndividualAnalys
            <div className="bg-white border-2 border-zinc-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="p-4 border-b-2 border-zinc-900 bg-zinc-900 text-zinc-500 flex items-center gap-3">
                  <Zap size={14} />
-                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Neural_Behavioral_Insights</h3>
+                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Neural Behavioral Insights</h3>
               </div>
               <div className="p-8 space-y-10">
                  <FindingSection 
                     icon={<Brain className="text-zinc-900" size={18} />} 
-                    title="Cognitive_Engagement" 
+                    title="Cognitive Engagement" 
                     desc="Subject displays high variance in focused attention during sensory tasks. Neural inference suggests environmental auditory sensitivity as primary factor."
                     tags={['ATTENTION', 'SENSORY', 'AUDITORY']}
                  />
                  <FindingSection 
                     icon={<Target className="text-zinc-900" size={18} />} 
-                    title="Executive_Function" 
+                    title="Executive Function" 
                     desc="Task switching latency identified at > 3400ms. Goal-directed behaviors remain within normal baseline deviation for this identifier."
                     tags={['PLANNING', 'TRANSITION']}
                  />
                  <FindingSection 
                     icon={<Activity className="text-zinc-900" size={18} />} 
-                    title="Motor_Telemetry" 
+                    title="Motor Telemetry" 
                     desc="Kinematic analysis detects subtle regression in pincer grasp precision. Recalibration of OT protocols highly recommended."
-                    tags={['FINE_MOTOR', 'STABILITY']}
+                    tags={['FINE MOTOR', 'STABILITY']}
                  />
               </div>
            </div>
@@ -140,7 +140,7 @@ export default function IndividualAnalysisReport({ sessionId }: IndividualAnalys
            <div className="p-6 border-2 border-dashed border-zinc-200 flex items-center justify-between text-zinc-400">
               <div className="flex items-center gap-3">
                  <Lock size={14} />
-                 <p className="text-[9px] font-black uppercase tracking-[0.2em]">Diagnostic_Encryption_Active_Mode</p>
+                 <p className="text-[9px] font-black uppercase tracking-[0.2em]">Diagnostic Encryption Active Mode</p>
               </div>
               <CheckCircle2 size={16} className="text-zinc-100" />
            </div>

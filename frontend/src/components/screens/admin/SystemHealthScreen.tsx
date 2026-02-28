@@ -154,7 +154,7 @@ export default function SystemHealthScreen() {
               <Activity size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight uppercase">SYSTEM_HEALTH</h1>
+              <h1 className="text-xl font-bold tracking-tight uppercase">SYSTEM HEALTH</h1>
               <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">
                 REAL-TIME INFRASTRUCTURE MONITORING
               </p>
@@ -163,7 +163,7 @@ export default function SystemHealthScreen() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-green-400">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs uppercase tracking-wider">ALL_SYSTEMS_OPERATIONAL</span>
+              <span className="text-xs uppercase tracking-wider">ALL SYSTEMS OPERATIONAL</span>
             </div>
             <button
               onClick={handleRefresh}
@@ -181,7 +181,7 @@ export default function SystemHealthScreen() {
         {/* Health Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <HealthCard
-            title="SERVER_UPTIME"
+            title="SERVER UPTIME"
             value={formatUptime(health?.uptime || 0)}
             status="healthy"
             icon={Server}
@@ -189,7 +189,7 @@ export default function SystemHealthScreen() {
             isLoading={isLoading}
           />
           <HealthCard
-            title="DATABASE_LATENCY"
+            title="DATABASE LATENCY"
             value={health?.database?.latency || 0}
             unit="ms"
             status={(health?.database?.latency || 0) > 50 ? 'warning' : 'healthy'}
@@ -198,7 +198,7 @@ export default function SystemHealthScreen() {
             isLoading={isLoading}
           />
           <HealthCard
-            title="CPU_USAGE"
+            title="CPU USAGE"
             value={health?.cpu?.usagePercentage || 0}
             unit="%"
             status={(health?.cpu?.usagePercentage || 0) > 80 ? 'warning' : 'healthy'}
@@ -223,7 +223,7 @@ export default function SystemHealthScreen() {
           <div className="bg-white border-2 border-zinc-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-sm font-bold text-black uppercase tracking-wider">CPU_&_MEMORY</h3>
+                <h3 className="text-sm font-bold text-black uppercase tracking-wider">CPU & MEMORY</h3>
                 <p className="text-xs text-zinc-500 mt-0.5">Real-time resource usage</p>
               </div>
               <div className="flex items-center gap-4 text-xs">
@@ -264,7 +264,7 @@ export default function SystemHealthScreen() {
           <div className="bg-white border-2 border-zinc-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-sm font-bold text-black uppercase tracking-wider">ACTIVE_USERS_&_LATENCY</h3>
+                <h3 className="text-sm font-bold text-black uppercase tracking-wider">ACTIVE USERS & LATENCY</h3>
                 <p className="text-xs text-zinc-500 mt-0.5">User load vs System response</p>
               </div>
               <div className="flex items-center gap-4 text-xs">
@@ -300,9 +300,9 @@ export default function SystemHealthScreen() {
         {/* Services Table */}
         <div className="bg-white border-2 border-zinc-200">
           <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-black uppercase tracking-wider">SERVICE_STATUS</h3>
+            <h3 className="text-sm font-bold text-black uppercase tracking-wider">SERVICE STATUS</h3>
             <div className="text-xs text-zinc-500">
-              LAST_CHECK: <span className="text-zinc-900">{lastUpdated.toLocaleTimeString()}</span>
+              LAST CHECK: <span className="text-zinc-900">{lastUpdated.toLocaleTimeString()}</span>
             </div>
           </div>
           <table className="w-full">
@@ -315,14 +315,14 @@ export default function SystemHealthScreen() {
               </tr>
             </thead>
             <tbody>
-              <ServiceRow name="API_GATEWAY" status="online" latency="45ms" uptime="99.99%" />
-              <ServiceRow name="AUTH_SERVICE" status="online" latency="32ms" uptime="99.98%" />
-              <ServiceRow name="DATABASE_PRIMARY" status={health?.database.status === 'connected' ? 'online' : 'offline'} latency={`${health?.database.latency || 0}ms`} uptime="99.99%" />
-              <ServiceRow name="DATABASE_REPLICA" status="online" latency="15ms" uptime="99.97%" />
-              <ServiceRow name="AI_INFERENCE_ENGINE" status="online" latency="125ms" uptime="99.95%" />
-              <ServiceRow name="VIDEO_PROCESSOR" status="degraded" latency="340ms" uptime="98.50%" />
-              <ServiceRow name="CDN_EDGE" status="online" latency="28ms" uptime="99.99%" />
-              <ServiceRow name="NOTIFICATION_SERVICE" status="online" latency="52ms" uptime="99.96%" />
+              <ServiceRow name="API GATEWAY" status="online" latency="45ms" uptime="99.99%" />
+              <ServiceRow name="AUTH SERVICE" status="online" latency="32ms" uptime="99.98%" />
+              <ServiceRow name="DATABASE PRIMARY" status={health?.database.status === 'connected' ? 'online' : 'offline'} latency={`${health?.database.latency || 0}ms`} uptime="99.99%" />
+              <ServiceRow name="DATABASE REPLICA" status="online" latency="15ms" uptime="99.97%" />
+              <ServiceRow name="AI INFERENCE ENGINE" status="online" latency="125ms" uptime="99.95%" />
+              <ServiceRow name="VIDEO PROCESSOR" status="degraded" latency="340ms" uptime="98.50%" />
+              <ServiceRow name="CDN EDGE" status="online" latency="28ms" uptime="99.99%" />
+              <ServiceRow name="NOTIFICATION SERVICE" status="online" latency="52ms" uptime="99.96%" />
             </tbody>
           </table>
         </div>
@@ -334,12 +334,12 @@ export default function SystemHealthScreen() {
             <span>US-EAST-1</span>
             <span className="text-zinc-500">INSTANCES:</span>
             <span>3 / 3</span>
-            <span className="text-zinc-500">LOAD_BALANCER:</span>
+            <span className="text-zinc-500">LOAD BALANCER:</span>
             <span className="text-green-400">ACTIVE</span>
           </div>
           <div className="flex items-center gap-2">
             <Terminal size={12} className="text-zinc-500" />
-            <span className="text-zinc-400">MONITORING_ACTIVE</span>
+            <span className="text-zinc-400">MONITORING ACTIVE</span>
           </div>
         </div>
       </div>

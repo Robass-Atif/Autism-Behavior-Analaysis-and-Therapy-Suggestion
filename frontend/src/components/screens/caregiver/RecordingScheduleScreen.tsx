@@ -9,15 +9,15 @@ export default function RecordingScheduleScreen() {
         {/* Header */}
         <header className="mb-12 border-b border-zinc-100 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">TEMPORAL_PLANNING</h3>
-            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Recording_Schedule</h1>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">TEMPORAL PLANNING</h3>
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Recording Schedule</h1>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2 underline decoration-zinc-100 underline-offset-4">
               UPCOMING THERAPY CAPTURE WINDOWS
             </p>
           </div>
           <div className="flex items-baseline gap-2 text-zinc-300">
-            <span className="text-[10px] font-black uppercase">TIME_ZONE:</span>
-            <span className="text-xs font-black text-zinc-900">UTC_05:00</span>
+            <span className="text-[10px] font-black uppercase">TIME ZONE:</span>
+            <span className="text-xs font-black text-zinc-900">UTC 05:00</span>
           </div>
         </header>
 
@@ -54,16 +54,16 @@ export default function RecordingScheduleScreen() {
                     <div className="mt-4 space-y-2">
                       <div className="bg-zinc-900 text-white p-2 text-[8px] font-black uppercase tracking-widest relative overflow-hidden">
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Clock size={8} /> 10:00_PST
+                          <Clock size={8} /> 10:00 PST
                         </div>
-                        ARM_SWING_L
+                        ARM SWING L
                         <div className="absolute top-0 right-0 w-1 h-1 bg-white"></div>
                       </div>
                       <div className="border border-zinc-200 bg-white p-2 text-[8px] font-black uppercase tracking-widest text-zinc-400">
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Clock size={8} /> 16:30_PST
+                          <Clock size={8} /> 16:30 PST
                         </div>
-                        FROG_POSE
+                        FROG POSE
                       </div>
                     </div>
                   )}
@@ -72,9 +72,9 @@ export default function RecordingScheduleScreen() {
                     <div className="mt-4">
                       <div className="border border-zinc-100 bg-zinc-50 p-2 text-[8px] font-black uppercase tracking-widest text-zinc-300">
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Clock size={8} /> 09:00_PST
+                          <Clock size={8} /> 09:00 PST
                         </div>
-                        BODY_SWING
+                        BODY SWING
                       </div>
                     </div>
                   )}
@@ -89,16 +89,16 @@ export default function RecordingScheduleScreen() {
           <div className="flex flex-wrap gap-8">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-zinc-900"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">HIGH_PRIORITY_CAPTURE</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">HIGH PRIORITY CAPTURE</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 border border-zinc-200"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">PLANNED_SEQUENCE</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">PLANNED SEQUENCE</span>
             </div>
           </div>
 
           <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em] text-right">
-            RECURRENCE_PROTOCOL: ACTIVE | NODE_ID: CR-SCHED-01
+            RECURRENCE PROTOCOL: ACTIVE | NODE ID: CR-SCHED-01
           </div>
         </div>
       </div>

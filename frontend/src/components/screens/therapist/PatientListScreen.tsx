@@ -122,10 +122,10 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
             className="px-4 py-2 border-2 border-zinc-200 text-zinc-600 text-[10px] font-black uppercase tracking-widest bg-white focus:border-zinc-900 outline-none appearance-none cursor-pointer pr-10 relative"
             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%2318181b\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'3\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1rem' }}
           >
-            <option value="all">ANY_STATUS</option>
-            <option value="Active">STATUS_ACTIVE</option>
-            <option value="Inactive">STATUS_INACTIVE</option>
-            <option value="Discharged">STATUS_DISCHARGED</option>
+            <option value="all">ANY STATUS</option>
+            <option value="Active">STATUS ACTIVE</option>
+            <option value="Inactive">STATUS INACTIVE</option>
+            <option value="Discharged">STATUS DISCHARGED</option>
           </select>
         </div>
 
@@ -153,7 +153,7 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-zinc-900 border-b-2 border-zinc-900 text-zinc-400">
-                  <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em]">Patient_Name</th>
+                  <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em]">Patient Name</th>
                   <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em]">MRN</th>
                   <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em]">Status</th>
                   <th className="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em]">Baseline</th>
@@ -265,19 +265,19 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
                   <div className="space-y-10">
                     <section>
                       <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2 border-b-2 border-zinc-50 pb-2">
-                         <User size={14} /> Profile_Identity
+                         <User size={14} /> Profile Identity
                       </h3>
                       <div className="grid grid-cols-2 gap-6">
                         <InfoField label="DOB" value={selectedPatient.dob ? new Date(selectedPatient.dob).toLocaleDateString() : 'N/A'} />
                         <InfoField label="GENDER" value={selectedPatient.gender || 'N/A'} />
                         <InfoField label="LANG" value={selectedPatient.preferredLanguage || 'English'} />
-                        <InfoField label="ASD_LEVEL" value={selectedPatient.asdSeverity || 'N/A'} />
+                        <InfoField label="ASD LEVEL" value={selectedPatient.asdSeverity || 'N/A'} />
                       </div>
                     </section>
 
                     <section>
                       <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2 border-b-2 border-zinc-50 pb-2">
-                         <Phone size={14} /> Contact_Links
+                         <Phone size={14} /> Contact Links
                       </h3>
                       <div className="space-y-4">
                         <InfoField label="EMAIL" value={selectedPatient.email || 'N/A'} />
@@ -289,7 +289,7 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
                   <div className="space-y-10">
                     <section className="bg-zinc-50 border-2 border-zinc-200 p-6">
                        <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                         <Activity size={14} /> Diagnosis_Logs
+                         <Activity size={14} /> Diagnosis Logs
                        </h3>
                        <div className="space-y-4 text-xs font-bold text-zinc-700 uppercase leading-relaxed">
                           {selectedPatient.diagnosisDetails ? (
@@ -297,7 +297,7 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
                           ) : <p className="text-zinc-300 italic">Historical data missing.</p>}
                           
                           <div className="pt-4 border-t border-zinc-100">
-                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-1">STAMP_DATE</span>
+                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-1">STAMP DATE</span>
                              <span className="text-xs font-black text-zinc-900">{selectedPatient.diagnosisDate ? new Date(selectedPatient.diagnosisDate).toLocaleDateString() : '—'}</span>
                           </div>
                        </div>
@@ -305,7 +305,7 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
 
                     <section className="bg-zinc-900 border-2 border-zinc-800 p-6 text-white">
                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                         <Shield size={14} /> Emergency_Overrides
+                         <Shield size={14} /> Emergency Overrides
                        </h3>
                        <div className="flex flex-wrap gap-2">
                           {selectedPatient.allergies?.length > 0 ? (
@@ -322,7 +322,7 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
             {/* Modal Footer */}
             <div className="bg-zinc-50 px-8 py-5 border-t-4 border-zinc-200 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  <Shield size={14} /> System_Secure_Record
+                  <Shield size={14} /> System Secure Record
                </div>
                <div className="flex items-center gap-4">
                   <button

@@ -165,13 +165,12 @@ export default function CaregiverRegistrationScreen() {
               onClick={() => navigate({ to: '/login' })}
               className="mb-4 text-xs font-bold text-zinc-400 hover:text-zinc-600 flex items-center gap-2 transition-colors uppercase tracking-widest"
             >
-              <X size={14} /> Cancel_Process
+              <X size={14} /> Cancel Process
             </button>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight text-zinc-900">
-              CAREGIVER<span className="text-zinc-300">_</span>JOIN
+              CAREGIVER JOIN
             </h1>
             <p className="mt-2 text-zinc-500 text-sm">
-              <span className="text-zinc-300 mr-2">//</span>
               Support patient therapy journeys.
             </p>
           </div>
@@ -189,7 +188,7 @@ export default function CaregiverRegistrationScreen() {
                       {step < currentStep ? <CheckCircle2 size={14} /> : `0${step}`}
                     </div>
                     <div className="hidden lg:block text-xs font-bold uppercase tracking-wider">
-                      {step === 1 && 'Profile_Info'}
+                      {step === 1 && 'Profile Info'}
                       {step === 2 && 'Verification'}
                       {step === 3 && 'Security'}
                       {step === 4 && 'Compliance'}
@@ -214,7 +213,7 @@ export default function CaregiverRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <User size={20} /> Personal_Details
+                        <User size={20} /> Personal Details
                       </h2>
                     </div>
 
@@ -259,19 +258,19 @@ export default function CaregiverRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <ShieldCheck size={20} /> Identity_Verification
+                        <ShieldCheck size={20} /> Identity Verification
                       </h2>
                     </div>
 
                     <div className="p-4 bg-amber-50 border-l-4 border-amber-400 text-amber-900 text-[10px] font-bold uppercase mb-8">
-                      Invitation Required // This portal is private access only.
+                      Invitation Required (This portal is private access only.)
                     </div>
 
                     <div className="space-y-8">
                       <div className="group">
                         <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">Relationship to Patient *</label>
                         <select {...register('relationshipType')} className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer">
-                          <option value="">SELECT_RELATIONSHIP...</option>
+                          <option value="">SELECT RELATIONSHIP...</option>
                           {RELATIONSHIP_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                         </select>
                         {errors.relationshipType && <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">{errors.relationshipType.message}</p>}
@@ -302,7 +301,7 @@ export default function CaregiverRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <Lock size={20} /> Secure_Credentials
+                        <Lock size={20} /> Secure Credentials
                       </h2>
                     </div>
 
@@ -337,7 +336,7 @@ export default function CaregiverRegistrationScreen() {
                   <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="border-b border-zinc-100 pb-4 mb-6">
                       <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-2">
-                        <ShieldCheck size={20} /> Compliance_Consent
+                        <ShieldCheck size={20} /> Compliance Consent
                       </h2>
                     </div>
 
@@ -358,7 +357,7 @@ export default function CaregiverRegistrationScreen() {
                       </div>
 
                       <div className="pt-6 border-t border-zinc-100">
-                        <h3 className="text-xs font-bold uppercase text-zinc-400 mb-4 tracking-widest">Notification_Settings</h3>
+                        <h3 className="text-xs font-bold uppercase text-zinc-400 mb-4 tracking-widest">Notification Settings</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {['Email', 'SMS', 'Reminders'].map(pref => (
                             <div key={pref} className="border border-zinc-200 p-3 flex items-center justify-between">
@@ -378,17 +377,17 @@ export default function CaregiverRegistrationScreen() {
                 <div className="mt-12 pt-8 border-t border-zinc-100 flex items-center justify-between">
                   {currentStep > 1 ? (
                     <button type="button" onClick={prevStep} className="text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors flex items-center gap-2">
-                      Back_Step
+                      Back Step
                     </button>
                   ) : <div></div>}
 
                   {currentStep < totalSteps ? (
                     <button type="button" onClick={nextStep} className="px-8 py-3 bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest flex items-center gap-4 hover:bg-zinc-800 transition-all">
-                      Next_Step <ArrowRight size={14} />
+                      Next Step <ArrowRight size={14} />
                     </button>
                   ) : (
                     <button type="submit" disabled={registerMutation.isPending} className="px-8 py-3 bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest flex items-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-50">
-                      {registerMutation.isPending ? 'Processing...' : 'Complete_Registration'} <CheckCircle2 size={14} />
+                      {registerMutation.isPending ? 'Processing...' : 'Complete Registration'} <CheckCircle2 size={14} />
                     </button>
                   )}
                 </div>
@@ -397,7 +396,7 @@ export default function CaregiverRegistrationScreen() {
             </div>
 
             <div className="mt-8 text-center text-[10px] text-zinc-300 font-mono tracking-tighter uppercase">
-              Encrypted_Auth_Node // ABA-TS System V1.0
+              Encrypted Auth Node (ABA-TS System V1.0)
             </div>
           </div>
 

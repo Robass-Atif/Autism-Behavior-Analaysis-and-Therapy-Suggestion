@@ -20,7 +20,7 @@ export default function ConsolidatedReport() {
       <div className="bg-zinc-900 border-b-4 border-zinc-800 p-8 flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-white">
         <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12"><BarChart2 size={120} /></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-black tracking-tighter uppercase whitespace-nowrap">Integrated_Feed // <span className="text-zinc-500">Q2_2024</span></h1>
+          <h1 className="text-3xl font-black tracking-tighter uppercase whitespace-nowrap">Integrated Feed <span className="text-zinc-500">(Q2 2024)</span></h1>
           <div className="flex items-center gap-3 mt-3">
              <span className="px-3 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 text-[9px] font-black uppercase tracking-[0.2em]">Clinical_Dataset_012</span>
              <span className="text-blue-400 font-black text-[9px] uppercase tracking-widest leading-none">• Identity: John Doe</span>
@@ -46,28 +46,28 @@ export default function ConsolidatedReport() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-zinc-900 p-8 text-white shadow-[6px_6px_0px_0px_rgba(24,24,27,0.2)] border border-zinc-800 relative group overflow-hidden">
           <div className="absolute -right-4 -bottom-4 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700"><Calendar size={100} /></div>
-          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Cycles_Completed</p>
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Cycles Completed</p>
           <div className="text-6xl font-black tracking-tighter">24</div>
-          <p className="mt-8 text-[9px] font-black text-blue-400 uppercase tracking-widest">+16% INCREASE_DELTA</p>
+          <p className="mt-8 text-[9px] font-black text-blue-400 uppercase tracking-widest">+16% INCREASE DELTA</p>
         </div>
         
         <div className="bg-white border-2 border-zinc-900 p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-           <p className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Goal_Attainment</p>
+           <p className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Goal Attainment</p>
            <div className="text-6xl font-black text-zinc-900 tracking-tighter leading-none">72<span className="text-2xl text-zinc-200 ml-1">%</span></div>
-           <p className="text-[9px] font-black text-zinc-400 mt-8 uppercase tracking-widest border-t pt-4">AGG_METRIC_SUCCESS</p>
+           <p className="text-[9px] font-black text-zinc-400 mt-8 uppercase tracking-widest border-t pt-4">AGG METRIC SUCCESS</p>
         </div>
 
         <div className="bg-white border-2 border-zinc-900 p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-           <p className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Focus_Protocols</p>
+           <p className="text-zinc-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4">Focus Protocols</p>
            <div className="text-6xl font-black text-zinc-900 tracking-tighter leading-none">02</div>
-           <p className="text-[9px] font-black text-zinc-400 mt-8 uppercase tracking-widest border-t pt-4">ACTIVE_OBSERVABLES</p>
+           <p className="text-[9px] font-black text-zinc-400 mt-8 uppercase tracking-widest border-t pt-4">ACTIVE OBSERVABLES</p>
         </div>
       </div>
 
       {/* Trajectory Plot */}
       <div className="bg-white border-2 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="p-4 border-b-2 border-zinc-900 bg-zinc-900 text-zinc-500 flex justify-between items-center">
-           <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Longitudinal_Telemetry_Plot</h3>
+           <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Longitudinal Telemetry Plot</h3>
            <div className="flex gap-4">
               <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest">
                  <div className="w-1.5 h-1.5 bg-zinc-500"></div> Social
@@ -99,7 +99,7 @@ export default function ConsolidatedReport() {
       {/* Intervention Segments */}
       <div className="space-y-6">
         <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] px-1 flex items-center gap-3">
-           <Target size={14} className="text-zinc-900" /> Strategic_Intervention_Points
+           <Target size={14} className="text-zinc-900" /> Strategic Intervention Points
         </h3>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -111,7 +111,7 @@ export default function ConsolidatedReport() {
                  <span className="px-3 py-1 bg-zinc-200 text-zinc-700 text-[8px] font-black uppercase tracking-widest">URGENT</span>
               </div>
               <div className="flex-1">
-                <h4 className="text-2xl font-black text-zinc-900 tracking-tighter mb-2 uppercase">Motor_Control_Regression</h4>
+                <h4 className="text-2xl font-black text-zinc-900 tracking-tighter mb-2 uppercase">Motor Control Regression</h4>
                 <p className="text-zinc-500 text-[11px] font-bold uppercase tracking-tight leading-relaxed">
                   {viewMode === 'technical' 
                     ? 'Pincer grasp latency increased (+200ms). Deviation exceeds 2.0 SD thresholds. Immediate OT protocol adjustment required.' 
@@ -119,7 +119,7 @@ export default function ConsolidatedReport() {
                 </p>
               </div>
               <button className="flex items-center gap-2 text-zinc-900 text-[10px] font-black uppercase tracking-widest hover:gap-4 transition-all w-fit border-b-2 border-zinc-900 pb-1">
-                RECALIBRATE_PROTOCOLS <ArrowRight size={12} />
+                RECALIBRATE PROTOCOLS <ArrowRight size={12} />
               </button>
            </div>
 
@@ -131,7 +131,7 @@ export default function ConsolidatedReport() {
                  <span className="px-3 py-1 bg-zinc-200 text-zinc-700 text-[8px] font-black uppercase tracking-widest">ACTIVE</span>
               </div>
               <div className="flex-1">
-                <h4 className="text-2xl font-black text-zinc-900 tracking-tighter mb-2 uppercase">Sensory_Map_Alpha</h4>
+                <h4 className="text-2xl font-black text-zinc-900 tracking-tighter mb-2 uppercase">Sensory Map Alpha</h4>
                 <p className="text-zinc-500 text-[11px] font-bold uppercase tracking-tight leading-relaxed">
                    {viewMode === 'technical'
                     ? 'Auditory hypersensitivity triggered at 40% rate. Threshold correlation > 60dB identified.'
@@ -139,7 +139,7 @@ export default function ConsolidatedReport() {
                 </p>
               </div>
               <button className="flex items-center gap-2 text-zinc-900 text-[10px] font-black uppercase tracking-widest hover:gap-4 transition-all w-fit border-b-2 border-zinc-900 pb-1">
-                VIEW_NARRATIVE <ArrowRight size={12} />
+                VIEW NARRATIVE <ArrowRight size={12} />
               </button>
            </div>
         </div>

@@ -102,7 +102,7 @@ export default function TherapyRecommendations({
       <div className="w-full lg:w-80 bg-white border-r-2 border-zinc-100 flex flex-col flex-shrink-0">
         <div className="p-6 border-b border-zinc-100 bg-white">
           <h2 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4">
-            Patient_Registry
+            Patient Registry
           </h2>
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-300" />
@@ -760,8 +760,8 @@ export default function TherapyRecommendations({
             <div className="p-4 bg-zinc-900 text-white border-2 border-zinc-900 text-[9px] font-bold leading-relaxed uppercase tracking-widest">
               STATUS:{" "}
               {clinicalReport
-                ? "EVIDENCE_MAPPED_TO_DSM5"
-                : "WAITING_FOR_DATA_MAP"}
+                ? "EVIDENCE MAPPED TO DSM5"
+                : "WAITING FOR DATA MAP"}
             </div>
 
             {clinicalReport?.therapies_recommended?.length ? (
@@ -803,7 +803,7 @@ const ProtocolCard = ({
                 : "bg-white text-zinc-900 border-zinc-900"
             }`}
           >
-            {priority}_PRIORITY
+            {priority} PRIORITY
           </div>
           <h3 className="text-sm font-black text-zinc-900 tracking-tighter uppercase leading-tight break-all">
             {title}
@@ -824,7 +824,7 @@ const ProtocolCard = ({
 
       <div className="bg-zinc-50 border-2 border-zinc-100 p-4 mb-6">
         <h4 className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-          <FileText size={10} /> Clinical_Rationale
+          <FileText size={10} /> Clinical Rationale
         </h4>
         <p className="text-[9px] text-zinc-500 font-bold leading-relaxed uppercase italic">
           {reasoning}
@@ -849,7 +849,7 @@ const SourceCard = ({ title, journal, relevance }: any) => (
       <div className="flex items-center gap-1">
         <div className="w-1.5 h-1.5 bg-zinc-900"></div>
         <span className="text-[8px] font-black text-zinc-900 uppercase">
-          {relevance}%_WEIGHT
+          {relevance}% WEIGHT
         </span>
       </div>
     </div>
@@ -860,7 +860,7 @@ const SourceCard = ({ title, journal, relevance }: any) => (
       {journal}
     </p>
     <div className="mt-4 flex items-center text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400 group-hover:text-zinc-900 transition-colors">
-      READ_FULL <ArrowRight size={10} className="ml-1" />
+      READ FULL <ArrowRight size={10} className="ml-1" />
     </div>
   </div>
 );

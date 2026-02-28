@@ -86,7 +86,7 @@ export default function PatientLongitudinalScreen({
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <Loader2 className="w-8 h-8 text-zinc-900 animate-spin" />
           <span className="text-xs text-zinc-400 uppercase font-black tracking-widest">
-            Scanning_Historical_Archives...
+            Scanning Historical Archives...
           </span>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function PatientLongitudinalScreen({
                 onClick={onBack}
                 className="flex items-center gap-2 text-[10px] text-zinc-400 hover:text-white uppercase font-black tracking-widest transition-colors mb-2"
               >
-                <ArrowLeft size={12} /> BACK_TO_CLINICAL_ROSTER
+                <ArrowLeft size={12} /> BACK TO CLINICAL ROSTER
               </button>
             )}
             <div className="flex items-center gap-4">
@@ -120,16 +120,16 @@ export default function PatientLongitudinalScreen({
               </div>
               <div>
                 <h1 className="text-xl font-black text-white tracking-tighter uppercase leading-none">
-                  Longitudinal_Analysis |{" "}
+                  Longitudinal Analysis |{" "}
                   <span className="text-zinc-400">{patient?.fullName}</span>
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-[9px] text-zinc-500 flex items-center gap-1 font-black uppercase tracking-widest">
-                    <User size={12} /> MRN_VALIDATED
+                    <User size={12} /> MRN VALIDATED
                   </span>
                   <span className="text-[9px] text-zinc-500 flex items-center gap-1 font-black uppercase tracking-widest">
                     <BarChart3 size={12} /> {longitudinal?.totalSessions || 0}
-                    _DATA_POINTS
+                     DATA POINTS
                   </span>
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function PatientLongitudinalScreen({
             <div className="bg-zinc-800 border-2 border-zinc-700 px-4 py-2 flex items-center gap-4">
               <div>
                 <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">
-                  Trajectory_Rate
+                  Trajectory Rate
                 </p>
                 <p className="text-sm font-black text-white">+12.4%</p>
               </div>
@@ -157,7 +157,7 @@ export default function PatientLongitudinalScreen({
               <TrendingUp size={48} />
             </div>
             <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2">
-              Null_Trends_Detected
+              Null Trends Detected
             </h4>
             <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest text-center max-w-sm">
               Longitudinal analysis requires at least two completed and reviewed
@@ -172,21 +172,21 @@ export default function PatientLongitudinalScreen({
                 { key: "all", label: "OVERVIEW" },
                 {
                   key: "severity",
-                  label: "SEVERITY_SCALE",
+                  label: "SEVERITY SCALE",
                   color: CHART_COLORS.severity,
                 },
                 {
                   key: "social_affect",
-                  label: "SOCIAL_AFFECT",
+                  label: "SOCIAL AFFECT",
                   color: CHART_COLORS.social_affect,
                 },
                 {
                   key: "rrb",
-                  label: "REPETITIVE_BEHAVIOR",
+                  label: "REPETITIVE BEHAVIOR",
                   color: CHART_COLORS.rrb,
                 },
                 {
-                  key: "comparison_score",
+                  key: "comparison score",
                   label: "GLOBAL_COMPARISON",
                   color: CHART_COLORS.comparison,
                 },
@@ -216,10 +216,10 @@ export default function PatientLongitudinalScreen({
               <div className="flex items-center justify-between mb-8 border-b-2 border-zinc-100 pb-4">
                 <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em] flex items-center gap-2">
                   <Activity size={14} className="text-zinc-900" />
-                  Ensemble_Prediction_Trends_v2
+                  Ensemble Prediction Trends v2
                 </h3>
                 <span className="text-[8px] font-black text-white bg-zinc-900 px-2 py-0.5 tracking-widest">
-                  TIME_SERIES
+                  TIME SERIES
                 </span>
               </div>
               <div className="h-[400px]">
@@ -278,7 +278,7 @@ export default function PatientLongitudinalScreen({
                       <Line
                         type="stepAfter"
                         dataKey="severity"
-                        name="SEVERITY_LEVEL"
+                        name="SEVERITY LEVEL"
                         stroke={CHART_COLORS.severity}
                         strokeWidth={3}
                         dot={{
@@ -299,7 +299,7 @@ export default function PatientLongitudinalScreen({
                       <Line
                         type="stepAfter"
                         dataKey="social_affect"
-                        name="SOCIAL_INTERACTION"
+                        name="SOCIAL INTERACTION"
                         stroke={CHART_COLORS.social_affect}
                         strokeWidth={2}
                         dot={{
@@ -313,7 +313,7 @@ export default function PatientLongitudinalScreen({
                       <Line
                         type="stepAfter"
                         dataKey="rrb"
-                        name="RRB_REPETITIVE"
+                        name="RRB REPETITIVE"
                         stroke={CHART_COLORS.rrb}
                         strokeWidth={2}
                         dot={{ fill: CHART_COLORS.rrb, r: 0, strokeWidth: 0 }}
@@ -324,7 +324,7 @@ export default function PatientLongitudinalScreen({
                       <Line
                         type="stepAfter"
                         dataKey="comparison_score"
-                        name="COMPARISON_SCORE"
+                        name="COMPARISON SCORE"
                         stroke={CHART_COLORS.comparison}
                         strokeWidth={2}
                         strokeDasharray="4 4"
@@ -343,7 +343,7 @@ export default function PatientLongitudinalScreen({
             {/* Historical Comparison Cards */}
             <div>
               <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
-                <Calendar size={12} /> HISTORICAL_RECORDS_LOG
+                <Calendar size={12} /> HISTORICAL RECORDS LOG
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {trendData.map((point: LongitudinalDataPoint, idx: number) => (
@@ -374,7 +374,7 @@ export default function PatientLongitudinalScreen({
                       </div>
 
                       <h4 className="text-xs font-black text-zinc-900 uppercase tracking-tight mb-6 flex items-center justify-between group-hover:bg-zinc-900 group-hover:text-white px-2 py-1 -mx-2 transition-colors">
-                        {point.actionType?.replace(/ /g, "_") || "GEN_SESSION"}
+                        {point.actionType?.replace(/ /g, "_") || "GEN SESSION"}
                         <ChevronRight
                           size={14}
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
@@ -382,24 +382,24 @@ export default function PatientLongitudinalScreen({
                       </h4>
 
                       <div className="grid grid-cols-2 gap-px bg-zinc-200 border-2 border-zinc-200 mb-6">
-                        <MetricBlock label="SEV_LVL" value={point.severity} />
+                        <MetricBlock label="SEV LVL" value={point.severity} />
                         <MetricBlock
-                          label="SOC_IDX"
+                          label="SOC IDX"
                           value={point.social_affect?.toFixed(1)}
                         />
                         <MetricBlock
-                          label="RRB_LVL"
+                          label="RRB LVL"
                           value={point.rrb?.toFixed(1)}
                         />
                         <MetricBlock
-                          label="GLB_CMP"
+                          label="GLB CMP"
                           value={point.comparison_score}
                         />
                       </div>
 
                       <button className="w-full flex items-center justify-center gap-2 py-3 bg-white text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border-2 border-zinc-900">
                         <Eye size={12} />
-                        ACCESS_REPORT
+                        ACCESS REPORT
                       </button>
                     </div>
                   </div>
