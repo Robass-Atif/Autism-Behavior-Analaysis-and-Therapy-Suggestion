@@ -144,7 +144,7 @@ const RejectModal: React.FC<{
           <div className="flex items-center gap-3">
             <UserX size={20} />
             <h3 className="font-bold uppercase tracking-wider">
-              REJECT_APPLICATION
+              REJECT APPLICATION
             </h3>
           </div>
           <button onClick={onClose} className="hover:bg-red-700 p-1">
@@ -295,7 +295,7 @@ const TherapistApplicationsScreen: React.FC<
               </div>
               <div>
                 <h1 className="font-bold text-xl uppercase tracking-tight">
-                  THERAPIST_APPLICATIONS
+                  THERAPIST APPLICATIONS
                 </h1>
                 <p className="mt-0.5 text-zinc-400 text-xs uppercase tracking-wider">
                   REVIEW AND MANAGE REGISTRATION REQUESTS
@@ -358,7 +358,7 @@ const TherapistApplicationsScreen: React.FC<
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="SEARCH_BY_NAME_OR_EMAIL..."
+                  placeholder="SEARCH BY NAME OR EMAIL..."
                   className="bg-zinc-50 py-2.5 pr-4 pl-10 border-2 border-zinc-200 focus:border-black focus:outline-none w-full text-sm transition-colors placeholder-zinc-400"
                 />
               </div>
@@ -409,7 +409,7 @@ const TherapistApplicationsScreen: React.FC<
                         className="mx-auto text-zinc-400 animate-spin"
                       />
                       <p className="mt-2 text-zinc-500 text-xs uppercase">
-                        LOADING_APPLICATIONS...
+                        LOADING APPLICATIONS...
                       </p>
                     </td>
                   </tr>
@@ -419,7 +419,7 @@ const TherapistApplicationsScreen: React.FC<
                       colSpan={6}
                       className="px-4 py-12 text-zinc-500 text-sm text-center"
                     >
-                      NO_APPLICATIONS_FOUND
+                      NO APPLICATIONS FOUND
                     </td>
                   </tr>
                 ) : (
@@ -535,14 +535,14 @@ const TherapistApplicationsScreen: React.FC<
           {/* Footer */}
           <div className="flex justify-between items-center bg-black mt-8 px-4 py-3 text-white text-xs">
             <div className="flex items-center gap-6">
-              <span className="text-zinc-500">TOTAL_APPLICATIONS:</span>
+              <span className="text-zinc-500">TOTAL APPLICATIONS:</span>
               <span>{stats.total}</span>
-              <span className="text-zinc-500">PENDING_REVIEW:</span>
+              <span className="text-zinc-500">PENDING REVIEW:</span>
               <span className="text-amber-400">{stats.pending}</span>
             </div>
             <div className="flex items-center gap-2">
               <Shield size={12} className="text-zinc-500" />
-              <span className="text-zinc-400">ADMIN_REVIEW_REQUIRED</span>
+              <span className="text-zinc-400">ADMIN REVIEW REQUIRED</span>
             </div>
           </div>
         </div>
@@ -574,7 +574,7 @@ const TherapistApplicationsScreen: React.FC<
           userId={expandedApp}
           isOpen={!!expandedApp}
           onClose={() => setExpandedApp(null)}
-          title="APPLICATION_DETAILS"
+          title="APPLICATION DETAILS"
           actions={
             <>
               <button
@@ -585,7 +585,7 @@ const TherapistApplicationsScreen: React.FC<
                 }}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-4 py-2 text-white text-xs uppercase tracking-wider"
               >
-                <CheckCircle size={14} /> APPROVE_APPLICATION
+                <CheckCircle size={14} /> APPROVE APPLICATION
               </button>
               <button
                 onClick={() => {
@@ -595,7 +595,7 @@ const TherapistApplicationsScreen: React.FC<
                 }}
                 className="flex items-center gap-2 hover:bg-red-50 px-4 py-2 border-2 border-red-200 text-red-600 text-xs uppercase tracking-wider"
               >
-                <XCircle size={14} /> REJECT_APPLICATION
+                <XCircle size={14} /> REJECT APPLICATION
               </button>
             </>
           }

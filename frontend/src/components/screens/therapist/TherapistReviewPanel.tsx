@@ -33,7 +33,7 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
       });
       toast.success('Clinical validation sequence stored');
     } catch (err: any) {
-      toast.error(err?.message || 'IO_TRANSFER_FAILED');
+      toast.error(err?.message || 'IO TRANSFER FAILED');
     }
   };
 
@@ -42,7 +42,7 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
       await publishReport.mutateAsync(session.id);
       toast.success('Report broadcasted to Caretaker Portal');
     } catch (err: any) {
-      toast.error(err?.message || 'BROADCAST_FAILED');
+      toast.error(err?.message || 'BROADCAST FAILED');
     }
   };
 
@@ -52,9 +52,9 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
       <div className="bg-zinc-900 border-b-4 border-zinc-800 p-8 text-white relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="absolute top-0 right-0 p-8 opacity-5"><ShieldCheck size={120} /></div>
         <div className="relative z-10">
-          <h2 className="text-2xl font-black uppercase tracking-tighter">Clinical_Validation_Console</h2>
+          <h2 className="text-2xl font-black uppercase tracking-tighter">Clinical Validation Console</h2>
           <p className="text-zinc-500 text-[9px] font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
-            <Zap size={14} className="text-blue-500 animate-pulse" /> Manual_Neural_Sync_Enabled
+            <Zap size={14} className="text-blue-500 animate-pulse" /> Manual Neural Sync Enabled
           </p>
         </div>
         <div className="flex items-center gap-3 bg-zinc-950 p-2 border border-zinc-800 relative z-10 shrink-0">
@@ -63,7 +63,7 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
             disabled={submitReview.isPending}
             className="px-6 py-3 bg-white text-zinc-900 font-black text-[10px] uppercase tracking-widest hover:bg-zinc-100 transition-all flex items-center gap-2"
           >
-            {submitReview.isPending ? <Loader2 className="animate-spin" size={12} /> : <Save size={12} />} Store_Matrix
+            {submitReview.isPending ? <Loader2 className="animate-spin" size={12} /> : <Save size={12} />} Store Matrix
           </button>
           <button 
             disabled={session.status === 'published' || publishReport.isPending}
@@ -80,7 +80,7 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
          <div className="space-y-10">
             <section className="bg-white border-2 border-zinc-900 p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                  <Sliders size={14} className="text-zinc-900" /> Neural_Weight_Adjustment
+                  <Sliders size={14} className="text-zinc-900" /> Neural Weight Adjustment
                </h3>
                <div className="space-y-6">
                   <div>
@@ -103,7 +103,7 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
                   </div>
                   <div className="p-4 bg-zinc-50 border-l-4 border-zinc-900">
                      <p className="text-[9px] font-bold text-zinc-500 uppercase leading-relaxed font-mono">
-                        "OVERRIDE_NOTICE: Adjusting weight values will immediately recalibrate longitudinal trending data for this patient identifier."
+                        "OVERRIDE NOTICE: Adjusting weight values will immediately recalibrate longitudinal trending data for this patient identifier."
                      </p>
                   </div>
                </div>
@@ -111,12 +111,12 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
 
             <section className="bg-white border-2 border-zinc-900 p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                  <Activity size={14} className="text-zinc-900" /> Plan_Recalibration
+                  <Activity size={14} className="text-zinc-900" /> Plan Recalibration
                </h3>
                <textarea
                  value={therapyPlanAdjustments}
                  onChange={(e) => setTherapyPlanAdjustments(e.target.value)}
-                 placeholder="INPUT_ADAPTIVE_INSTRUCTIONS..."
+                 placeholder="INPUT ADAPTIVE INSTRUCTIONS..."
                  className="w-full h-40 p-6 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 outline-none text-xs font-bold uppercase tracking-tight transition-all font-mono leading-relaxed"
                />
             </section>
@@ -126,28 +126,28 @@ export default function TherapistReviewPanel({ session, onNavigate }: TherapistR
          <div className="space-y-10">
             <section className="bg-white border-2 border-zinc-900 p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                  <MessageSquare size={14} className="text-zinc-900" /> Analyst_Observations
+                  <MessageSquare size={14} className="text-zinc-900" /> Analyst Observations
                </h3>
                <textarea
                  value={reviewNotes}
                  onChange={(e) => setReviewNotes(e.target.value)}
-                 placeholder="INPUT_QUALITATIVE_DATA_HERE..."
+                 placeholder="INPUT QUALITATIVE DATA HERE..."
                  className="w-full h-40 p-6 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 outline-none text-xs font-bold uppercase tracking-tight transition-all font-mono leading-relaxed"
                />
                <div className="mt-6 flex items-center gap-2 text-[8px] font-black text-zinc-400 uppercase tracking-widest border-t pt-4">
-                  <CheckCircle2 size={12} className="text-zinc-300" /> SHA_RECORD_READY
+                  <CheckCircle2 size={12} className="text-zinc-300" /> SHA RECORD READY
                </div>
             </section>
 
             {/* Evidence Linkages */}
             <div className="p-8 border-2 border-dashed border-zinc-300 flex flex-col items-center text-center">
                <Brain size={40} strokeWidth={1} className="text-zinc-200 mb-4" />
-               <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em] mb-2">Neural_Evidence_Mapping</h4>
+               <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em] mb-2">Neural Evidence Mapping</h4>
                <p className="text-[9px] font-bold text-zinc-400 uppercase max-w-xs leading-relaxed">
                   Mapping session kinematics against clinical baselines to ensure validation accuracy {'>'} 0.99.
                </p>
                <button className="mt-6 text-[9px] font-black text-zinc-900 underline underline-offset-4 flex items-center gap-1 hover:gap-3 transition-all">
-                  VIEW_RAW_DATAPOINTS <ChevronRight size={10} />
+                  VIEW RAW DATAPOINTS <ChevronRight size={10} />
                </button>
             </div>
          </div>

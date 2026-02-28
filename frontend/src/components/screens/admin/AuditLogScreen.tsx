@@ -5,6 +5,8 @@ import {
   Terminal, Eye, User, FileText, Settings, Lock, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
+const formatAction = (action: string) => action.replace(/_/g, ' ');
+
 const ACTION_ICONS: Record<string, any> = {
   LOGIN: Eye,
   LOGOUT: Lock,
@@ -74,7 +76,7 @@ export default function AuditLogScreen() {
               <Shield size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight uppercase">AUDIT_LOG</h1>
+              <h1 className="text-xl font-bold tracking-tight uppercase">AUDIT LOG</h1>
               <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">
                 HIPAA COMPLIANCE SECURITY TRAIL
               </p>
@@ -93,7 +95,7 @@ export default function AuditLogScreen() {
               className="flex items-center gap-2 px-4 py-2 bg-white text-black text-xs uppercase tracking-wider hover:bg-zinc-100 transition-colors"
             >
               <Download size={14} />
-              EXPORT_CSV
+              EXPORT CSV
             </button>
           </div>
         </div>
@@ -110,7 +112,7 @@ export default function AuditLogScreen() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="SEARCH_USER..."
+                placeholder="SEARCH USER..."
                 className="w-full pl-10 pr-4 py-2.5 border-2 border-zinc-200 bg-zinc-50 text-sm font-mono placeholder-zinc-400 focus:outline-none focus:border-black transition-colors"
               />
             </div>
@@ -141,10 +143,10 @@ export default function AuditLogScreen() {
                 onChange={(e) => setDateRange(e.target.value)}
                 className="px-3 py-2.5 border-2 border-zinc-200 bg-white text-sm font-mono focus:outline-none focus:border-black"
               >
-                <option value="1h">LAST_HOUR</option>
-                <option value="24h">LAST_24H</option>
-                <option value="7d">LAST_7_DAYS</option>
-                <option value="30d">LAST_30_DAYS</option>
+                <option value="1h">LAST HOUR</option>
+                <option value="24h">LAST 24H</option>
+                <option value="7d">LAST 7 DAYS</option>
+                <option value="30d">LAST 30 DAYS</option>
               </select>
             </div>
           </div>
@@ -153,7 +155,7 @@ export default function AuditLogScreen() {
         {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white border-2 border-zinc-200 px-4 py-3 flex items-center justify-between">
-            <span className="text-xs text-zinc-500 uppercase">TOTAL_EVENTS</span>
+            <span className="text-xs text-zinc-500 uppercase">TOTAL EVENTS</span>
             <span className="font-bold text-lg">{filteredLogs.length}</span>
           </div>
           <div className="bg-white border-2 border-zinc-200 px-4 py-3 flex items-center justify-between">
@@ -169,7 +171,7 @@ export default function AuditLogScreen() {
             </span>
           </div>
           <div className="bg-white border-2 border-zinc-200 px-4 py-3 flex items-center justify-between">
-            <span className="text-xs text-zinc-500 uppercase">UNIQUE_USERS</span>
+            <span className="text-xs text-zinc-500 uppercase">UNIQUE USERS</span>
             <span className="font-bold text-lg">
               {new Set(filteredLogs.map((l: any) => l.userId)).size}
             </span>
@@ -193,13 +195,13 @@ export default function AuditLogScreen() {
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-zinc-500">
-                    LOADING_LOGS...
+                    LOADING LOGS...
                   </td>
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-zinc-500">
-                    NO_LOGS_FOUND
+                    NO LOGS FOUND
                   </td>
                 </tr>
               ) : (
@@ -231,7 +233,7 @@ export default function AuditLogScreen() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <ActionIcon size={14} className="text-zinc-500" />
-                          <span className="text-blue-600 font-medium">{log.action}</span>
+                          <span className="text-blue-600 font-medium">{formatAction(log.action)}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-zinc-600 font-mono text-xs">
@@ -280,13 +282,13 @@ export default function AuditLogScreen() {
         <div className="mt-8 bg-black text-white px-4 py-3 flex items-center justify-between text-xs">
           <div className="flex items-center gap-6">
             <span className="text-zinc-500">RETENTION:</span>
-            <span>90_DAYS</span>
+            <span>90 DAYS</span>
             <span className="text-zinc-500">COMPLIANCE:</span>
-            <span className="text-green-400">HIPAA_ENABLED</span>
+            <span className="text-green-400">HIPAA ENABLED</span>
           </div>
           <div className="flex items-center gap-2">
             <Terminal size={12} className="text-zinc-500" />
-            <span className="text-zinc-400">AUDIT_LOGGING_ACTIVE</span>
+            <span className="text-zinc-400">AUDIT LOGGING ACTIVE</span>
           </div>
         </div>
       </div>

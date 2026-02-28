@@ -10,9 +10,9 @@ import VideoProgressTracker from './VideoProgressTracker';
 import GuidedVideoRecording from './GuidedVideoRecording';
 
 const mockChildSessions = [
-  { id: 1, time: '09:00', type: 'Behavioral_Therapy', status: 'completed', duration: '45m' },
-  { id: 2, time: '14:00', type: 'Speech_Therapy', status: 'active', duration: '30m' },
-  { id: 3, time: '16:00', type: 'Occupational_Therapy', status: 'pending', duration: '45m' },
+  { id: 1, time: '09:00', type: 'Behavioral Therapy', status: 'completed', duration: '45m' },
+  { id: 2, time: '14:00', type: 'Speech Therapy', status: 'active', duration: '30m' },
+  { id: 3, time: '16:00', type: 'Occupational Therapy', status: 'pending', duration: '45m' },
 ];
 
 export default function CaregiverDashboard() {
@@ -40,7 +40,7 @@ export default function CaregiverDashboard() {
       <div className="min-h-screen bg-white flex items-center justify-center font-mono">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-zinc-900" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Loading_System_Nodes...</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Loading System Nodes...</p>
         </div>
       </div>
     );
@@ -52,12 +52,12 @@ export default function CaregiverDashboard() {
         <div className="border border-zinc-200 p-8 max-w-md w-full bg-zinc-50 relative">
           <div className="absolute top-0 right-0 p-2"><div className="w-2 h-2 border-t border-r border-zinc-300"></div></div>
           <AlertCircle className="w-8 h-8 text-zinc-900 mb-4" />
-          <h2 className="text-xl font-black uppercase mb-2 tracking-tight">System_Error_Detected</h2>
+          <h2 className="text-xl font-black uppercase mb-2 tracking-tight">System Error Detected</h2>
           <p className="text-xs text-zinc-500 font-bold mb-6 tracking-wide leading-relaxed uppercase">
             {error instanceof Error ? error.message : 'Unknown kernel exception occurred.'}
           </p>
           <button onClick={() => window.location.reload()} className="w-full py-3 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all">
-            Reboot_Session
+            Reboot Session
           </button>
         </div>
       </div>
@@ -75,10 +75,10 @@ export default function CaregiverDashboard() {
               <div className="w-12 h-12 bg-zinc-900 flex items-center justify-center text-white font-bold text-xl border border-zinc-900">
                 {primaryPatient?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'PT'}
               </div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver_Terminal_V1.0</p>
+              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver Terminal V1.0</p>
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none">
-              {primaryPatient?.fullName || 'Patient'}<span className="text-zinc-200">_</span>PORTAL
+              {primaryPatient?.fullName || 'Patient'} PORTAL
             </h1>
             <p className="mt-2 text-zinc-400 text-xs font-bold uppercase tracking-widest">
               Clinical monitoring & therapy support active
@@ -100,14 +100,14 @@ export default function CaregiverDashboard() {
           <div className="border-4 border-zinc-900 p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:bg-zinc-900 hover:text-white relative overflow-hidden">
             <div className="relative z-10">
               <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-4 mb-2">
-                <Camera size={28} /> Start_Session_Recording
+                <Camera size={28} /> Start Session Recording
               </h2>
               <p className="text-[10px] uppercase font-bold tracking-[0.1em] opacity-70">
                 Record guided activity videos for clinical analysis | 11 Actions available
               </p>
             </div>
             <div className="relative z-10 flex items-center gap-4">
-              <span className="text-xs font-black uppercase tracking-widest hidden md:block">Initialize_Camera</span>
+              <span className="text-xs font-black uppercase tracking-widest hidden md:block">Initialize Camera</span>
               <div className="w-12 h-12 rounded-full border-2 border-current flex items-center justify-center group-hover:translate-x-2 transition-transform">
                 <ArrowRight size={20} />
               </div>
@@ -128,7 +128,7 @@ export default function CaregiverDashboard() {
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
-                  <TrendingUp size={14} /> Activity_Compliance
+                  <TrendingUp size={14} /> Activity Compliance
                 </h3>
               </div>
               <VideoProgressTracker
@@ -140,7 +140,7 @@ export default function CaregiverDashboard() {
             {/* Statistics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="border border-zinc-200 p-8 flex flex-col justify-between bg-zinc-50/50">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-widest">Therapy_Compliance_Score</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-widest">Therapy Compliance Score</h4>
                 <div>
                   <div className="text-6xl font-black tracking-tighter mb-2">{(primaryPatient as any)?.progressScore || 0}<span className="text-2xl text-zinc-300">%</span></div>
                   <div className="w-full h-1 bg-zinc-200 mt-4 overflow-hidden">
@@ -150,18 +150,18 @@ export default function CaregiverDashboard() {
               </div>
 
               <div className="border border-zinc-200 p-8 space-y-4">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-2 tracking-widest">Active_Metrics</h4>
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-2 tracking-widest">Active Metrics</h4>
                 <div className="space-y-4">
                   <div className="flex justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">Weekly_Goal</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Weekly Goal</span>
                     <span className="text-xs font-black uppercase">08 Sessions</span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">Next_Event</span>
-                    <span className="text-xs font-black uppercase">Tomorrow_10:00</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Next Event</span>
+                    <span className="text-xs font-black uppercase">Tomorrow 10:00</span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">This_Cycle</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">This Cycle</span>
                     <span className="text-xs font-black uppercase">07 Planned</span>
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export default function CaregiverDashboard() {
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2">
-                  <Calendar size={14} /> Daily_Logs
+                  <Calendar size={14} /> Daily Logs
                 </h3>
                 <span className="text-[10px] font-bold text-zinc-300">{new Date().toLocaleDateString()}</span>
               </div>
@@ -195,13 +195,13 @@ export default function CaregiverDashboard() {
                       </div>
                     </div>
                     <p className="text-[10px] font-bold text-zinc-600 block mb-1 uppercase tracking-tight">{session.type.replace('_', ' ')}</p>
-                    <p className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">{session.duration} Expected_Cycle</p>
+                    <p className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">{session.duration} Expected Cycle</p>
                   </div>
                 ))}
               </div>
 
               <button onClick={() => setShowLogModal(true)} className="w-full mt-6 py-4 border border-zinc-200 hover:bg-zinc-50 text-[10px] font-black uppercase tracking-widest transition-all">
-                + New_Behavior_Entry
+                + New Behavior Entry
               </button>
             </section>
 
@@ -209,19 +209,19 @@ export default function CaregiverDashboard() {
             <section className="bg-zinc-50 p-8 border border-zinc-200 relative overflow-hidden">
               <div className="absolute top-0 left-0 p-2"><div className="w-2 h-2 border-t border-l border-zinc-300"></div></div>
               <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900 mb-6 flex items-center gap-2">
-                QUICK_SYBSYTEMS
+                QUICK SYBSYTEMS
               </h3>
               <div className="space-y-3">
                 <button onClick={() => setShowVideoRecording(true)} className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
-                  <span className="text-[10px] font-bold uppercase">Video_Recorder</span>
+                  <span className="text-[10px] font-bold uppercase">Video Recorder</span>
                   <Video size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
                 <button className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
-                  <span className="text-[10px] font-bold uppercase">Analytics_Report</span>
+                  <span className="text-[10px] font-bold uppercase">Analytics Report</span>
                   <TrendingUp size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
                 <button className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
-                  <span className="text-[10px] font-bold uppercase">Clinical_Notes</span>
+                  <span className="text-[10px] font-bold uppercase">Clinical Notes</span>
                   <Settings size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
               </div>
@@ -234,16 +234,16 @@ export default function CaregiverDashboard() {
         <footer className="mt-24 border-t border-zinc-100 pt-8 text-center">
           <div className="flex justify-center gap-12 mb-4">
             <div className="text-center">
-              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Station_ID</p>
+              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Station ID</p>
               <p className="text-[10px] font-bold uppercase">ABTS-NODE-04</p>
             </div>
             <div className="text-center">
-              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Secure_Key</p>
+              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Secure Key</p>
               <p className="text-[10px] font-bold uppercase">CR-X299-RSA</p>
             </div>
             <div className="text-center">
-              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Link_Status</p>
-              <p className="text-[10px] font-bold uppercase text-emerald-500">Active_Sync</p>
+              <p className="text-[8px] font-black text-zinc-300 uppercase tracking-widest mb-1">Link Status</p>
+              <p className="text-[10px] font-bold uppercase text-emerald-500">Active Sync</p>
             </div>
           </div>
         </footer>

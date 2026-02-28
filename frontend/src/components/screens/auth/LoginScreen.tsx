@@ -106,7 +106,7 @@ export default function LoginScreen() {
             <Clock className="flex-shrink-0 mt-0.5 w-4 h-4 text-yellow-500" />
             <div className="font-mono text-xs">
               <p className="text-yellow-500 uppercase tracking-wider">
-                &gt; STATUS: PENDING_APPROVAL
+                &gt; STATUS: PENDING APPROVAL
               </p>
               <p className="mt-1 text-zinc-400">
                 Your application is under review. Await admin verification.
@@ -190,7 +190,7 @@ export default function LoginScreen() {
               <br />
               ANALYSIS
               <br />
-              PLATFORM_
+              PLATFORM
             </h1>
           </div>
 
@@ -208,20 +208,20 @@ export default function LoginScreen() {
             <div className="flex items-center gap-2 bg-black p-4">
               <Shield size={14} className="text-green-500" />
               <span className="text-zinc-300 text-xs uppercase tracking-wider">
-                HIPAA_COMPLIANT
+                HIPAA COMPLIANT
               </span>
             </div>
             <div className="flex items-center gap-2 bg-black p-4">
               <Key size={14} className="text-green-500" />
               <span className="text-zinc-300 text-xs uppercase tracking-wider">
-                AES_256_ENCRYPTED
+                AES 256 ENCRYPTED
               </span>
             </div>
           </div>
           <div className="bg-zinc-900 p-3 border-zinc-800 border-t">
             <p className="text-[10px] text-zinc-500 tracking-wider">
-              &gt; <span className="text-green-500">AUTISM_SUPPORT</span> |
-              THERAPY_TRACKING | 24/7_CARE
+              &gt; <span className="text-green-500">AUTISM SUPPORT</span> |
+              THERAPY TRACKING | 24/7 CARE
             </p>
           </div>
         </div>
@@ -244,10 +244,10 @@ export default function LoginScreen() {
             {/* Header */}
             <div className="mb-8">
               <p className="mb-1 text-zinc-400 text-xs tracking-widest">
-                &gt; AUTH_MODULE
+                &gt; AUTH MODULE
               </p>
               <h2 className="font-bold text-black text-2xl uppercase tracking-tight">
-                SIGN_IN
+                SIGN IN
               </h2>
               <div className="bg-black mt-2 w-12 h-0.5" />
             </div>
@@ -268,7 +268,7 @@ export default function LoginScreen() {
               {/* Email Field */}
               <div>
                 <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
-                  EMAIL_
+                  EMAIL 
                 </label>
                 <div className="relative">
                   <Mail className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
@@ -293,7 +293,7 @@ export default function LoginScreen() {
               {/* Password Field */}
               <div>
                 <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
-                  PASSWORD_
+                  PASSWORD 
                 </label>
                 <div className="relative">
                   <Lock className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
@@ -334,7 +334,7 @@ export default function LoginScreen() {
                     className="border-2 border-zinc-300 focus:ring-0 w-4 h-4 text-black"
                   />
                   <span className="ml-2 text-zinc-600 group-hover:text-black text-xs uppercase tracking-wider transition-colors">
-                    REMEMBER_ME
+                    REMEMBER ME
                   </span>
                 </label>
                 <button
@@ -342,7 +342,7 @@ export default function LoginScreen() {
                   onClick={() => navigate({ to: "/forgot-password" })}
                   className="font-bold text-zinc-500 hover:text-black text-xs uppercase tracking-wider transition-colors"
                 >
-                  FORGOT_PASSWORD?
+                  FORGOT PASSWORD?
                 </button>
               </div>
 
@@ -359,7 +359,7 @@ export default function LoginScreen() {
                   </>
                 ) : (
                   <>
-                    SIGN_IN <ArrowRight size={16} className="ml-2" />
+                    SIGN IN <ArrowRight size={16} className="ml-2" />
                   </>
                 )}
               </button>
@@ -380,7 +380,7 @@ export default function LoginScreen() {
               onClick={() => navigate({ to: "/register/therapist" })}
               className="flex justify-center items-center bg-white hover:bg-zinc-50 py-4 border-2 border-zinc-200 hover:border-black w-full font-bold text-black text-sm uppercase tracking-widest transition-all"
             >
-              REGISTER_AS_THERAPIST
+              REGISTER AS THERAPIST
             </button>
 
             {/* Footer */}

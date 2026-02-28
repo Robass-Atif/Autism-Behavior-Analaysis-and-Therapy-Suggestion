@@ -107,13 +107,13 @@ export default function CaregiverVideoLibrary({
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
           <div>
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2 mb-2">
-              <Video size={14} /> Video_Archive
+              <Video size={14} /> Video Archive
             </h3>
             <h2 className="text-3xl font-black uppercase tracking-tight">
-              Capture_Vault
+              Capture Vault
             </h2>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2">
-              {sessions.length} RECORDED_MOTION_CYCLES_STORED
+              {sessions.length} RECORDED MOTION CYCLES STORED
             </p>
           </div>
 
@@ -122,7 +122,7 @@ export default function CaregiverVideoLibrary({
               onClick={onRecordNew}
               className="px-8 py-4 bg-zinc-900 text-white text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-4 group"
             >
-              Initialize_New_Capture{" "}
+              Initialize New Capture{" "}
               <Plus
                 size={16}
                 className="group-hover:rotate-90 transition-transform"
@@ -140,7 +140,7 @@ export default function CaregiverVideoLibrary({
             />
             <input
               type="text"
-              placeholder="SEARCH_REGISTRY..."
+              placeholder="SEARCH REGISTRY..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-zinc-50 border-b border-zinc-200 pl-10 pr-4 py-3 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-zinc-900 transition-all"
@@ -153,7 +153,7 @@ export default function CaregiverVideoLibrary({
               onChange={(e) => setFilterAction(e.target.value)}
               className="w-full bg-zinc-50 border-b border-zinc-200 px-4 py-3 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-zinc-900 transition-all appearance-none cursor-pointer"
             >
-              <option value="all">ALL_ACTION_NODES</option>
+              <option value="all">ALL ACTION NODES</option>
               {Object.entries(ACTION_LABELS).map(([id, { name }]) => (
                 <option key={id} value={id}>
                   {name.toUpperCase()}
@@ -168,7 +168,7 @@ export default function CaregiverVideoLibrary({
               onChange={(e) => setFilterStatus(e.target.value)}
               className="w-full bg-zinc-50 border-b border-zinc-200 px-4 py-3 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-zinc-900 transition-all appearance-none cursor-pointer"
             >
-              <option value="all">ALL_STATUS_MODES</option>
+              <option value="all">ALL STATUS MODES</option>
               <option value="uploaded">UPLOADED</option>
               <option value="processing">PROCESSING</option>
               <option value="analyzed">ANALYZED</option>
@@ -199,7 +199,7 @@ export default function CaregiverVideoLibrary({
           <div className="py-24 flex flex-col items-center justify-center border border-dashed border-zinc-200 grayscale">
             <Video size={48} className="text-zinc-200 mb-6" />
             <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2">
-              Null_Entries_Detected
+              Null Entries Detected
             </h4>
             <p className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">
               NO RECORDS MATCH OPERATIONAL PARAMETERS
@@ -281,7 +281,7 @@ export default function CaregiverVideoLibrary({
                         <div className="pt-3 border-t border-zinc-50 flex items-center justify-between">
                           <div className="flex items-center gap-1.5 text-[8px] font-bold text-zinc-400 uppercase">
                             <CheckCircle size={10} className="text-zinc-900" />
-                            Confidence_Index
+                            Confidence Index
                           </div>
                           <span className="text-[10px] font-black text-zinc-900">
                             {session.aiConfidence}%
@@ -372,9 +372,9 @@ export default function CaregiverVideoLibrary({
       {/* System Log Footer */}
       <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-center overflow-hidden h-10">
         <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[1em] animate-marquee-slower whitespace-nowrap">
-          SYSTEM_DATA_SYNC_ID:{" "}
+          SYSTEM DATA SYNC ID:{" "}
           {Math.random().toString(16).substring(2, 10).toUpperCase()} |
-          SECURITY_LOCK_STATUS: ENGAGED | ENCRYPTION: AES_256
+          SECURITY LOCK STATUS: ENGAGED | ENCRYPTION: AES 256
         </div>
       </div>
     </div>

@@ -403,7 +403,7 @@ export default function PendingReviewScreen({
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-3 mb-3">
                             <h3 className="font-black text-zinc-900 text-xl uppercase tracking-tighter truncate">
-                              {session.actionType || "Untitled Session"}
+                              {session.actionType.replace(/_/g, ' ') || "Untitled Session"}
                             </h3>
                             <span
                               className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest border-2 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border} shadow-[2px_2px_0px_0px_currentColor]`}
@@ -449,7 +449,7 @@ export default function PendingReviewScreen({
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-[10px] font-black text-red-700 uppercase tracking-widest mb-1 decoration-red-500/30 underline underline-offset-4">
-                                    NEURAL_ENGINE_ERROR —{" "}
+                                    NEURAL ENGINE ERROR —{" "}
                                     {session.retryCount || 0}/
                                     {session.maxRetries || 3} RETRIES FAILED
                                   </p>
@@ -612,7 +612,7 @@ export default function PendingReviewScreen({
                             Action Type
                           </p>
                           <p className="text-sm font-black text-zinc-900 uppercase">
-                            {session.actionType || "—"}
+                            {session.actionType.replace(/_/g, ' ') || "—"}
                           </p>
                         </div>
                         <div className="bg-white p-4 border-2 border-zinc-200">

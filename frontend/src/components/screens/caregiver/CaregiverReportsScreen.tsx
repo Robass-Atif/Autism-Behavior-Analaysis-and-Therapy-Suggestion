@@ -9,14 +9,14 @@ export default function CaregiverReportsScreen() {
         {/* Header */}
         <header className="mb-12 border-b border-zinc-100 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">SHARED_DOCUMENTATION</h3>
-            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Clinical_Reports</h1>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">SHARED DOCUMENTATION</h3>
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter">Clinical Reports</h1>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2 underline decoration-zinc-100 underline-offset-4">
               SECURE LINK TO THERAPIST ANALYSIS
             </p>
           </div>
           <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-100 px-4 py-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
-            <Lock size={12} className="text-zinc-900" /> Secure_Access_Only
+            <Lock size={12} className="text-zinc-900" /> Secure Access Only
           </div>
         </header>
 
@@ -32,11 +32,11 @@ export default function CaregiverReportsScreen() {
 
         {/* Reports Registry */}
         <div className="space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-6">REGISTRY_ENTRIES</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-6">REGISTRY ENTRIES</h3>
 
           {[
-            { id: 1, title: 'Monthly_Progress_Summary_OCT_2023', date: '2023.10.25', author: 'DR_SARAH' },
-            { id: 2, title: 'Behavioral_Interaction_Report_SEP_2023', date: '2023.09.12', author: 'DR_SARAH' }
+            { id: 1, title: 'Monthly Progress Summary OCT 2023', date: '2023.10.25', author: 'DR SARAH' },
+            { id: 2, title: 'Behavioral Interaction Report SEP 2023', date: '2023.09.12', author: 'DR SARAH' }
           ].map(report => (
             <div key={report.id} className="border border-zinc-100 p-8 flex flex-col md:flex-row md:items-center justify-between gap-8 hover:bg-zinc-50 hover:border-zinc-300 transition-all group relative cursor-pointer">
               {/* Corner Accent */}
@@ -51,14 +51,14 @@ export default function CaregiverReportsScreen() {
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-tight mb-2 group-hover:translate-x-1 transition-transform">{report.title}</h3>
                   <div className="flex items-center gap-4 text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
-                    <span>DATE_RELEASED: {report.date}</span>
-                    <span>AUTHOR_ID: {report.author}</span>
+                    <span>DATE RELEASED: {report.date}</span>
+                    <span>AUTHOR ID: {report.author}</span>
                   </div>
                 </div>
               </div>
 
               <button className="flex items-center gap-3 bg-zinc-900 text-white px-8 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all group-hover:translate-y-[-2px] shadow-lg shadow-zinc-900/10">
-                <Download size={14} /> Download_Binary
+                <Download size={14} /> Download Binary
               </button>
             </div>
           ))}
@@ -66,8 +66,8 @@ export default function CaregiverReportsScreen() {
 
         {/* Bottom Metadata */}
         <footer className="mt-24 pt-8 border-t border-zinc-100 flex justify-between">
-          <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">SYSTEM_FS_EXT4 | ENCRYPTED</div>
-          <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">HASH_CHECK_OK</div>
+          <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">SYSTEM FS EXT4 | ENCRYPTED</div>
+          <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[0.5em]">HASH CHECK OK</div>
         </footer>
 
       </div>

@@ -76,16 +76,16 @@ export default function SessionReportScreen({
     toast.promise(
       exportPromise,
       {
-        loading: "COMPILING_NEURAL_EXPORT...",
-        success: "EXPORT_DOWNLOADED_TO_SECURE_STORAGE.",
-        error: "EXPORT_FAILED.",
+        loading: "COMPILING NEURAL EXPORT...",
+        success: "EXPORT DOWNLOADED TO SECURE STORAGE.",
+        error: "EXPORT FAILED.",
       },
       { style: toastStyle },
     );
   };
 
   const handleClinicalReview = () => {
-    toast.success("CLINICAL_REVIEW_MODE_ENGAGED.", {
+    toast.success("CLINICAL REVIEW MODE ENGAGED.", {
       style: toastStyle,
       icon: "📋",
     });
@@ -96,7 +96,7 @@ export default function SessionReportScreen({
       <div className="flex flex-col items-center justify-center min-h-screen bg-white font-mono gap-4">
         <div className="w-10 h-10 border-4 border-zinc-900 border-t-transparent animate-spin"></div>
         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-          Loading_Transmission...
+          Loading Transmission...
         </p>
       </div>
     );
@@ -106,7 +106,7 @@ export default function SessionReportScreen({
     return (
       <div className="p-8 text-center font-mono">
         <h2 className="text-xl font-black uppercase">
-          404 | SESSION_NOT_FOUND
+          404 | SESSION NOT FOUND
         </h2>
         <button
           onClick={onBack}
@@ -265,7 +265,7 @@ export default function SessionReportScreen({
           />
           <VitalCard
             label="Observation Focus"
-            value={session.actionType || "GENERAL"}
+            value={session.actionType?.replace(/_/g, " ") || "GENERAL"}
             sub="PROTOCOL ANALYSIS"
           />
           <VitalCard
@@ -293,7 +293,7 @@ export default function SessionReportScreen({
           <VitalCard
             label="Methodology"
             value={activePred?.model_type || (pred2d ? "2D" : "N/A")}
-            sub={`FRAME_DEPTH: ${activePred?.sequence_length || "—"}`}
+            sub={`FRAME DEPTH: ${activePred?.sequence_length || "—"}`}
           />
           <VitalCard
             label="Recorded"
@@ -426,7 +426,7 @@ export default function SessionReportScreen({
               </div>
               <div>
                 <h3 className="text-xs font-black text-amber-900 uppercase tracking-widest mb-1">
-                  ANALYSIS_PARTIAL — DATA_QUALITY_ISSUE
+                  ANALYSIS PARTIAL — DATA QUALITY ISSUE
                 </h3>
                 <p className="text-xs text-amber-800 font-bold">
                   The neural engine completed processing but encountered data
@@ -524,7 +524,7 @@ export default function SessionReportScreen({
                       ))}
                       {topJoints.length === 0 && (
                         <p className="text-[9px] text-zinc-400 font-bold uppercase text-center py-3">
-                          NO_DATA
+                          NO DATA
                         </p>
                       )}
                     </div>
@@ -602,7 +602,7 @@ export default function SessionReportScreen({
                         <div className="border-2 border-emerald-200 bg-emerald-50/50">
                           <div className="p-3 border-b border-emerald-200 bg-emerald-100">
                             <span className="text-[9px] font-black text-emerald-800 uppercase tracking-widest flex items-center gap-1">
-                              <TrendingUp size={12} /> Positive_Contributors
+                              <TrendingUp size={12} /> Positive Contributors
                             </span>
                           </div>
                           <div className="p-3 space-y-1.5 max-h-64 overflow-y-auto">
@@ -624,7 +624,7 @@ export default function SessionReportScreen({
                             {!activeTaskData.joints?.positive_contributors
                               ?.length && (
                               <p className="text-[9px] text-zinc-400 font-bold uppercase text-center py-4">
-                                NO_DATA
+                                NO DATA
                               </p>
                             )}
                           </div>
@@ -632,7 +632,7 @@ export default function SessionReportScreen({
                         <div className="border-2 border-red-200 bg-red-50/50">
                           <div className="p-3 border-b border-red-200 bg-red-100">
                             <span className="text-[9px] font-black text-red-800 uppercase tracking-widest flex items-center gap-1">
-                              <TrendingDown size={12} /> Negative_Contributors
+                              <TrendingDown size={12} /> Negative Contributors
                             </span>
                           </div>
                           <div className="p-3 space-y-1.5 max-h-64 overflow-y-auto">
@@ -654,7 +654,7 @@ export default function SessionReportScreen({
                             {!activeTaskData.joints?.negative_contributors
                               ?.length && (
                               <p className="text-[9px] text-zinc-400 font-bold uppercase text-center py-4">
-                                NO_DATA
+                                NO DATA
                               </p>
                             )}
                           </div>
@@ -666,7 +666,7 @@ export default function SessionReportScreen({
                         0 && (
                         <div>
                           <h4 className="text-[10px] font-black text-zinc-900 uppercase tracking-widest mb-3 flex items-center gap-1">
-                            <Timer size={14} /> Temporal_Segments
+                            <Timer size={14} /> Temporal Segments
                           </h4>
                           <div className="space-y-2">
                             {activeTaskData.temporal_segments.all_segments.map(
@@ -726,7 +726,7 @@ export default function SessionReportScreen({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="border-2 border-zinc-200 p-4">
                           <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1">
-                            <Users size={12} /> Demographic_Impact
+                            <Users size={12} /> Demographic Impact
                           </h4>
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
@@ -757,7 +757,7 @@ export default function SessionReportScreen({
                         </div>
                         <div className="border-2 border-zinc-200 p-4">
                           <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-1">
-                            <BarChart2 size={12} /> Total_Attribution
+                            <BarChart2 size={12} /> Total Attribution
                           </h4>
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
@@ -881,7 +881,7 @@ export default function SessionReportScreen({
                   ))
                 ) : (
                   <div className="p-6 text-xs text-zinc-500 font-bold uppercase tracking-widest text-center">
-                    NO_BEHAVIORS_LOGGED_IN_ANALYSIS
+                    NO BEHAVIORS LOGGED IN ANALYSIS
                   </div>
                 )}
               </div>
@@ -970,7 +970,7 @@ export default function SessionReportScreen({
                 <div className="p-4 border-b-2 border-zinc-200 flex items-center gap-2">
                   <Layers size={14} className="text-zinc-900" />
                   <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">
-                    Model_Output_Predictions
+                    Model Output Predictions
                   </h3>
                 </div>
                 <div className="p-4 space-y-2 text-[9px] font-bold text-zinc-700 uppercase tracking-wider">
@@ -1001,7 +1001,7 @@ export default function SessionReportScreen({
                 <div className="p-4 border-b-2 border-zinc-200 flex items-center gap-2">
                   <Brain size={14} className="text-zinc-900" />
                   <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">
-                    Model_Explainability_Summary
+                    Model Explainability Summary
                   </h3>
                 </div>
                 <div className="p-4">
@@ -1106,7 +1106,7 @@ export default function SessionReportScreen({
                 <div className="p-4 border-b-2 border-zinc-200 flex items-center gap-2">
                   <User size={14} className="text-zinc-900" />
                   <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">
-                    Patient_Demographics
+                    Patient Demographics
                   </h3>
                 </div>
                 <div className="p-4 space-y-2 text-[9px] font-bold text-zinc-700 uppercase tracking-wider">
@@ -1137,7 +1137,7 @@ export default function SessionReportScreen({
               <div className="p-5 border-2 border-dashed border-zinc-300">
                 <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Settings size={12} className="text-zinc-900" />{" "}
-                  Processing_Pipeline
+                  Processing Pipeline
                 </h4>
                 <div className="space-y-2 text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
                   <div className="flex justify-between">
@@ -1196,7 +1196,7 @@ export default function SessionReportScreen({
                 <div className="p-4 border-b-2 border-zinc-200 flex items-center gap-2">
                   <Layers size={14} className="text-zinc-900" />
                   <h3 className="text-[10px] font-black text-zinc-900 uppercase tracking-[0.2em]">
-                    2D_vs_3D_Comparison
+                    2D vs 3D Comparison
                   </h3>
                 </div>
                 <div className="divide-y divide-zinc-100">

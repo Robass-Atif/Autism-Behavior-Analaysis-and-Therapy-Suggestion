@@ -475,7 +475,7 @@ export default function VideoLibraryScreen() {
                 {/* Content */}
                 <div className="p-4">
                   <h3 className="font-black text-zinc-900 text-sm uppercase tracking-tight truncate mb-1">
-                    {video.actionType || "Untitled Session"}
+                    {video.actionType?.replace(/_/g, " ") || "Untitled Session"}
                   </h3>
                   <p className="text-xs text-zinc-600 mb-4 truncate uppercase tracking-wider font-bold">
                     {video.patientName}
@@ -485,7 +485,7 @@ export default function VideoLibraryScreen() {
                     <span
                       className={`flex-1 text-center px-2 py-1.5 border-2 text-[10px] font-black uppercase tracking-widest ${getStatusStyle(video.status)}`}
                     >
-                      {video.status}
+                      {video.status.replace(/_/g, " ")}
                     </span>
                   </div>
 
