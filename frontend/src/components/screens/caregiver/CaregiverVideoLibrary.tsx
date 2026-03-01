@@ -209,7 +209,7 @@ export default function CaregiverVideoLibrary({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-l border-t border-zinc-100">
             {filteredSessions.map((session: any) => {
               const actionInfo = ACTION_LABELS[session.actionType] || {
-                name: session.actionType,
+                name: session.actionType || "UNKNOWN_ACTION",
                 icon: "🎬",
               };
               return (
@@ -303,7 +303,7 @@ export default function CaregiverVideoLibrary({
           <div className="space-y-0 border-t border-zinc-100">
             {filteredSessions.map((session: any) => {
               const actionInfo = ACTION_LABELS[session.actionType] || {
-                name: session.actionType,
+                name: session.actionType || "UNKNOWN_ACTION",
                 icon: "🎬",
               };
               return (
@@ -373,8 +373,8 @@ export default function CaregiverVideoLibrary({
       <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-center overflow-hidden h-10">
         <div className="text-[8px] font-black text-zinc-300 uppercase tracking-[1em] animate-marquee-slower whitespace-nowrap">
           SYSTEM DATA SYNC ID:{" "}
-          {Math.random().toString(16).substring(2, 10).toUpperCase()} |
-          SECURITY LOCK STATUS: ENGAGED | ENCRYPTION: AES 256
+          {Math.random().toString(16).substring(2, 10).toUpperCase()} | SECURITY
+          LOCK STATUS: ENGAGED | ENCRYPTION: AES 256
         </div>
       </div>
     </div>

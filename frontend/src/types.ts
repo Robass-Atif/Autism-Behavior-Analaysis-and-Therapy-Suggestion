@@ -1,76 +1,77 @@
 export enum UserRole {
-  THERAPIST = 'THERAPIST',
-  CAREGIVER = 'CAREGIVER',
-  ADMIN = 'ADMIN'
+  THERAPIST = "THERAPIST",
+  CAREGIVER = "CAREGIVER",
+  ADMIN = "ADMIN",
 }
 
 export enum UserStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  REJECTED = 'REJECTED',
-  SUSPENDED = 'SUSPENDED'
+  PENDING = "PENDING",
+  PENDING_VERIFICATION = "PENDING_VERIFICATION",
+  ACTIVE = "ACTIVE",
+  REJECTED = "REJECTED",
+  SUSPENDED = "SUSPENDED",
 }
 
 export enum Screen {
   // Auth
-  LOGIN = 'LOGIN',
-  THERAPIST_REGISTER = 'THERAPIST_REGISTER',
-  CAREGIVER_REGISTER = 'CAREGIVER_REGISTER',
-  FORGOT_PASSWORD = 'FORGOT_PASSWORD',
-  RESET_PASSWORD = 'RESET_PASSWORD',
+  LOGIN = "LOGIN",
+  THERAPIST_REGISTER = "THERAPIST_REGISTER",
+  CAREGIVER_REGISTER = "CAREGIVER_REGISTER",
+  FORGOT_PASSWORD = "FORGOT_PASSWORD",
+  RESET_PASSWORD = "RESET_PASSWORD",
 
   // Therapist Onboarding
-  THERAPIST_ONBOARDING = 'THERAPIST_ONBOARDING',
+  THERAPIST_ONBOARDING = "THERAPIST_ONBOARDING",
 
   // Therapist
-  DASHBOARD = 'DASHBOARD',
-  PATIENT_LIST = 'PATIENT_LIST',
-  PATIENT_PROFILE = 'PATIENT_PROFILE',
-  THERAPY_GOALS = 'THERAPY_GOALS',
-  THERAPY_GOAL_FORM = 'THERAPY_GOAL_FORM',
-  VIDEO_LIBRARY = 'VIDEO_LIBRARY',
-  VIDEO_REVIEW = 'VIDEO_REVIEW',
-  INDIVIDUAL_REPORT = 'INDIVIDUAL_REPORT',
-  CONSOLIDATED_REPORT = 'CONSOLIDATED_REPORT',
-  RECOMMENDATIONS = 'RECOMMENDATIONS',
-  REPORT_GENERATION = 'REPORT_GENERATION',
-  DATA_EXPORT = 'DATA_EXPORT',
-  SETTINGS = 'SETTINGS',
-  CONSENT_MANAGEMENT = 'CONSENT_MANAGEMENT',
-  CAREGIVER_INVITATIONS = 'CAREGIVER_INVITATIONS',
-  PATIENT_CREATE = 'PATIENT_CREATE',
+  DASHBOARD = "DASHBOARD",
+  PATIENT_LIST = "PATIENT_LIST",
+  PATIENT_PROFILE = "PATIENT_PROFILE",
+  THERAPY_GOALS = "THERAPY_GOALS",
+  THERAPY_GOAL_FORM = "THERAPY_GOAL_FORM",
+  VIDEO_LIBRARY = "VIDEO_LIBRARY",
+  VIDEO_REVIEW = "VIDEO_REVIEW",
+  INDIVIDUAL_REPORT = "INDIVIDUAL_REPORT",
+  CONSOLIDATED_REPORT = "CONSOLIDATED_REPORT",
+  RECOMMENDATIONS = "RECOMMENDATIONS",
+  REPORT_GENERATION = "REPORT_GENERATION",
+  DATA_EXPORT = "DATA_EXPORT",
+  SETTINGS = "SETTINGS",
+  CONSENT_MANAGEMENT = "CONSENT_MANAGEMENT",
+  CAREGIVER_INVITATIONS = "CAREGIVER_INVITATIONS",
+  PATIENT_CREATE = "PATIENT_CREATE",
 
   // New: AI Review Workflow
-  PENDING_REVIEW_QUEUE = 'PENDING_REVIEW_QUEUE',
-  SESSION_REPORT = 'SESSION_REPORT',
-  PATIENT_LONGITUDINAL = 'PATIENT_LONGITUDINAL',
+  PENDING_REVIEW_QUEUE = "PENDING_REVIEW_QUEUE",
+  SESSION_REPORT = "SESSION_REPORT",
+  PATIENT_LONGITUDINAL = "PATIENT_LONGITUDINAL",
 
   // Caregiver
-  CAREGIVER_DASHBOARD = 'CAREGIVER_DASHBOARD',
-  VIDEO_RECORDING = 'VIDEO_RECORDING',
-  RECORDING_SCHEDULE = 'RECORDING_SCHEDULE',
-  CAREGIVER_REPORTS = 'CAREGIVER_REPORTS',
+  CAREGIVER_DASHBOARD = "CAREGIVER_DASHBOARD",
+  VIDEO_RECORDING = "VIDEO_RECORDING",
+  RECORDING_SCHEDULE = "RECORDING_SCHEDULE",
+  CAREGIVER_REPORTS = "CAREGIVER_REPORTS",
 
   // Admin
-  ADMIN_DASHBOARD = 'ADMIN_DASHBOARD',
-  THERAPIST_APPLICATIONS = 'THERAPIST_APPLICATIONS',
-  USER_MANAGEMENT = 'USER_MANAGEMENT',
-  SYSTEM_HEALTH = 'SYSTEM_HEALTH',
-  AUDIT_LOG = 'AUDIT_LOG',
+  ADMIN_DASHBOARD = "ADMIN_DASHBOARD",
+  THERAPIST_APPLICATIONS = "THERAPIST_APPLICATIONS",
+  USER_MANAGEMENT = "USER_MANAGEMENT",
+  SYSTEM_HEALTH = "SYSTEM_HEALTH",
+  AUDIT_LOG = "AUDIT_LOG",
 
   // Shared
-  ERROR = 'ERROR'
+  ERROR = "ERROR",
 }
 
 // ========== SESSION STATUS LIFECYCLE ==========
 export type SessionStatus =
-  | 'pending_review'
-  | 'approved_for_ai'
-  | 'processing'
-  | 'completed'
-  | 'therapist_review'
-  | 'published'
-  | 'failed';
+  | "pending_review"
+  | "approved_for_ai"
+  | "processing"
+  | "completed"
+  | "therapist_review"
+  | "published"
+  | "failed";
 
 export interface User {
   id: string;
@@ -123,7 +124,7 @@ export interface TherapistRegistrationData {
   agreeToHIPAA: boolean;
   agreeToPrivacy: boolean;
   twoFactorEnabled?: boolean;
-  twoFactorMethod?: 'SMS' | 'EMAIL' | 'AUTHENTICATOR';
+  twoFactorMethod?: "SMS" | "EMAIL" | "AUTHENTICATOR";
 }
 
 export interface TherapistOnboardingData {
@@ -176,10 +177,10 @@ export interface TherapistApplication {
 }
 
 export enum InvitationStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  DECLINED = 'DECLINED',
-  EXPIRED = 'EXPIRED'
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  DECLINED = "DECLINED",
+  EXPIRED = "EXPIRED",
 }
 
 export interface CaregiverInvitation {
@@ -197,7 +198,7 @@ export interface CaregiverInvitation {
   acceptedAt?: string;
 }
 
-export type ASDLevel = 'Level 1' | 'Level 2' | 'Level 3';
+export type ASDLevel = "Level 1" | "Level 2" | "Level 3";
 
 export interface Address {
   street?: string;
@@ -229,7 +230,7 @@ export interface Patient {
   mrn: string;
   fullName: string;
   dob: string;
-  gender: 'Male' | 'Female' | 'Other';
+  gender: "Male" | "Female" | "Other";
   therapistId: string;
 
   // ===== CONTACT INFORMATION =====
@@ -267,7 +268,7 @@ export interface Patient {
   caregiverNotes?: string;
 
   // ===== SYSTEM FIELDS =====
-  status: 'Active' | 'Inactive' | 'Discharged';
+  status: "Active" | "Inactive" | "Discharged";
   progressScore?: number;
   caregiverId?: string;
   caregiverName?: string;
@@ -283,11 +284,17 @@ export interface TherapyGoal {
   title: string;
   category: string;
   description: string;
-  status: 'active' | 'completed' | 'achieved' | 'on hold' | 'archived' | 'discontinued';
+  status:
+    | "active"
+    | "completed"
+    | "achieved"
+    | "on hold"
+    | "archived"
+    | "discontinued";
   progress: number;
   startDate: string;
   targetDate: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
 }
 
 // ========== AI PREDICTION TYPES (API 1) ==========
@@ -353,9 +360,9 @@ export interface ModelPrediction {
     };
     task_explanations: {
       Severity: TaskExplanation;
-      'Social Affect': TaskExplanation;
+      "Social Affect": TaskExplanation;
       RRB: TaskExplanation;
-      'Comparison Score': TaskExplanation;
+      "Comparison Score": TaskExplanation;
     };
     summary: string;
   };
@@ -374,7 +381,7 @@ export interface RawPredictionResponse {
     original_fps: number;
     frames_extracted: number;
     poses_2d_extracted: number;
-    '3d_processing_enabled': boolean;
+    "3d_processing_enabled": boolean;
     poses_3d_extracted: number;
   };
 }
@@ -486,9 +493,9 @@ export interface VideoSession {
   recordedAt: string;
   duration: number;
   actionType: string;
-  qualityScore: 'high' | 'medium' | 'low';
+  qualityScore: "high" | "medium" | "low";
   status: SessionStatus;
-  uploadedBy?: 'therapist' | 'caregiver';
+  uploadedBy?: "therapist" | "caregiver";
 
   // AI results
   aiConfidence?: number;
@@ -525,7 +532,9 @@ export interface VideoSession {
   // Media
   videoUrl?: string;
   thumbnailUrl?: string;
+  caregiverId?: string;
   caregiverName?: string;
+  caregiverEmail?: string;
 
   createdAt?: string;
 }
@@ -562,7 +571,7 @@ export interface AuditLogEntry {
   role: UserRole;
   action: string;
   resource: string;
-  status: 'Success' | 'Failure';
+  status: "Success" | "Failure";
   details: string;
 }
 

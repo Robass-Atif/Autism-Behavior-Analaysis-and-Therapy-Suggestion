@@ -1,11 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
-import { Role, AccountStatus } from '../../../common/enums/role.enum';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+import * as bcrypt from "bcryptjs";
+import { Role, AccountStatus } from "../../../common/enums/role.enum";
 
 export type UserDocument = User & Document;
 
-@Schema({ timestamps: true, discriminatorKey: 'role' })
+@Schema({ timestamps: true, discriminatorKey: "role" })
 export class User {
   @Prop({ required: true, trim: true, maxlength: 100 })
   fullName: string;
@@ -57,7 +57,7 @@ export class User {
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({ enum: ['M', 'F', 'Other'] })
+  @Prop({ enum: ["M", "F", "Other"] })
   gender?: string;
 
   @Prop()
@@ -102,6 +102,12 @@ export class User {
   @Prop()
   consultationFee?: number;
 
+  @Prop({ default: false })
+  deleted: boolean;
+
+  @Prop()
+  deletedAt?: Date;
+
   // Method to compare password
   comparePassword: (candidatePassword: string) => Promise<boolean>;
 }
@@ -109,8 +115,8 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // Hash password before saving
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);

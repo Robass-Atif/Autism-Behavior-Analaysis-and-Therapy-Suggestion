@@ -11,10 +11,14 @@ import {
   ValidateNested,
   Matches,
   IsArray,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TherapistTitle, LicenseType, TwoFactorMethod } from '../../../common/enums/role.enum';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  TherapistTitle,
+  LicenseType,
+  TwoFactorMethod,
+} from "../../../common/enums/role.enum";
 
 export class ProfessionalReferenceDto {
   @ApiPropertyOptional()
@@ -34,26 +38,26 @@ export class ProfessionalReferenceDto {
 }
 
 export class ProfessionalCredentialsDto {
-  @ApiProperty({ description: 'License Number' })
+  @ApiProperty({ description: "License Number" })
   @IsString()
   @IsNotEmpty()
   licenseNumber: string;
 
-  @ApiProperty({ enum: LicenseType, description: 'License Type' })
+  @ApiProperty({ enum: LicenseType, description: "License Type" })
   @IsEnum(LicenseType)
   licenseType: LicenseType;
 
-  @ApiPropertyOptional({ description: 'Other License Type' })
+  @ApiPropertyOptional({ description: "Other License Type" })
   @IsString()
   @IsOptional()
   otherLicenseType?: string;
 
-  @ApiProperty({ description: 'Issuing Authority' })
+  @ApiProperty({ description: "Issuing Authority" })
   @IsString()
   @IsNotEmpty()
   issuingAuthority: string;
 
-  @ApiProperty({ description: 'License Expiry Date' })
+  @ApiProperty({ description: "License Expiry Date" })
   @IsDateString()
   @IsNotEmpty()
   licenseExpiryDate: string;
@@ -62,37 +66,37 @@ export class ProfessionalCredentialsDto {
 // Flattened DTO to match FormData structure
 export class RegisterTherapistDto {
   // Personal Information
-  @ApiProperty({ description: 'Full name', maxLength: 100 })
+  @ApiProperty({ description: "Full name", maxLength: 100 })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   fullName: string;
 
-  @ApiProperty({ enum: TherapistTitle, description: 'Professional title' })
+  @ApiProperty({ enum: TherapistTitle, description: "Professional title" })
   @IsEnum(TherapistTitle)
   professionalTitle: TherapistTitle;
 
-  @ApiPropertyOptional({ description: 'Other professional title' })
+  @ApiPropertyOptional({ description: "Other professional title" })
   @IsString()
   @IsOptional()
   otherProfessionalTitle?: string;
 
-  @ApiProperty({ description: 'Email address' })
+  @ApiProperty({ description: "Email address" })
   @IsEmail()
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'Phone number with country code' })
+  @ApiProperty({ description: "Phone number with country code" })
   @IsString()
   @IsNotEmpty()
   phoneNumber: string;
 
-  @ApiPropertyOptional({ enum: ['M', 'F', 'Other'], description: 'Gender' })
-  @IsEnum(['M', 'F', 'Other'])
+  @ApiPropertyOptional({ enum: ["M", "F", "Other"], description: "Gender" })
+  @IsEnum(["M", "F", "Other"])
   @IsOptional()
   gender?: string;
 
-  @ApiPropertyOptional({ description: 'Date of birth' })
+  @ApiPropertyOptional({ description: "Date of birth" })
   @IsDateString()
   @IsOptional()
   dateOfBirth?: string;
@@ -104,58 +108,71 @@ export class RegisterTherapistDto {
   credentials: ProfessionalCredentialsDto;
 
   // Organization/Practice (Flattened)
-  @ApiProperty({ description: 'Organization name' })
+  @ApiProperty({ description: "Organization name" })
   @IsString()
   @IsNotEmpty()
   organizationName: string;
 
-  @ApiPropertyOptional({ description: 'Department or specialty' })
+  @ApiPropertyOptional({ description: "Department or specialty" })
   @IsString()
   @IsOptional()
   department?: string;
 
-  @ApiProperty({ description: 'Work address' })
+  @ApiProperty({ description: "Work address" })
   @IsString()
   @IsNotEmpty()
   workAddress: string;
 
-  @ApiPropertyOptional({ description: 'City' })
+  @ApiPropertyOptional({ description: "City" })
   @IsString()
   @IsOptional()
   city?: string;
 
-  @ApiPropertyOptional({ description: 'State or Province' })
+  @ApiPropertyOptional({ description: "State or Province" })
   @IsString()
   @IsOptional()
   stateProvince?: string;
 
-  @ApiPropertyOptional({ description: 'Zip or Postal code' })
+  @ApiPropertyOptional({ description: "Zip or Postal code" })
   @IsString()
   @IsOptional()
   zipPostalCode?: string;
 
-  @ApiPropertyOptional({ description: 'Country' })
+  @ApiPropertyOptional({ description: "Country" })
   @IsString()
   @IsOptional()
   country?: string;
 
+  @ApiPropertyOptional({ description: "Years of experience" })
+  @IsOptional()
+  yearsOfExperience?: number;
+
+  @ApiPropertyOptional({ description: "Professional bio" })
+  @IsString()
+  @IsOptional()
+  bio?: string;
+
   // Account Security
   @ApiProperty({
-    description: 'Password (min 8 chars, must include uppercase, lowercase, number, special char)',
+    description:
+      "Password (min 8 chars, must include uppercase, lowercase, number, special char)",
     minLength: 8,
   })
   @IsString()
   @MinLength(8)
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-    {
-      message:
-        'Password must contain at least one uppercase, one lowercase, one number, and one special character',
-    },
-  )
+  @Matches(/[A-Z]/, {
+    message: "Password must contain at least one uppercase letter",
+  })
+  @Matches(/[a-z]/, {
+    message: "Password must contain at least one lowercase letter",
+  })
+  @Matches(/[0-9]/, { message: "Password must contain at least one number" })
+  @Matches(/[@$!%*?&.]/, {
+    message: "Password must contain at least one special character (@$!%*?&.)",
+  })
   password: string;
 
-  @ApiProperty({ description: 'Confirm password' })
+  @ApiProperty({ description: "Confirm password" })
   @IsString()
   @IsNotEmpty()
   confirmPassword: string;
@@ -171,24 +188,24 @@ export class RegisterTherapistDto {
   references?: ProfessionalReferenceDto[];
 
   // Terms and Conditions
-  @ApiProperty({ description: 'Terms of Service acceptance' })
+  @ApiProperty({ description: "Terms of Service acceptance" })
   @IsOptional() // Use IsOptional + Transform if coming as string "true"/"false" via FormData
   termsAccepted: boolean;
 
-  @ApiProperty({ description: 'HIPAA compliance acceptance' })
+  @ApiProperty({ description: "HIPAA compliance acceptance" })
   @IsOptional()
   hipaaAccepted: boolean;
 
-  @ApiProperty({ description: 'Privacy Policy acceptance' })
+  @ApiProperty({ description: "Privacy Policy acceptance" })
   @IsOptional()
   privacyPolicyAccepted: boolean;
 
   // Two-Factor Authentication (optional)
-  @ApiPropertyOptional({ description: 'Enable Two-Factor Authentication' })
+  @ApiPropertyOptional({ description: "Enable Two-Factor Authentication" })
   @IsOptional()
   twoFactorEnabled?: boolean;
 
-  @ApiPropertyOptional({ enum: TwoFactorMethod, description: '2FA method' })
+  @ApiPropertyOptional({ enum: TwoFactorMethod, description: "2FA method" })
   @IsEnum(TwoFactorMethod)
   @IsOptional()
   twoFactorMethod?: TwoFactorMethod;

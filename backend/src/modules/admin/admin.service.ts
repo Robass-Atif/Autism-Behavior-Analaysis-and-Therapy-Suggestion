@@ -10,9 +10,12 @@ import { AccountStatus, Role } from "../../common/enums/role.enum";
 import { Caregiver } from "../users/schemas/caregiver.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression } from "@nestjs/schedule";
 import { AuditLog, AuditLogDocument } from "./schemas/audit-log.schema";
-import { SystemMetric, SystemMetricDocument } from './schemas/system-metric.schema';
+import {
+  SystemMetric,
+  SystemMetricDocument,
+} from "./schemas/system-metric.schema";
 import * as os from "os";
 
 import { PatientsService } from "../patients/patients.service";
@@ -25,8 +28,9 @@ export class AdminService {
     // @ts-ignore
     private patientsService: PatientsService,
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
-    @InjectModel(SystemMetric.name) private systemMetricModel: Model<SystemMetricDocument>,
-  ) { }
+    @InjectModel(SystemMetric.name)
+    private systemMetricModel: Model<SystemMetricDocument>,
+  ) {}
 
   // Dashboard Stats - Real backend-calculated data
   async getDashboardStats() {
@@ -249,6 +253,9 @@ export class AdminService {
       ...patients.map((u: any) => ({ ...u.toObject(), role: "patient" })),
     ];
 
+    // Filter out deleted users
+    allUsers = allUsers.filter((u: any) => !u.deleted);
+
     // Filter by role
     if (role && role !== "all") {
       allUsers = allUsers.filter(
@@ -319,6 +326,7 @@ export class AdminService {
       phoneNumber: userObj.phoneNumber,
       role: userObj.role,
       status: userObj.accountStatus,
+      professionalTitle: (userObj as any).professionalTitle,
       createdAt: userObj.createdAt,
       updatedAt: userObj.updatedAt,
       lastLogin: userObj.lastLogin,
@@ -332,16 +340,28 @@ export class AdminService {
           roleSpecific: {
             licenseNumber: userObj.credentials?.licenseNumber,
             licenseType: userObj.credentials?.licenseType,
+            issuingAuthority: userObj.credentials?.issuingAuthority,
+            licenseExpiryDate: userObj.credentials?.licenseExpiryDate,
             organizationName:
               userObj.organization?.organizationName ||
               userObj.organization?.name,
             department: userObj.organization?.department,
+            workAddress: userObj.organization?.workAddress,
+            city: userObj.organization?.city,
+            stateProvince: userObj.organization?.stateProvince,
+            zipPostalCode: userObj.organization?.zipPostalCode,
+            country: userObj.organization?.country,
             specialties: userObj.specialties || [],
             yearsOfExperience: userObj.yearsOfExperience,
             bio: userObj.bio,
-            licenseVerified: userObj.credentials?.verified,
+            licenseVerified:
+              userObj.credentials?.isLicenseVerified ||
+              userObj.credentials?.verified,
             rejectionCount: userObj.rejectionCount,
             approvedAt: userObj.approvedAt,
+            termsAccepted: userObj.termsAccepted,
+            hipaaAccepted: userObj.hipaaAccepted,
+            privacyPolicyAccepted: userObj.privacyPolicyAccepted,
             licenseCertificate: userObj.credentials?.licenseCertificatePath
               ? `${process.env.BACKEND_URL || "http://localhost:5001"}/uploads/${userObj.credentials.licenseCertificatePath}`
               : undefined,
@@ -492,7 +512,7 @@ export class AdminService {
     if (!therapist.isEmailVerified) {
       throw new BadRequestException(
         "Cannot approve: Therapist has not verified their email address. " +
-        "Please wait for them to click the verification link.",
+          "Please wait for them to click the verification link.",
       );
     }
 
@@ -838,7 +858,7 @@ export class AdminService {
     const memUsage = Math.round((usedMem / totalMem) * 100);
 
     // Get DB status
-    let dbStatus = 'connected';
+    let dbStatus = "connected";
     let dbLatency = 0;
     try {
       const start = Date.now();
@@ -848,7 +868,7 @@ export class AdminService {
       }
       dbLatency = Date.now() - start;
     } catch (error) {
-      dbStatus = 'error';
+      dbStatus = "error";
     }
 
     // Get historical data (last 30 minutes)
@@ -871,7 +891,10 @@ export class AdminService {
       },
       cpu: {
         count: os.cpus().length,
-        usagePercentage: historySorted.length > 0 ? historySorted[historySorted.length - 1].cpuUsage : 0,
+        usagePercentage:
+          historySorted.length > 0
+            ? historySorted[historySorted.length - 1].cpuUsage
+            : 0,
       },
       database: {
         status: dbStatus,
@@ -906,7 +929,7 @@ export class AdminService {
           await adminDb.command({ ping: 1 });
         }
         dbLatency = Date.now() - start;
-      } catch (e) { }
+      } catch (e) {}
 
       const metric = new this.systemMetricModel({
         cpuUsage,
@@ -921,12 +944,15 @@ export class AdminService {
       // For demo, keep last 1000 records
       const count = await this.systemMetricModel.countDocuments();
       if (count > 1000) {
-        const oldest = await this.systemMetricModel.find().sort({ createdAt: 1 }).limit(count - 1000);
-        const ids = oldest.map(d => d._id);
+        const oldest = await this.systemMetricModel
+          .find()
+          .sort({ createdAt: 1 })
+          .limit(count - 1000);
+        const ids = oldest.map((d) => d._id);
         await this.systemMetricModel.deleteMany({ _id: { $in: ids } });
       }
     } catch (error) {
-      console.error('Error collecting system metrics:', error);
+      console.error("Error collecting system metrics:", error);
     }
   }
 
@@ -963,7 +989,7 @@ export class AdminService {
           const user = await this.usersService.findById(logData.userId);
           // @ts-ignore
           logData.userName = user?.name || user?.fullName || "Admin";
-        } catch (e) { }
+        } catch (e) {}
       }
 
       const log = new this.auditLogModel(logData);

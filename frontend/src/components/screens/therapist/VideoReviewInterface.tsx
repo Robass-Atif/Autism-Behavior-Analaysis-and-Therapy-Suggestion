@@ -296,6 +296,14 @@ export default function VideoReviewInterface() {
                   <p className="text-xs text-zinc-500 font-bold">
                     {new Date(session.recordedAt).toLocaleDateString()}
                   </p>
+                  {session.caregiverName && (
+                    <>
+                      <span className="text-zinc-600">•</span>
+                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">
+                        By: {session.caregiverName}
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

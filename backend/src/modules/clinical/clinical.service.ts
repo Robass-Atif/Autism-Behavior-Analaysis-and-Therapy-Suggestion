@@ -5,31 +5,32 @@ import {
   BadRequestException,
   Inject,
   forwardRef,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
 
-import { TherapyGoal } from '../therapy-goals/schemas/therapy-goal.schema';
+import { TherapyGoal } from "../therapy-goals/schemas/therapy-goal.schema";
 
-import { VideoSession } from './schemas/video-session.schema';
-import { CreateTherapyGoalDto } from './dto/create-therapy-goal.dto';
-import { UpdateTherapyGoalDto } from './dto/update-therapy-goal.dto';
-import { CreateVideoSessionDto } from './dto/create-video-session.dto';
-import { PatientsService } from '../patients/patients.service';
-import { PdfGeneratorService } from './services/pdf-generator.service';
-import { AiAnalysisService } from './services/ai-analysis.service';
-import { Role } from '../../common/enums/role.enum';
+import { VideoSession } from "./schemas/video-session.schema";
+import { CreateTherapyGoalDto } from "./dto/create-therapy-goal.dto";
+import { UpdateTherapyGoalDto } from "./dto/update-therapy-goal.dto";
+import { CreateVideoSessionDto } from "./dto/create-video-session.dto";
+import { PatientsService } from "../patients/patients.service";
+import { PdfGeneratorService } from "./services/pdf-generator.service";
+import { AiAnalysisService } from "./services/ai-analysis.service";
+import { Role } from "../../common/enums/role.enum";
 
 @Injectable()
 export class ClinicalService {
   constructor(
     @InjectModel(TherapyGoal.name) private therapyGoalModel: Model<TherapyGoal>,
-    @InjectModel(VideoSession.name) private videoSessionModel: Model<VideoSession>,
+    @InjectModel(VideoSession.name)
+    private videoSessionModel: Model<VideoSession>,
     @Inject(forwardRef(() => PatientsService))
     private patientsService: PatientsService,
     private pdfGeneratorService: PdfGeneratorService,
     private aiAnalysisService: AiAnalysisService,
-  ) { }
+  ) {}
 
   // ========== THERAPY GOALS ==========
 
@@ -38,20 +39,19 @@ export class ClinicalService {
       ...dto,
       therapistId: new Types.ObjectId(therapistId),
       patientId: new Types.ObjectId(dto.patientId),
-      status: 'active',
+      status: "active",
       progress: dto.progress || 0,
       deleted: false,
     });
 
     await goal.save();
 
-
     // Recalculate patient progress after creating goal
     await this.patientsService.calculatePatientProgress(dto.patientId);
 
     return {
       success: true,
-      message: 'Therapy goal created successfully',
+      message: "Therapy goal created successfully",
       goal: this.formatGoal(goal),
     };
   }
@@ -74,7 +74,7 @@ export class ClinicalService {
 
     const goals = await this.therapyGoalModel
       .find(query)
-      .populate('patientId', 'fullName mrn')
+      .populate("patientId", "fullName mrn")
       .sort({ createdAt: -1 })
       .exec();
 
@@ -87,16 +87,18 @@ export class ClinicalService {
   async getTherapyGoalById(goalId: string, userId: string, userRole: string) {
     const goal = await this.therapyGoalModel
       .findById(goalId)
-      .populate('patientId', 'fullName mrn')
+      .populate("patientId", "fullName mrn")
       .exec();
 
     if (!goal || goal.deleted) {
-      throw new NotFoundException('Therapy goal not found');
+      throw new NotFoundException("Therapy goal not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST' && goal.therapistId.toString() !== userId) {
-      throw new ForbiddenException('You can only access your own therapy goals');
+    if (userRole === "therapist" && goal.therapistId.toString() !== userId) {
+      throw new ForbiddenException(
+        "You can only access your own therapy goals",
+      );
     }
 
     return this.formatGoal(goal);
@@ -111,12 +113,14 @@ export class ClinicalService {
     const goal = await this.therapyGoalModel.findById(goalId);
 
     if (!goal || goal.deleted) {
-      throw new NotFoundException('Therapy goal not found');
+      throw new NotFoundException("Therapy goal not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST' && goal.therapistId.toString() !== userId) {
-      throw new ForbiddenException('You can only update your own therapy goals');
+    if (userRole === "therapist" && goal.therapistId.toString() !== userId) {
+      throw new ForbiddenException(
+        "You can only update your own therapy goals",
+      );
     }
 
     Object.assign(goal, updateData);
@@ -126,12 +130,14 @@ export class ClinicalService {
 
     // Recalculate patient progress if status changed
     if (updateData.status) {
-      await this.patientsService.calculatePatientProgress(goal.patientId.toString());
+      await this.patientsService.calculatePatientProgress(
+        goal.patientId.toString(),
+      );
     }
 
     return {
       success: true,
-      message: 'Therapy goal updated successfully',
+      message: "Therapy goal updated successfully",
       goal: this.formatGoal(goal),
     };
   }
@@ -140,12 +146,14 @@ export class ClinicalService {
     const goal = await this.therapyGoalModel.findById(goalId);
 
     if (!goal || goal.deleted) {
-      throw new NotFoundException('Therapy goal not found');
+      throw new NotFoundException("Therapy goal not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST' && goal.therapistId.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own therapy goals');
+    if (userRole === "therapist" && goal.therapistId.toString() !== userId) {
+      throw new ForbiddenException(
+        "You can only delete your own therapy goals",
+      );
     }
 
     goal.deleted = true;
@@ -154,11 +162,13 @@ export class ClinicalService {
     await goal.save();
 
     // Recalculate patient progress after deleting goal
-    await this.patientsService.calculatePatientProgress(goal.patientId.toString());
+    await this.patientsService.calculatePatientProgress(
+      goal.patientId.toString(),
+    );
 
     return {
       success: true,
-      message: 'Therapy goal deleted successfully',
+      message: "Therapy goal deleted successfully",
     };
   }
 
@@ -173,26 +183,25 @@ export class ClinicalService {
     const sessionData: any = {
       ...dto,
       videoUrl,
-      status: 'pending_review', // Always starts as pending_review
-      uploadedBy: userRole === 'CAREGIVER' ? 'caregiver' : 'therapist',
+      status: "pending_review", // Always starts as pending_review
+      uploadedBy: userRole === "caregiver" ? "caregiver" : "therapist",
       reviewed: false,
       deleted: false,
       recordedAt: dto.recordedAt || new Date(),
     };
 
     // Set therapistId or caregiverId based on role
-    if (userRole === 'CAREGIVER') {
+    if (userRole === "caregiver") {
       sessionData.caregiverId = userId;
 
       // Link to patient's therapist
-      try {
-        const patient = await this.patientsService.getPatientById(dto.patientId, userId, 'CAREGIVER');
-        if (patient && patient.therapistId) {
-          sessionData.therapistId = patient.therapistId;
-        }
-      } catch (err) {
-        console.warn('Could not link therapist to session:', err.message);
+      const patient = await this.patientsService.findByIdInternal(
+        dto.patientId,
+      );
+      if (!patient || patient.deleted) {
+        throw new NotFoundException("Patient not found");
       }
+      sessionData.therapistId = patient.therapistId;
     } else {
       sessionData.therapistId = userId;
     }
@@ -202,7 +211,8 @@ export class ClinicalService {
 
     return {
       success: true,
-      message: 'Video session uploaded successfully. Awaiting therapist review.',
+      message:
+        "Video session uploaded successfully. Awaiting therapist review.",
       session: this.formatVideoSession(session),
     };
   }
@@ -213,27 +223,27 @@ export class ClinicalService {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
-    // For flexibility in demo, disabled strict therapist matching
-    // if (session.therapistId && session.therapistId.toString() !== therapistId) {
-    //   throw new ForbiddenException('You can only approve your own sessions');
-    // }
+    if (session.therapistId && session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException("You can only approve your own sessions");
+    }
 
-    if (session.status !== 'pending_review') {
+    if (session.status !== "pending_review") {
       throw new BadRequestException(
-        `Cannot approve session with status "${session.status}". Session must be in "pending_review" status.`
+        `Cannot approve session with status "${session.status}". Session must be in "pending_review" status.`,
       );
     }
 
-    session.status = 'approved_for_ai';
+    session.status = "approved_for_ai";
     session.updatedAt = new Date();
     await session.save();
 
     return {
       success: true,
-      message: 'Session approved for AI analysis. You can now trigger analysis.',
+      message:
+        "Session approved for AI analysis. You can now trigger analysis.",
       session: this.formatVideoSession(session),
     };
   }
@@ -247,35 +257,38 @@ export class ClinicalService {
       overrideSeverity?: number;
       reviewNotes?: string;
       therapyPlanAdjustments?: string;
-    }
+    },
   ) {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
     if (session.therapistId.toString() !== therapistId) {
-      throw new ForbiddenException('You can only review your own sessions');
+      throw new ForbiddenException("You can only review your own sessions");
     }
 
-    if (session.status !== 'completed') {
+    if (session.status !== "completed") {
       throw new BadRequestException(
-        `Cannot review session with status "${session.status}". Session must be in "completed" status.`
+        `Cannot review session with status "${session.status}". Session must be in "completed" status.`,
       );
     }
 
     const originalAISeverity = session.ensemblePrediction?.severity ?? null;
-    const isOverridden = reviewData.overrideSeverity !== undefined &&
+    const isOverridden =
+      reviewData.overrideSeverity !== undefined &&
       reviewData.overrideSeverity !== null &&
       reviewData.overrideSeverity !== originalAISeverity;
 
     session.therapistReview = {
-      overrideSeverity: isOverridden ? reviewData.overrideSeverity : (originalAISeverity ?? 0),
+      overrideSeverity: isOverridden
+        ? reviewData.overrideSeverity
+        : (originalAISeverity ?? 0),
       originalAISeverity: originalAISeverity ?? 0,
       isOverridden,
-      reviewNotes: reviewData.reviewNotes || '',
-      therapyPlanAdjustments: reviewData.therapyPlanAdjustments || '',
+      reviewNotes: reviewData.reviewNotes || "",
+      therapyPlanAdjustments: reviewData.therapyPlanAdjustments || "",
       reviewedAt: new Date(),
       reviewedBy: therapistId as any,
       overriddenAt: isOverridden ? new Date() : undefined,
@@ -284,14 +297,14 @@ export class ClinicalService {
     session.therapistNotes = reviewData.reviewNotes || session.therapistNotes;
     session.reviewed = true;
     session.reviewedAt = new Date();
-    session.status = 'therapist_review';
+    session.status = "therapist_review";
     session.updatedAt = new Date();
 
     await session.save();
 
     return {
       success: true,
-      message: 'Therapist review submitted successfully.',
+      message: "Therapist review submitted successfully.",
       session: this.formatVideoSession(session),
     };
   }
@@ -302,20 +315,20 @@ export class ClinicalService {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
     if (session.therapistId.toString() !== therapistId) {
-      throw new ForbiddenException('You can only publish your own sessions');
+      throw new ForbiddenException("You can only publish your own sessions");
     }
 
-    if (session.status !== 'therapist_review') {
+    if (session.status !== "therapist_review") {
       throw new BadRequestException(
-        `Cannot publish session with status "${session.status}". Session must be in "therapist_review" status.`
+        `Cannot publish session with status "${session.status}". Session must be in "therapist_review" status.`,
       );
     }
 
-    session.status = 'published';
+    session.status = "published";
     session.publishedAt = new Date();
     session.publishedBy = therapistId as any;
     session.updatedAt = new Date();
@@ -324,28 +337,59 @@ export class ClinicalService {
 
     return {
       success: true,
-      message: 'Report published successfully. Caregiver can now view the results.',
+      message:
+        "Report published successfully. Caregiver can now view the results.",
       session: this.formatVideoSession(session),
     };
   }
 
   // ========== VIDEO SESSION QUERIES ==========
 
-  async getVideoSessions(userId: string, userRole: string, patientId?: string, actionType?: string) {
+  async getVideoSessions(
+    userId: string,
+    userRole: string,
+    patientId?: string,
+    actionType?: string,
+  ) {
     const query: any = {
       deleted: false,
     };
 
-    if (userRole === 'THERAPIST') {
+    if (userRole === "therapist") {
       query.therapistId = userId;
-    } else if (userRole === 'CAREGIVER') {
-      query.caregiverId = userId;
-    } else if (userRole === 'PATIENT') {
+    } else if (userRole === "caregiver") {
+      const result = await this.patientsService.getCaregiverPatients(userId);
+      const patientIds = (result.patients || []).map((p: any) => p.id);
+
+      const caregiverIdsToMatch: any[] = [userId];
+      try {
+        if (Types.ObjectId.isValid(userId)) {
+          caregiverIdsToMatch.push(new Types.ObjectId(userId));
+        }
+      } catch (e) {}
+
+      if (patientId) {
+        if (
+          !patientIds.includes(patientId.toString()) &&
+          !patientIds.some((id) => id && id.toString() === patientId.toString())
+        ) {
+          query.patientId = null; // Unauthorized to view this patient
+        } else {
+          query.patientId = patientId;
+        }
+      } else {
+        query.$or = [
+          { patientId: { $in: patientIds } },
+          { caregiverId: { $in: caregiverIdsToMatch } },
+        ];
+      }
+    } else if (userRole === "patient") {
       const profile = await this.patientsService.getPatientProfile(userId);
       query.patientId = profile.id;
     }
 
-    if (patientId) {
+    if (patientId && userRole !== "caregiver") {
+      // Add patientId filter without removing the role-based therapistId filter
       query.patientId = patientId;
     }
 
@@ -355,8 +399,8 @@ export class ClinicalService {
 
     const sessions = await this.videoSessionModel
       .find(query)
-      .populate('patientId', 'fullName mrn')
-      .populate('caregiverId', 'fullName email')
+      .populate("patientId", "fullName mrn")
+      .populate("caregiverId", "fullName email")
       .sort({ recordedAt: -1 })
       .limit(50)
       .exec();
@@ -367,25 +411,70 @@ export class ClinicalService {
     };
   }
 
-  async getVideoSessionById(sessionId: string, userId: string, userRole: string) {
+  async getVideoSessionById(
+    sessionId: string,
+    userId: string,
+    userRole: string,
+  ) {
     const session = await this.videoSessionModel
       .findById(sessionId)
-      .populate('patientId', 'fullName mrn')
-      .populate('therapistId', 'fullName email')
-      .populate('caregiverId', 'fullName email')
+      .populate("patientId", "fullName mrn")
+      .populate("therapistId", "fullName email")
+      .populate("caregiverId", "fullName email")
       .exec();
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST' && session.therapistId.toString() !== userId) {
-      throw new ForbiddenException('You can only access your own video sessions');
+    const sessionTherapistId =
+      session.therapistId?._id?.toString() || session.therapistId?.toString();
+    if (userRole === "therapist") {
+      // Allow access if therapist owns the session OR if session has no therapist
+      // (orphaned sessions from caregiver uploads before fix)
+      if (sessionTherapistId && sessionTherapistId !== userId) {
+        throw new ForbiddenException(
+          "You can only access your own video sessions",
+        );
+      }
+      // If therapistId is null, check if therapist owns the patient
+      if (!sessionTherapistId) {
+        const patientId =
+          session.patientId?._id?.toString() || session.patientId?.toString();
+        if (patientId) {
+          try {
+            await this.patientsService.getPatientById(
+              patientId,
+              userId,
+              "therapist",
+            );
+            // Repair: set the missing therapistId on the session
+            await this.videoSessionModel.findByIdAndUpdate(sessionId, {
+              therapistId: userId,
+            });
+          } catch {
+            throw new ForbiddenException(
+              "You can only access your own video sessions",
+            );
+          }
+        }
+      }
     }
 
-    if (userRole === 'CAREGIVER' && session.caregiverId?.toString() !== userId) {
-      throw new ForbiddenException('You can only access your own video sessions');
+    if (userRole === "caregiver") {
+      // Caregiver can access sessions for any of their linked patients
+      const result = await this.patientsService.getCaregiverPatients(userId);
+      const patientIds = (result.patients || []).map((p: any) =>
+        p.id?.toString(),
+      );
+      const sessionPatientId =
+        session.patientId?._id?.toString() || session.patientId?.toString();
+      if (!patientIds.includes(sessionPatientId)) {
+        throw new ForbiddenException(
+          "You can only access sessions for your linked patients",
+        );
+      }
     }
 
     return this.formatVideoSession(session, userRole);
@@ -400,41 +489,49 @@ export class ClinicalService {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST' && session.therapistId.toString() !== userId) {
-      throw new ForbiddenException('You can only update your own video sessions');
+    if (userRole === "therapist" && session.therapistId.toString() !== userId) {
+      throw new ForbiddenException(
+        "You can only update your own video sessions",
+      );
     }
 
     Object.assign(session, updateData);
     session.updatedAt = new Date();
 
     // Backwards compatibility patch for older sessions that were saved as 'analyzed' before strict schema enums
-    if ((session.status as string) === 'analyzed') {
-      session.status = 'completed';
+    if ((session.status as string) === "analyzed") {
+      session.status = "completed";
     }
 
     await session.save();
 
     return {
       success: true,
-      message: 'Video session updated successfully',
+      message: "Video session updated successfully",
       session: this.formatVideoSession(session),
     };
   }
 
-  async deleteVideoSession(sessionId: string, userId: string, userRole: string) {
+  async deleteVideoSession(
+    sessionId: string,
+    userId: string,
+    userRole: string,
+  ) {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST' && session.therapistId.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own video sessions');
+    if (userRole === "therapist" && session.therapistId.toString() !== userId) {
+      throw new ForbiddenException(
+        "You can only delete your own video sessions",
+      );
     }
 
     session.deleted = true;
@@ -444,7 +541,7 @@ export class ClinicalService {
 
     return {
       success: true,
-      message: 'Video session deleted successfully',
+      message: "Video session deleted successfully",
     };
   }
 
@@ -454,31 +551,38 @@ export class ClinicalService {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
-    // Removed strict therapistId match here as well
-    
+
+    if (session.therapistId && session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException("You can only analyze your own sessions");
+    }
+
     // Enforce: can only trigger AI on approved or failed sessions
-    if (session.status !== 'approved_for_ai' && session.status !== 'failed') {
+    if (session.status !== "approved_for_ai" && session.status !== "failed") {
       throw new BadRequestException(
-        `Cannot trigger AI analysis on session with status "${session.status}". Session must be in "approved_for_ai" or "failed" status.`
+        `Cannot trigger AI analysis on session with status "${session.status}". Session must be in "approved_for_ai" or "failed" status.`,
       );
     }
 
     // Update session status to processing
-    session.status = 'processing';
+    session.status = "processing";
     await session.save();
 
     // Call the dedicated AI Analysis service
-    this.aiAnalysisService.analyzeVideo(sessionId).catch(error => {
-      console.error(`AI Analysis Service error for session ${sessionId}:`, error);
+    this.aiAnalysisService.analyzeVideo(sessionId).catch((error) => {
+      console.error(
+        `AI Analysis Service error for session ${sessionId}:`,
+        error,
+      );
     });
 
     return {
       success: true,
-      message: 'AI analysis has been triggered. Results will be available shortly.',
+      message:
+        "AI analysis has been triggered. Results will be available shortly.",
       sessionId: session._id,
-      status: 'processing',
+      status: "processing",
     };
   }
 
@@ -488,16 +592,24 @@ export class ClinicalService {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
-    if (session.status !== 'processing' && session.status !== 'approved_for_ai' && session.status !== 'failed') {
+    if (session.therapistId && session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException("You can only cancel your own sessions");
+    }
+
+    if (
+      session.status !== "processing" &&
+      session.status !== "approved_for_ai" &&
+      session.status !== "failed"
+    ) {
       throw new BadRequestException(
-        `Cannot cancel session with status "${session.status}". Session must be in "processing", "approved_for_ai", or "failed" status.`
+        `Cannot cancel session with status "${session.status}". Session must be in "processing", "approved_for_ai", or "failed" status.`,
       );
     }
 
-    session.status = 'approved_for_ai';
+    session.status = "approved_for_ai";
     session.cancelledAt = new Date();
     session.cancelledBy = therapistId as any;
     session.lastError = undefined as any;
@@ -508,7 +620,7 @@ export class ClinicalService {
 
     return {
       success: true,
-      message: 'AI analysis cancelled. Session returned to approved status.',
+      message: "AI analysis cancelled. Session returned to approved status.",
       session: this.formatVideoSession(session),
     };
   }
@@ -519,17 +631,21 @@ export class ClinicalService {
     const session = await this.videoSessionModel.findById(sessionId);
 
     if (!session || session.deleted) {
-      throw new NotFoundException('Video session not found');
+      throw new NotFoundException("Video session not found");
     }
 
-    if (session.status !== 'failed') {
+    if (session.therapistId && session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException("You can only retry your own sessions");
+    }
+
+    if (session.status !== "failed") {
       throw new BadRequestException(
-        `Cannot retry session with status "${session.status}". Session must be in "failed" status.`
+        `Cannot retry session with status "${session.status}". Session must be in "failed" status.`,
       );
     }
 
     // Reset to approved_for_ai so it can be triggered again
-    session.status = 'approved_for_ai';
+    session.status = "approved_for_ai";
     session.retryCount = 0;
     session.lastError = undefined as any;
     session.cancelledAt = undefined as any;
@@ -540,7 +656,8 @@ export class ClinicalService {
 
     return {
       success: true,
-      message: 'Session reset for retry. You can now trigger AI analysis again.',
+      message:
+        "Session reset for retry. You can now trigger AI analysis again.",
       session: this.formatVideoSession(session),
     };
   }
@@ -551,10 +668,17 @@ export class ClinicalService {
     // 1. Verify that this therapist has access to the patient
     // This will throw a ForbiddenException if access is denied
     try {
-      await this.patientsService.getPatientById(patientId, therapistId, 'THERAPIST');
+      await this.patientsService.getPatientById(
+        patientId,
+        therapistId,
+        "therapist",
+      );
     } catch (err) {
       // If therapist doesn't own patient, check if they own any sessions for this patient as fallback
-      const hasSession = await this.videoSessionModel.findOne({ patientId, therapistId });
+      const hasSession = await this.videoSessionModel.findOne({
+        patientId,
+        therapistId,
+      });
       if (!hasSession) throw err;
     }
 
@@ -562,13 +686,25 @@ export class ClinicalService {
       .find({
         $or: [
           { patientId: patientId },
-          { patientId: new Types.ObjectId(patientId) }
+          { patientId: new Types.ObjectId(patientId) },
         ],
+        therapistId,
         deleted: false,
-        status: { $in: ['completed', 'therapist_review', 'published', 'failed', 'analyzed', 'processing'] },
+        status: {
+          $in: [
+            "completed",
+            "therapist_review",
+            "published",
+            "failed",
+            "analyzed",
+            "processing",
+          ],
+        },
         ensemblePrediction: { $exists: true, $ne: null },
       })
-      .select('recordedAt actionType status ensemblePrediction therapistReview clinicalReport createdAt')
+      .select(
+        "recordedAt actionType status ensemblePrediction therapistReview clinicalReport createdAt",
+      )
       .sort({ recordedAt: 1 })
       .exec();
 
@@ -626,7 +762,9 @@ export class ClinicalService {
       id: session._id,
       patientId: session.patientId?._id || session.patientId,
       patientName: session.patientId?.fullName,
+      caregiverId: session.caregiverId?._id || session.caregiverId,
       caregiverName: session.caregiverId?.fullName,
+      caregiverEmail: session.caregiverId?.email,
       videoUrl: session.videoUrl,
       thumbnailUrl: session.thumbnailUrl,
       recordedAt: session.recordedAt,
@@ -642,8 +780,8 @@ export class ClinicalService {
     };
 
     // CAREGIVER visibility: only show AI results when published
-    if (requesterRole === 'CAREGIVER') {
-      if (session.status === 'published') {
+    if (requesterRole === "caregiver") {
+      if (session.status === "published") {
         base.aiConfidence = session.aiConfidence;
         base.ensemblePrediction = session.ensemblePrediction;
         base.clinicalReport = session.clinicalReport;
@@ -677,11 +815,16 @@ export class ClinicalService {
 
   async generatePatientPDF(
     patientId: string,
-    therapistId: string,
-    options: any
+    userId: string,
+    options: any,
+    userRole: string = "therapist",
   ): Promise<Buffer> {
     // Fetch patient data
-    const patient = await this.patientsService.getPatientById(patientId, therapistId, 'THERAPIST');
+    const patient = await this.patientsService.getPatientById(
+      patientId,
+      userId,
+      userRole,
+    );
 
     // Fetch goals
     const goalsData = await this.therapyGoalModel
@@ -698,21 +841,25 @@ export class ClinicalService {
       .lean()
       .exec();
 
-    // Get therapist name
-    const therapist = await this.patientsService['userModel']
-      .findById(therapistId)
-      .select('fullName')
+    // Convert patient to plain object
+    const patientObj =
+      typeof patient.toObject === "function" ? patient.toObject() : patient;
+
+    // Get therapist name (use patient's therapistId for caregiver callers)
+    const therapistLookupId =
+      userRole === "caregiver" ? patientObj.therapistId : userId;
+    const therapist = await this.patientsService["userModel"]
+      .findById(therapistLookupId)
+      .select("fullName")
       .lean()
       .exec();
-
-    // Prepare patient data for PDF
     const patientData = {
-      ...patient,
-      therapistName: therapist?.fullName || 'Unknown Therapist',
+      ...patientObj,
+      therapistName: therapist?.fullName || "Unknown Therapist",
       notes: sessionsData
-        .filter(s => s.therapistNotes)
-        .map(s => s.therapistNotes)
-        .join('\n\n'),
+        .filter((s) => s.therapistNotes)
+        .map((s) => s.therapistNotes)
+        .join("\n\n"),
     };
 
     // Generate PDF
@@ -720,7 +867,7 @@ export class ClinicalService {
       patientData,
       goalsData,
       sessionsData,
-      options
+      options,
     );
   }
 }

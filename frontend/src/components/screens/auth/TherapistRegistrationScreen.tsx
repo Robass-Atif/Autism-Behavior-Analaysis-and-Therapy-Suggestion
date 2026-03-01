@@ -49,11 +49,22 @@ const therapistRegistrationSchema = z
     organizationName: z.string().optional(),
     department: z.string().optional(),
     workAddress: z.string().optional(),
+    city: z.string().optional(),
+    stateProvince: z.string().optional(),
+    zipPostalCode: z.string().optional(),
+    country: z.string().optional(),
+    yearsOfExperience: z.string().optional(), // Using string for form input, will convert to number
+    bio: z.string().optional(),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .regex(
+        /[@$!%*?&.]/,
+        "Password must contain at least one special character (@$!%*?&.)",
+      ),
     confirmPassword: z.string(),
     agreeToTerms: z
       .boolean()
@@ -185,7 +196,16 @@ export default function TherapistRegistrationScreen() {
         issuingAuthority: data.issuingAuthority,
         licenseExpiryDate: data.licenseExpiryDate,
         organizationName: data.organizationName || "",
+        department: data.department || "",
         workAddress: data.workAddress || "",
+        city: data.city || "",
+        stateProvince: data.stateProvince || "",
+        zipPostalCode: data.zipPostalCode || "",
+        country: data.country || "",
+        bio: data.bio || "",
+        yearsOfExperience: data.yearsOfExperience
+          ? Number(data.yearsOfExperience)
+          : undefined,
         termsAccepted: data.agreeToTerms,
         hipaaAccepted: data.agreeToHIPAA,
         privacyPolicyAccepted: data.agreeToPrivacy,
@@ -534,6 +554,18 @@ export default function TherapistRegistrationScreen() {
                         )}
                       </div>
 
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                          Years of Experience
+                        </label>
+                        <input
+                          {...register("yearsOfExperience")}
+                          type="number"
+                          className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
+                          placeholder="e.g. 5"
+                        />
+                      </div>
+
                       <div className="md:col-span-2">
                         <label className="block text-xs font-bold uppercase text-zinc-500 mb-2">
                           License Document
@@ -640,9 +672,9 @@ export default function TherapistRegistrationScreen() {
                         </label>
                         <textarea
                           {...register("workAddress")}
-                          rows={3}
+                          rows={2}
                           className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all resize-none"
-                          placeholder="Detailed address..."
+                          placeholder="Street address..."
                         />
                         {errors.workAddress && (
                           <p className="mt-2 text-xs text-red-500 font-bold flex items-center gap-1">
@@ -650,6 +682,64 @@ export default function TherapistRegistrationScreen() {
                             {errors.workAddress.message}
                           </p>
                         )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                            City
+                          </label>
+                          <input
+                            {...register("city")}
+                            className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
+                            placeholder="City"
+                          />
+                        </div>
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                            State/Province
+                          </label>
+                          <input
+                            {...register("stateProvince")}
+                            className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
+                            placeholder="State"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                            Zip/Postal Code
+                          </label>
+                          <input
+                            {...register("zipPostalCode")}
+                            className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
+                            placeholder="Zip"
+                          />
+                        </div>
+                        <div className="group">
+                          <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                            Country
+                          </label>
+                          <input
+                            {...register("country")}
+                            className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
+                            placeholder="Country"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                          Professional Bio
+                        </label>
+                        <textarea
+                          {...register("bio")}
+                          rows={3}
+                          className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all resize-none"
+                          placeholder="Tell us about your professional background..."
+                        />
                       </div>
                     </div>
                   </div>
@@ -706,9 +796,19 @@ export default function TherapistRegistrationScreen() {
                             1 Uppercase
                           </div>
                           <div
+                            className={`text-[10px] uppercase font-bold px-2 py-1 border ${/[a-z]/.test(watchedPassword || "") ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-zinc-50 text-zinc-400 border-zinc-200"}`}
+                          >
+                            1 Lowercase
+                          </div>
+                          <div
                             className={`text-[10px] uppercase font-bold px-2 py-1 border ${/[0-9]/.test(watchedPassword || "") ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-zinc-50 text-zinc-400 border-zinc-200"}`}
                           >
                             1 Number
+                          </div>
+                          <div
+                            className={`text-[10px] uppercase font-bold px-2 py-1 border ${/[@$!%*?&.]/.test(watchedPassword || "") ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-zinc-50 text-zinc-400 border-zinc-200"}`}
+                          >
+                            1 Special
                           </div>
                         </div>
                       </div>

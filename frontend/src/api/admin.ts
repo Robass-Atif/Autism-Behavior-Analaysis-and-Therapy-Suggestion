@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../lib/apiClient';
-import { ADMIN_ENDPOINTS } from '../config/apiConfig';
-import { Patient } from '../types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "../lib/apiClient";
+import { ADMIN_ENDPOINTS } from "../config/apiConfig";
+import { Patient } from "../types";
 
 export interface TherapistApplication {
   id: string;
@@ -12,7 +12,12 @@ export interface TherapistApplication {
   licenseType?: string;
   organizationName?: string;
   submittedAt: string;
-  status: 'pending_approval' | 'active' | 'rejected' | 'pending_verification' | 'suspended';
+  status:
+    | "pending_approval"
+    | "active"
+    | "rejected"
+    | "pending_verification"
+    | "suspended";
   licenseCertificate?: string;
 }
 
@@ -69,10 +74,11 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
-  role: 'admin' | 'therapist' | 'caregiver' | 'patient';
+  role: "admin" | "therapist" | "caregiver" | "patient";
   status: string;
   createdAt: string;
   lastLogin?: string;
+  professionalTitle?: string;
 }
 
 // Full user details with role-specific data
@@ -92,6 +98,16 @@ export interface UserDetails extends User {
     rejectionCount?: number;
     approvedAt?: string;
     licenseCertificate?: string;
+    issuingAuthority?: string;
+    licenseExpiryDate?: string;
+    workAddress?: string;
+    city?: string;
+    stateProvince?: string;
+    zipPostalCode?: string;
+    country?: string;
+    privacyPolicyAccepted?: boolean;
+    termsAccepted?: boolean;
+    hipaaAccepted?: boolean;
     // Caregiver specific
     linkedTherapistId?: string;
     relationshipToPatient?: string;
@@ -108,30 +124,54 @@ export const useTherapistApplications = (status?: string) => {
   if (status) endpoint += `?status=${status}`;
 
   return useQuery({
-    queryKey: ['therapist-applications', status],
-    queryFn: async (): Promise<{ applications: TherapistApplication[]; total: number }> => {
-      return apiClient.get<{ applications: TherapistApplication[]; total: number }>(endpoint);
+    queryKey: ["therapist-applications", status],
+    queryFn: async (): Promise<{
+      applications: TherapistApplication[];
+      total: number;
+    }> => {
+      return apiClient.get<{
+        applications: TherapistApplication[];
+        total: number;
+      }>(endpoint);
     },
   });
 };
 
 // Get All Users (Unified)
-export const useAdminUsers = (params: { role?: string; status?: string; page?: number; limit?: number; search?: string } = {}) => {
+export const useAdminUsers = (
+  params: {
+    role?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+  } = {},
+) => {
   const { role, status, page = 1, limit = 50, search } = params;
   let endpoint = ADMIN_ENDPOINTS.GET_ADMIN_USERS;
   const queryParams = new URLSearchParams();
-  if (role) queryParams.append('role', role);
-  if (status) queryParams.append('status', status);
-  if (search) queryParams.append('search', search);
-  queryParams.append('page', page.toString());
-  queryParams.append('limit', limit.toString());
+  if (role) queryParams.append("role", role);
+  if (status) queryParams.append("status", status);
+  if (search) queryParams.append("search", search);
+  queryParams.append("page", page.toString());
+  queryParams.append("limit", limit.toString());
   const queryString = queryParams.toString();
   if (queryString) endpoint += `?${queryString}`;
 
   return useQuery({
-    queryKey: ['admin-users', params],
-    queryFn: async (): Promise<{ users: User[]; total: number; page: number; totalPages: number }> => {
-      return apiClient.get<{ users: User[]; total: number; page: number; totalPages: number }>(endpoint);
+    queryKey: ["admin-users", params],
+    queryFn: async (): Promise<{
+      users: User[];
+      total: number;
+      page: number;
+      totalPages: number;
+    }> => {
+      return apiClient.get<{
+        users: User[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(endpoint);
     },
   });
 };
@@ -139,7 +179,7 @@ export const useAdminUsers = (params: { role?: string; status?: string; page?: n
 // Get Single User
 export const useAdminUser = (userId: string) => {
   return useQuery({
-    queryKey: ['admin-user', userId],
+    queryKey: ["admin-user", userId],
     queryFn: async (): Promise<User> => {
       return apiClient.get<User>(ADMIN_ENDPOINTS.GET_ADMIN_USER(userId));
     },
@@ -152,13 +192,22 @@ export const useApproveTherapistApplication = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, notes }: { id: string; notes?: string }): Promise<TherapistApplication> => {
-      return apiClient.post<TherapistApplication>(ADMIN_ENDPOINTS.APPROVE_THERAPIST_APPLICATION(id), { notes });
+    mutationFn: async ({
+      id,
+      notes,
+    }: {
+      id: string;
+      notes?: string;
+    }): Promise<TherapistApplication> => {
+      return apiClient.post<TherapistApplication>(
+        ADMIN_ENDPOINTS.APPROVE_THERAPIST_APPLICATION(id),
+        { notes },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['therapist-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["therapist-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -168,13 +217,24 @@ export const useRejectTherapistApplication = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, reason, notes }: { id: string; reason: string; notes?: string }): Promise<TherapistApplication> => {
-      return apiClient.post<TherapistApplication>(ADMIN_ENDPOINTS.REJECT_THERAPIST_APPLICATION(id), { reason, notes });
+    mutationFn: async ({
+      id,
+      reason,
+      notes,
+    }: {
+      id: string;
+      reason: string;
+      notes?: string;
+    }): Promise<TherapistApplication> => {
+      return apiClient.post<TherapistApplication>(
+        ADMIN_ENDPOINTS.REJECT_THERAPIST_APPLICATION(id),
+        { reason, notes },
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['therapist-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["therapist-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -184,13 +244,19 @@ export const useSuspendUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, reason }: { id: string; reason: string }): Promise<void> => {
+    mutationFn: async ({
+      id,
+      reason,
+    }: {
+      id: string;
+      reason: string;
+    }): Promise<void> => {
       return apiClient.post<void>(ADMIN_ENDPOINTS.SUSPEND_USER(id), { reason });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -204,9 +270,9 @@ export const useActivateUser = () => {
       return apiClient.post<void>(ADMIN_ENDPOINTS.ACTIVATE_USER(id), {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -220,10 +286,10 @@ export const useDeleteTherapist = () => {
       return apiClient.delete<void>(ADMIN_ENDPOINTS.DELETE_THERAPIST(id));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['therapist-applications'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["therapist-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -234,7 +300,7 @@ export const useAdminPatients = (status?: string) => {
   if (status) endpoint += `?status=${status}`;
 
   return useQuery({
-    queryKey: ['admin-patients', status],
+    queryKey: ["admin-patients", status],
     queryFn: async (): Promise<Patient[]> => {
       return apiClient.get<Patient[]>(endpoint);
     },
@@ -244,9 +310,11 @@ export const useAdminPatients = (status?: string) => {
 // Get Audit Logs
 export const useAuditLogs = (page = 1, limit = 50) => {
   return useQuery({
-    queryKey: ['audit-logs', page, limit],
+    queryKey: ["audit-logs", page, limit],
     queryFn: async (): Promise<{ logs: AuditLog[]; total: number }> => {
-      return apiClient.get<{ logs: AuditLog[]; total: number }>(`${ADMIN_ENDPOINTS.GET_AUDIT_LOGS}?page=${page}&limit=${limit}`);
+      return apiClient.get<{ logs: AuditLog[]; total: number }>(
+        `${ADMIN_ENDPOINTS.GET_AUDIT_LOGS}?page=${page}&limit=${limit}`,
+      );
     },
   });
 };
@@ -254,10 +322,10 @@ export const useAuditLogs = (page = 1, limit = 50) => {
 // Get Admin Dashboard Stats (NOW FROM DEDICATED BACKEND ENDPOINT)
 export const useAdminDashboardStats = () => {
   return useQuery({
-    queryKey: ['admin-dashboard-stats'],
+    queryKey: ["admin-dashboard-stats"],
     queryFn: async (): Promise<AdminDashboardStats> => {
       // Use the dedicated dashboard endpoint
-      return apiClient.get<AdminDashboardStats>('/admin/dashboard/stats');
+      return apiClient.get<AdminDashboardStats>("/admin/dashboard/stats");
     },
     staleTime: 2 * 60 * 1000,
   });
@@ -266,9 +334,11 @@ export const useAdminDashboardStats = () => {
 // Get User Growth Stats
 export const useUserGrowthStats = () => {
   return useQuery({
-    queryKey: ['admin-growth-stats'],
+    queryKey: ["admin-growth-stats"],
     queryFn: async (): Promise<{ name: string; users: number }[]> => {
-      return apiClient.get<{ name: string; users: number }[]>('/admin/dashboard/growth');
+      return apiClient.get<{ name: string; users: number }[]>(
+        "/admin/dashboard/growth",
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -277,9 +347,11 @@ export const useUserGrowthStats = () => {
 // Get Full User Details
 export const useAdminUserDetails = (userId: string) => {
   return useQuery({
-    queryKey: ['admin-user-details', userId],
+    queryKey: ["admin-user-details", userId],
     queryFn: async (): Promise<UserDetails> => {
-      return apiClient.get<UserDetails>(ADMIN_ENDPOINTS.GET_ADMIN_USER_DETAILS(userId));
+      return apiClient.get<UserDetails>(
+        ADMIN_ENDPOINTS.GET_ADMIN_USER_DETAILS(userId),
+      );
     },
     enabled: !!userId,
     staleTime: 1 * 60 * 1000,
@@ -309,11 +381,13 @@ export const useUpdateUser = () => {
       );
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-user', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-user', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-user-details', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-user-details", variables.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -336,9 +410,9 @@ export const useDeleteUser = () => {
       return apiClient.delete<{ success: boolean; message: string }>(endpoint);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
     },
   });
 };
@@ -346,9 +420,11 @@ export const useDeleteUser = () => {
 // Get System Health Stats
 export const useSystemHealth = () => {
   return useQuery({
-    queryKey: ['system-health'],
+    queryKey: ["system-health"],
     queryFn: async (): Promise<SystemHealthStats> => {
-      return apiClient.get<SystemHealthStats>(ADMIN_ENDPOINTS.GET_SYSTEM_HEALTH);
+      return apiClient.get<SystemHealthStats>(
+        ADMIN_ENDPOINTS.GET_SYSTEM_HEALTH,
+      );
     },
     refetchInterval: 30000,
     staleTime: 10 * 1000,

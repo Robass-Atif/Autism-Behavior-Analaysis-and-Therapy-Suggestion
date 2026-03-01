@@ -4,19 +4,19 @@ import {
   UnauthorizedException,
   ForbiddenException,
   NotFoundException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { v4 as uuidv4 } from 'uuid';
-import { UsersService } from '../users/users.service';
-import { EmailService } from '../email/email.service';
-import { InvitationService } from '../invitation/invitation.service';
-import { PatientsService } from '../patients/patients.service';
-import { RegisterTherapistDto } from './dto/register-therapist.dto';
-import { RegisterCaregiverDto } from './dto/register-caregiver.dto';
-import { RegisterAdminDto } from './dto/register-admin.dto';
-import { LoginDto } from './dto/login.dto';
-import { Role, AccountStatus } from '../../common/enums/role.enum';
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import { v4 as uuidv4 } from "uuid";
+import { UsersService } from "../users/users.service";
+import { EmailService } from "../email/email.service";
+import { InvitationService } from "../invitation/invitation.service";
+import { PatientsService } from "../patients/patients.service";
+import { RegisterTherapistDto } from "./dto/register-therapist.dto";
+import { RegisterCaregiverDto } from "./dto/register-caregiver.dto";
+import { RegisterAdminDto } from "./dto/register-admin.dto";
+import { LoginDto } from "./dto/login.dto";
+import { Role, AccountStatus } from "../../common/enums/role.enum";
 
 @Injectable()
 export class AuthService {
@@ -27,7 +27,7 @@ export class AuthService {
     private emailService: EmailService,
     private invitationService: InvitationService,
     private patientsService: PatientsService,
-  ) { }
+  ) {}
 
   private generateToken(userId: string, email: string, role: Role): string {
     const payload = { sub: userId, email, role };
@@ -46,7 +46,7 @@ export class AuthService {
     if (!user) {
       return {
         eligible: true,
-        message: 'Email is available for registration',
+        message: "Email is available for registration",
       };
     }
 
@@ -54,34 +54,39 @@ export class AuthService {
     if (user.accountStatus === AccountStatus.ACTIVE) {
       return {
         eligible: false,
-        reason: 'ACTIVE',
-        message: 'This email is already registered. Please login instead.',
+        reason: "ACTIVE",
+        message: "This email is already registered. Please login instead.",
       };
     }
 
-    if (user.accountStatus === AccountStatus.PENDING ||
+    if (
+      user.accountStatus === AccountStatus.PENDING ||
       user.accountStatus === AccountStatus.PENDING_APPROVAL ||
-      user.accountStatus === AccountStatus.PENDING_VERIFICATION) {
+      user.accountStatus === AccountStatus.PENDING_VERIFICATION
+    ) {
       return {
         eligible: false,
-        reason: 'PENDING',
-        message: 'You already have a pending application. Please wait for admin approval.',
+        reason: "PENDING",
+        message:
+          "You already have a pending application. Please wait for admin approval.",
       };
     }
 
     if (user.accountStatus === AccountStatus.SUSPENDED) {
       return {
         eligible: false,
-        reason: 'SUSPENDED',
-        message: 'Your account has been suspended. Please contact support at support@neurocare.com.',
+        reason: "SUSPENDED",
+        message:
+          "Your account has been suspended. Please contact support at support@neurocare.com.",
       };
     }
 
     if (user.accountStatus === AccountStatus.REVOKED) {
       return {
         eligible: false,
-        reason: 'REVOKED',
-        message: 'Your account has been permanently deactivated. Please contact support at support@neurocare.com.',
+        reason: "REVOKED",
+        message:
+          "Your account has been permanently deactivated. Please contact support at support@neurocare.com.",
       };
     }
 
@@ -93,7 +98,7 @@ export class AuthService {
       if (rejectionCount >= 3) {
         return {
           eligible: false,
-          reason: 'REJECTED',
+          reason: "REJECTED",
           rejectionCount,
           remainingAttempts: 0,
           message: `Your application has been rejected ${rejectionCount} times. Maximum attempts reached. Please contact support at support@neurocare.com`,
@@ -102,7 +107,7 @@ export class AuthService {
 
       return {
         eligible: false,
-        reason: 'REJECTED',
+        reason: "REJECTED",
         rejectionCount,
         remainingAttempts,
         message: `Your previous application was rejected. You have ${remainingAttempts} attempt(s) remaining. Please review your credentials before reapplying.`,
@@ -112,51 +117,87 @@ export class AuthService {
     // Default case - allow registration
     return {
       eligible: true,
-      message: 'Email is available for registration',
+      message: "Email is available for registration",
     };
   }
 
-  async registerTherapist(dto: RegisterTherapistDto, file?: Express.Multer.File) {
+  async registerTherapist(
+    dto: RegisterTherapistDto,
+    file?: Express.Multer.File,
+  ) {
     // CHECK ELIGIBILITY FIRST - prevent rejected therapists from reapplying after 3 attempts
     const eligibility = await this.checkRegistrationEligibility(dto.email);
 
     if (!eligibility.eligible) {
-      if (eligibility.reason === 'REJECTED' && eligibility.rejectionCount && eligibility.rejectionCount >= 3) {
+      if (
+        eligibility.reason === "REJECTED" &&
+        eligibility.rejectionCount &&
+        eligibility.rejectionCount >= 3
+      ) {
         throw new ForbiddenException(eligibility.message);
       }
-      if (eligibility.reason === 'ACTIVE') {
+      if (eligibility.reason === "ACTIVE") {
         throw new BadRequestException(eligibility.message);
       }
-      if (eligibility.reason === 'PENDING') {
+      if (eligibility.reason === "PENDING") {
         throw new ForbiddenException(eligibility.message);
       }
-      if (eligibility.reason === 'SUSPENDED' || eligibility.reason === 'REVOKED') {
+      if (
+        eligibility.reason === "SUSPENDED" ||
+        eligibility.reason === "REVOKED"
+      ) {
         throw new ForbiddenException(eligibility.message);
       }
     }
 
     // Validate passwords match
     if (dto.password !== dto.confirmPassword) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException("Passwords do not match");
     }
 
     // Validate terms acceptance (Handle string boolean if coming from FormData)
-    const termsAccepted = String(dto.termsAccepted) === 'true';
-    const hipaaAccepted = String(dto.hipaaAccepted) === 'true';
-    const privacyPolicyAccepted = String(dto.privacyPolicyAccepted) === 'true';
+    const termsAccepted = String(dto.termsAccepted) === "true";
+    const hipaaAccepted = String(dto.hipaaAccepted) === "true";
+    const privacyPolicyAccepted = String(dto.privacyPolicyAccepted) === "true";
 
     if (!termsAccepted || !hipaaAccepted || !privacyPolicyAccepted) {
-      throw new BadRequestException('All terms and conditions must be accepted');
+      throw new BadRequestException(
+        "All terms and conditions must be accepted",
+      );
     }
 
     // Handle credentials from either nested object (JSON) or flat FormData keys
-    const creds = dto.credentials || {} as any;
+    const creds = dto.credentials || ({} as any);
     const dtoAny = dto as any;
-    const licenseNumber = creds.licenseNumber || dtoAny.licenseNumber || dtoAny['credentials.licenseNumber'] || dtoAny['credentials[licenseNumber]'] || '';
-    const licenseType = creds.licenseType || dtoAny.licenseType || dtoAny['credentials.licenseType'] || dtoAny['credentials[licenseType]'] || '';
-    const otherLicenseType = creds.otherLicenseType || dtoAny.otherLicenseType || dtoAny['credentials.otherLicenseType'] || undefined;
-    const issuingAuthority = creds.issuingAuthority || dtoAny.issuingAuthority || dtoAny['credentials.issuingAuthority'] || dtoAny['credentials[issuingAuthority]'] || '';
-    const licenseExpiryDateRaw = creds.licenseExpiryDate || dtoAny.licenseExpiryDate || dtoAny['credentials.licenseExpiryDate'] || dtoAny['credentials[licenseExpiryDate]'] || '';
+    const licenseNumber =
+      creds.licenseNumber ||
+      dtoAny.licenseNumber ||
+      dtoAny["credentials.licenseNumber"] ||
+      dtoAny["credentials[licenseNumber]"] ||
+      "";
+    const licenseType =
+      creds.licenseType ||
+      dtoAny.licenseType ||
+      dtoAny["credentials.licenseType"] ||
+      dtoAny["credentials[licenseType]"] ||
+      "";
+    const otherLicenseType =
+      creds.otherLicenseType ||
+      dtoAny.otherLicenseType ||
+      dtoAny["credentials.otherLicenseType"] ||
+      undefined;
+    const issuingAuthority =
+      creds.issuingAuthority ||
+      dtoAny.issuingAuthority ||
+      dtoAny["credentials.issuingAuthority"] ||
+      dtoAny["credentials[issuingAuthority]"] ||
+      "";
+    const licenseExpiryDateRaw =
+      creds.licenseExpiryDate ||
+      dtoAny.licenseExpiryDate ||
+      dtoAny["credentials.licenseExpiryDate"] ||
+      dtoAny["credentials[licenseExpiryDate]"] ||
+      "";
 
     // Create therapist
     const therapist = await this.usersService.createTherapist({
@@ -173,8 +214,11 @@ export class AuthService {
         licenseType,
         otherLicenseType,
         issuingAuthority,
-        licenseExpiryDate: licenseExpiryDateRaw ? new Date(licenseExpiryDateRaw) : new Date(),
+        licenseExpiryDate: licenseExpiryDateRaw
+          ? new Date(licenseExpiryDateRaw)
+          : new Date(),
         isLicenseVerified: false,
+        licenseCertificatePath: file ? `licenses/${file.filename}` : undefined,
       },
       organization: {
         organizationName: dto.organizationName,
@@ -191,6 +235,10 @@ export class AuthService {
       privacyPolicyAccepted: dto.privacyPolicyAccepted,
       twoFactorEnabled: dto.twoFactorEnabled,
       twoFactorMethod: dto.twoFactorMethod,
+      bio: dto.bio,
+      yearsOfExperience: dto.yearsOfExperience
+        ? Number(dto.yearsOfExperience)
+        : undefined,
     });
 
     // Generate and save email verification token
@@ -212,7 +260,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Therapist registration submitted. Please verify your email.',
+      message: "Therapist registration submitted. Please verify your email.",
       data: {
         _id: therapist._id,
         fullName: therapist.fullName,
@@ -226,7 +274,7 @@ export class AuthService {
   async registerCaregiver(dto: RegisterCaregiverDto) {
     // Validate passwords match
     if (dto.password !== dto.confirmPassword) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException("Passwords do not match");
     }
 
     // Validate terms acceptance
@@ -235,7 +283,9 @@ export class AuthService {
       !dto.privacyPolicyAccepted ||
       !dto.videoRecordingConsentAccepted
     ) {
-      throw new BadRequestException('All terms and conditions must be accepted');
+      throw new BadRequestException(
+        "All terms and conditions must be accepted",
+      );
     }
 
     let invitedBy: string | undefined;
@@ -244,24 +294,31 @@ export class AuthService {
 
     // TASK 11: Validate invitation code - REQUIRED for caregiver registration
     if (!dto.invitationCode) {
-      throw new BadRequestException('Invitation code is required for caregiver registration');
+      throw new BadRequestException(
+        "Invitation code is required for caregiver registration",
+      );
     }
 
     // Validate invitation code using new method
-    const validationResult = await this.invitationService.validateInvitationCode(
-      dto.invitationCode,
-    );
+    const validationResult =
+      await this.invitationService.validateInvitationCode(dto.invitationCode);
 
     if (!validationResult.valid) {
       // Return specific error message based on reason
-      if (validationResult.reason === 'NOT_FOUND') {
-        throw new BadRequestException(validationResult.message || 'Invitation code not found');
+      if (validationResult.reason === "NOT_FOUND") {
+        throw new BadRequestException(
+          validationResult.message || "Invitation code not found",
+        );
       }
-      if (validationResult.reason === 'EXPIRED') {
-        throw new ForbiddenException('This invitation has expired. Please request a new invitation from your therapist.');
+      if (validationResult.reason === "EXPIRED") {
+        throw new ForbiddenException(
+          "This invitation has expired. Please request a new invitation from your therapist.",
+        );
       }
-      if (validationResult.reason === 'ALREADY_ACCEPTED') {
-        throw new BadRequestException('This invitation code has already been used');
+      if (validationResult.reason === "ALREADY_ACCEPTED") {
+        throw new BadRequestException(
+          "This invitation code has already been used",
+        );
       }
       throw new BadRequestException(validationResult.message);
     }
@@ -289,24 +346,35 @@ export class AuthService {
       invitedBy: invitedBy as any,
       emergencyContact: dto.emergencyContact,
       notificationPreferences: {
-        emailNotifications: dto.notificationPreferences?.emailNotifications ?? true,
-        smsNotifications: dto.notificationPreferences?.smsNotifications ?? false,
-        recordingReminders: dto.notificationPreferences?.recordingReminders ?? true,
+        emailNotifications:
+          dto.notificationPreferences?.emailNotifications ?? true,
+        smsNotifications:
+          dto.notificationPreferences?.smsNotifications ?? false,
+        recordingReminders:
+          dto.notificationPreferences?.recordingReminders ?? true,
       },
       termsAccepted: dto.termsAccepted,
       privacyPolicyAccepted: dto.privacyPolicyAccepted,
       videoRecordingConsentAccepted: dto.videoRecordingConsentAccepted,
     });
 
+    const authUser = await this.usersService.findByEmail(caregiver.email);
+    const caregiverUserId = authUser
+      ? authUser._id.toString()
+      : caregiver._id.toString();
+
     // Mark invitation as accepted (updates status to ACCEPTED)
     await this.invitationService.markInvitationAsAccepted(
       dto.invitationCode,
-      caregiver._id.toString(),
+      caregiverUserId,
     );
 
     // Create patient-caregiver link in patient_caregivers table
     if (linkedPatientId) {
-      await this.patientsService.linkCaregiverToPatient(linkedPatientId, caregiver._id.toString());
+      await this.patientsService.linkCaregiverToPatient(
+        linkedPatientId,
+        caregiverUserId, // the user model id
+      );
     }
 
     // Generate and save email verification token
@@ -314,7 +382,7 @@ export class AuthService {
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await this.usersService.setEmailVerificationToken(
-      caregiver._id.toString(),
+      caregiverUserId,
       verificationToken,
       verificationExpires,
     );
@@ -328,13 +396,13 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Caregiver registration submitted. Please verify your email.',
+      message: "Caregiver registration submitted. Please verify your email.",
       data: {
-        _id: caregiver._id,
+        _id: caregiverUserId,
         fullName: caregiver.fullName,
         email: caregiver.email,
         role: caregiver.role,
-        accountStatus: caregiver.accountStatus,
+        accountStatus: authUser?.accountStatus || caregiver.accountStatus,
         linkedPatient: {
           id: linkedPatientId,
           name: linkedPatientName,
@@ -346,7 +414,7 @@ export class AuthService {
   async registerAdmin(dto: RegisterAdminDto) {
     // Validate passwords match
     if (dto.password !== dto.confirmPassword) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException("Passwords do not match");
     }
 
     // Validate all terms acceptance (only if provided)
@@ -357,7 +425,9 @@ export class AuthService {
         !dto.securityResponsibilityAccepted ||
         !dto.hipaaAccepted
       ) {
-        throw new BadRequestException('All terms and conditions must be accepted');
+        throw new BadRequestException(
+          "All terms and conditions must be accepted",
+        );
       }
     }
 
@@ -384,7 +454,9 @@ export class AuthService {
       );
 
       if (!isValidApproval) {
-        throw new BadRequestException('Invalid approval code or super admin email');
+        throw new BadRequestException(
+          "Invalid approval code or super admin email",
+        );
       }
     }
 
@@ -413,7 +485,7 @@ export class AuthService {
 
       return {
         success: true,
-        message: 'Admin registration successful.',
+        message: "Admin registration successful.",
         data: {
           _id: admin._id,
           fullName: admin.fullName,
@@ -426,7 +498,9 @@ export class AuthService {
     } catch (error: any) {
       // Handle duplicate key error
       if (error.code === 11000) {
-        throw new BadRequestException('An account with this email already exists');
+        throw new BadRequestException(
+          "An account with this email already exists",
+        );
       }
       throw error;
     }
@@ -450,17 +524,16 @@ export class AuthService {
     console.log(`📧 Verifying email with token: ${token}`);
     const user = await this.usersService.findByVerificationToken(token);
 
-
     if (!user) {
-      throw new BadRequestException('Invalid or expired verification token');
+      throw new BadRequestException("Invalid or expired verification token");
     }
 
     await this.usersService.verifyEmail(user._id.toString());
 
     const responseMessage =
       user.role === Role.THERAPIST || user.role === Role.ADMIN
-        ? 'Email verified successfully. Your account is pending admin approval.'
-        : 'Email verified successfully. You can now login.';
+        ? "Email verified successfully. Your account is pending admin approval."
+        : "Email verified successfully. You can now login.";
 
     return {
       success: true,
@@ -473,39 +546,53 @@ export class AuthService {
 
     if (!user) {
       console.error(`🔓 LOGIN_FAIL: User not found for email: ${dto.email}`);
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     const isPasswordValid = await user.comparePassword(dto.password);
 
     if (!isPasswordValid) {
       console.error(`🔓 LOGIN_FAIL: Password mismatch for email: ${dto.email}`);
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     // Check email verification first
     if (!user.isEmailVerified) {
-      throw new ForbiddenException('Please verify your email before logging in');
+      throw new ForbiddenException({
+        success: false,
+        error: "ACCOUNT_NOT_ACTIVE",
+        status: "PENDING_VERIFICATION",
+        message: "Please verify your email before logging in",
+      });
     }
 
     // CRITICAL: Check account status - MUST be ACTIVE to login
     if (user.accountStatus !== AccountStatus.ACTIVE) {
       const statusMessages = {
-        [AccountStatus.PENDING]: 'Your account is pending approval. Please wait for admin verification.',
-        [AccountStatus.PENDING_APPROVAL]: 'Your account is pending admin approval.',
-        [AccountStatus.PENDING_VERIFICATION]: 'Please verify your email before logging in.',
-        [AccountStatus.REJECTED]: 'Your account application was rejected. Please contact support at support@neurocare.com for more information.',
-        [AccountStatus.SUSPENDED]: 'Your account has been suspended. Please contact administrator for assistance.',
-        [AccountStatus.REVOKED]: 'Your account has been permanently deactivated. Please contact support at support@neurocare.com.',
-        [AccountStatus.DEACTIVATED]: 'Your account has been deactivated. Please contact administrator.',
-        [AccountStatus.DELETED]: 'Your account has been deleted. Please contact support at support@neurocare.com for more information.',
+        [AccountStatus.PENDING]:
+          "Your account is pending approval. Please wait for admin verification.",
+        [AccountStatus.PENDING_APPROVAL]:
+          "Your account is pending admin approval.",
+        [AccountStatus.PENDING_VERIFICATION]:
+          "Please verify your email before logging in.",
+        [AccountStatus.REJECTED]:
+          "Your account application was rejected. Please contact support at support@neurocare.com for more information.",
+        [AccountStatus.SUSPENDED]:
+          "Your account has been suspended. Please contact administrator for assistance.",
+        [AccountStatus.REVOKED]:
+          "Your account has been permanently deactivated. Please contact support at support@neurocare.com.",
+        [AccountStatus.DEACTIVATED]:
+          "Your account has been deactivated. Please contact administrator.",
+        [AccountStatus.DELETED]:
+          "Your account has been deleted. Please contact support at support@neurocare.com for more information.",
       };
 
       throw new ForbiddenException({
         success: false,
-        error: 'ACCOUNT_NOT_ACTIVE',
+        error: "ACCOUNT_NOT_ACTIVE",
         status: user.accountStatus,
-        message: statusMessages[user.accountStatus] || 'Your account is not active',
+        message:
+          statusMessages[user.accountStatus] || "Your account is not active",
       });
     }
 
@@ -513,9 +600,9 @@ export class AuthService {
     if (!user.isActive) {
       throw new ForbiddenException({
         success: false,
-        error: 'ACCOUNT_NOT_ACTIVE',
-        status: 'DEACTIVATED',
-        message: 'Your account has been deactivated',
+        error: "ACCOUNT_NOT_ACTIVE",
+        status: "DEACTIVATED",
+        message: "Your account has been deactivated",
       });
     }
 
@@ -531,7 +618,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       data: {
         _id: user._id,
         fullName: user.fullName,
@@ -552,7 +639,7 @@ export class AuthService {
       // Don't reveal if user exists
       return {
         success: true,
-        message: 'If the email exists, a password reset link will be sent.',
+        message: "If the email exists, a password reset link will be sent.",
       };
     }
 
@@ -573,26 +660,31 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'If the email exists, a password reset link will be sent.',
+      message: "If the email exists, a password reset link will be sent.",
     };
   }
 
-  async resetPassword(token: string, newPassword: string, confirmPassword: string) {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    confirmPassword: string,
+  ) {
     if (newPassword !== confirmPassword) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException("Passwords do not match");
     }
 
     const user = await this.usersService.findByPasswordResetToken(token);
 
     if (!user) {
-      throw new BadRequestException('Invalid or expired reset token');
+      throw new BadRequestException("Invalid or expired reset token");
     }
 
     await this.usersService.updatePassword(user._id.toString(), newPassword);
 
     return {
       success: true,
-      message: 'Password reset successful. You can now login with your new password.',
+      message:
+        "Password reset successful. You can now login with your new password.",
     };
   }
 
@@ -600,11 +692,11 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
-      throw new BadRequestException('User not found');
+      throw new BadRequestException("User not found");
     }
 
     if (user.isEmailVerified) {
-      throw new BadRequestException('Email is already verified');
+      throw new BadRequestException("Email is already verified");
     }
 
     const verificationToken = this.generateVerificationToken();
@@ -624,23 +716,23 @@ export class AuthService {
 
     return {
       success: true,
-      message: 'Verification email sent successfully.',
+      message: "Verification email sent successfully.",
     };
   }
 
   // Complete therapist onboarding
   async completeOnboarding(userId: string, dto: any) {
-    console.log('📋 Starting completeOnboarding for user:', userId);
-    console.log('📋 Onboarding data:', dto);
+    console.log("📋 Starting completeOnboarding for user:", userId);
+    console.log("📋 Onboarding data:", dto);
 
     const user = await this.usersService.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException("User not found");
     }
 
     if (user.role !== Role.THERAPIST) {
-      throw new ForbiddenException('Only therapists can complete onboarding');
+      throw new ForbiddenException("Only therapists can complete onboarding");
     }
 
     // Update user with onboarding information
@@ -650,24 +742,29 @@ export class AuthService {
       clinicAddress: dto.clinicAddress,
       specialties: dto.specialties,
       workingHours: dto.workingHours,
-      consultationFee: dto.consultationFee ? parseFloat(dto.consultationFee) || 0 : undefined,
+      consultationFee: dto.consultationFee
+        ? parseFloat(dto.consultationFee) || 0
+        : undefined,
     };
 
-    console.log('📋 Updating therapist with:', updateData);
+    console.log("📋 Updating therapist with:", updateData);
 
     await this.usersService.updateUser(userId, updateData as any);
 
     const updatedUser = await this.usersService.findById(userId);
 
     if (!updatedUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException("User not found");
     }
 
-    console.log('✅ Onboarding completed. User onboardingCompleted:', updatedUser.onboardingCompleted);
+    console.log(
+      "✅ Onboarding completed. User onboardingCompleted:",
+      updatedUser.onboardingCompleted,
+    );
 
     return {
       success: true,
-      message: 'Onboarding completed successfully',
+      message: "Onboarding completed successfully",
       user: {
         id: updatedUser._id,
         onboardingCompleted: updatedUser.onboardingCompleted,
@@ -678,7 +775,7 @@ export class AuthService {
   async getCurrentUser(userId: string) {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException("User not found");
     }
     return user;
   }
@@ -688,7 +785,7 @@ export class AuthService {
     // This method is a placeholder for any server-side logout logic, such as blacklisting tokens.
     return {
       success: true,
-      message: 'Logged out successfully',
+      message: "Logged out successfully",
     };
   }
 }

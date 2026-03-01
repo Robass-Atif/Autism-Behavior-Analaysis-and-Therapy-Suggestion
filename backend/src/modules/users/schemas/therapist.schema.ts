@@ -1,8 +1,8 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
-import { User } from './user.schema';
-import { TherapistTitle, LicenseType } from '../../../common/enums/role.enum';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
+import * as bcrypt from "bcryptjs";
+import { User } from "./user.schema";
+import { TherapistTitle, LicenseType } from "../../../common/enums/role.enum";
 
 export type TherapistDocument = Therapist & Document;
 
@@ -71,7 +71,7 @@ export class Therapist extends User {
   @Prop({ type: String, enum: TherapistTitle, required: true })
   professionalTitle: TherapistTitle;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   userId: Types.ObjectId;
 
   @Prop()
@@ -113,13 +113,16 @@ export class Therapist extends User {
   // Additional therapist-specific profile fields (not in User schema)
   @Prop()
   bio?: string;
+
+  @Prop()
+  yearsOfExperience?: number;
 }
 
 export const TherapistSchema = SchemaFactory.createForClass(Therapist);
 
 // Hash password before saving
-TherapistSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+TherapistSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);

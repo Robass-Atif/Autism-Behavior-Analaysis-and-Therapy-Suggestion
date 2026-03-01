@@ -4,14 +4,14 @@ import {
   ConflictException,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Patient } from './schemas/patient.schema';
-import { PatientCaregiver } from './schemas/patient-caregiver.schema';
-import { CreatePatientDto } from './dto/create-patient.dto';
-import { User, UserDocument } from '../users/schemas/user.schema';
-import { Role, AccountStatus } from '../../common/enums/role.enum';
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { Patient } from "./schemas/patient.schema";
+import { PatientCaregiver } from "./schemas/patient-caregiver.schema";
+import { CreatePatientDto } from "./dto/create-patient.dto";
+import { User, UserDocument } from "../users/schemas/user.schema";
+import { Role, AccountStatus } from "../../common/enums/role.enum";
 
 @Injectable()
 export class PatientsService {
@@ -20,19 +20,17 @@ export class PatientsService {
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     @InjectModel(PatientCaregiver.name)
     private patientCaregiverModel: Model<PatientCaregiver>,
-  ) { }
+  ) {}
 
   // Create new patient (therapist only)
   async createPatient(therapistId: string, dto: CreatePatientDto) {
-    const logger = new Logger('PatientsService');
+    const logger = new Logger("PatientsService");
 
     // Check if MRN already exists
     const existingPatient = await this.patientModel.findOne({ mrn: dto.mrn });
 
     if (existingPatient) {
-      throw new ConflictException(
-        `Patient with MRN ${dto.mrn} already exists`,
-      );
+      throw new ConflictException(`Patient with MRN ${dto.mrn} already exists`);
     }
 
     // Normalize credentials
@@ -61,7 +59,7 @@ export class PatientsService {
         ...dto,
         userId: savedUser._id,
         therapistId,
-        status: 'active',
+        status: "active",
         deleted: false,
       });
 
@@ -70,7 +68,7 @@ export class PatientsService {
 
       return {
         success: true,
-        message: 'Patient created successfully. Credentials generated.',
+        message: "Patient created successfully. Credentials generated.",
         credentials: {
           email: patientEmail,
           password: mrn,
@@ -114,8 +112,8 @@ export class PatientsService {
     // Search by name or MRN
     if (search) {
       query.$or = [
-        { fullName: { $regex: search, $options: 'i' } },
-        { mrn: { $regex: search, $options: 'i' } },
+        { fullName: { $regex: search, $options: "i" } },
+        { mrn: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -143,7 +141,8 @@ export class PatientsService {
         progressScore: p.progressScore,
         diagnosisDate: p.diagnosisDate,
         createdAt: p.createdAt,
-        caregiverName: p.emergencyContact?.name || (p as any).caregiverName || 'N/A',
+        caregiverName:
+          p.emergencyContact?.name || (p as any).caregiverName || "N/A",
       })),
       total,
       page,
@@ -157,26 +156,24 @@ export class PatientsService {
     const patient = await this.patientModel.findById(patientId);
 
     if (!patient || patient.deleted) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException("Patient not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST') {
+    if (userRole === "therapist") {
       if (patient.therapistId.toString() !== userId) {
-        throw new ForbiddenException(
-          'You can only access your own patients',
-        );
+        throw new ForbiddenException("You can only access your own patients");
       }
-    } else if (userRole === 'CAREGIVER') {
+    } else if (userRole === "caregiver") {
       // Check if caregiver is linked to this patient
       const link = await this.patientCaregiverModel.findOne({
         patientId: patient._id,
         caregiverId: userId,
-        status: 'active',
+        status: "active",
       });
 
       if (!link) {
-        throw new ForbiddenException('You do not have access to this patient');
+        throw new ForbiddenException("You do not have access to this patient");
       }
     }
 
@@ -193,7 +190,7 @@ export class PatientsService {
     // Find all patients belonging to this therapist
     const patients = await this.patientModel
       .find({ therapistId, deleted: false })
-      .select('_id')
+      .select("_id")
       .exec();
 
     const patientIds = patients.map((p) => p._id);
@@ -202,9 +199,9 @@ export class PatientsService {
     const links = await this.patientCaregiverModel
       .find({
         patientId: { $in: patientIds },
-        status: 'active',
+        status: "active",
       })
-      .populate('caregiverId')
+      .populate("caregiverId")
       .exec();
 
     // Return unique caregiver IDs
@@ -249,7 +246,7 @@ export class PatientsService {
         .find(query)
         .skip(skip)
         .limit(limit)
-        .populate('therapistId', 'fullName email')
+        .populate("therapistId", "fullName email")
         .sort({ createdAt: -1 })
         .exec(),
       this.patientModel.countDocuments(query),
@@ -265,7 +262,7 @@ export class PatientsService {
         status: p.status,
         asdSeverity: p.asdSeverity,
         progressScore: p.progressScore,
-        therapist: (p.therapistId as any)?.fullName || 'Unknown',
+        therapist: (p.therapistId as any)?.fullName || "Unknown",
         therapistEmail: (p.therapistId as any)?.email,
         createdAt: p.createdAt,
       })),
@@ -281,7 +278,7 @@ export class PatientsService {
     const patient = await this.patientModel.findById(patientId);
 
     if (!patient || patient.deleted) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException("Patient not found");
     }
 
     // Check if link already exists
@@ -291,41 +288,66 @@ export class PatientsService {
     });
 
     if (existingLink) {
-      if (existingLink.status === 'revoked') {
+      if (existingLink.status === "revoked") {
         // Reactivate revoked link
-        existingLink.status = 'active';
+        existingLink.status = "active";
         await existingLink.save();
-        return { success: true, message: 'Link reactivated' };
+        return { success: true, message: "Link reactivated" };
       }
-      return { success: true, message: 'Link already exists' };
+      return { success: true, message: "Link already exists" };
     }
 
     const link = new this.patientCaregiverModel({
       patientId,
       caregiverId,
-      status: 'active',
+      status: "active",
     });
 
     await link.save();
 
     return {
       success: true,
-      message: 'Caregiver linked to patient successfully',
+      message: "Caregiver linked to patient successfully",
     };
   }
 
   // Get caregiver's linked patients
   async getCaregiverPatients(caregiverId: string) {
+    let caregiverQuery: any = caregiverId;
+    try {
+      if (Types.ObjectId.isValid(caregiverId)) {
+        const objectId = new Types.ObjectId(caregiverId);
+        const idsToMatch = [caregiverId, objectId];
+
+        // Lookup User by auth ID
+        const user = await this.userModel.findById(objectId);
+        if (user && user.email) {
+          // Find caregiver profile by email
+          const CaregiverData = await this.patientModel.db
+            .model("Caregiver")
+            .findOne({ email: user.email.toLowerCase() });
+          if (CaregiverData) {
+            idsToMatch.push(CaregiverData._id.toString());
+            idsToMatch.push(CaregiverData._id);
+          }
+        }
+
+        caregiverQuery = { $in: idsToMatch };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     const links = await this.patientCaregiverModel
       .find({
-        caregiverId,
-        status: 'active',
+        caregiverId: caregiverQuery,
+        status: "active",
       })
       .populate({
-        path: 'patientId',
+        path: "patientId",
         populate: {
-          path: 'therapistId',
-          select: 'fullName email phone',
+          path: "therapistId",
+          select: "fullName email phone",
         },
       })
       .exec();
@@ -344,17 +366,19 @@ export class PatientsService {
           status: patient?.status,
           asdSeverity: patient?.asdSeverity,
           progressScore: patient?.progressScore,
-          therapist: therapist ? {
-            id: therapist._id,
-            name: therapist.fullName,
-            email: therapist.email,
-            phone: therapist.phone,
-          } : {
-            id: null,
-            name: 'Unknown Therapist',
-            email: '',
-            phone: '',
-          },
+          therapist: therapist
+            ? {
+                id: therapist._id,
+                name: therapist.fullName,
+                email: therapist.email,
+                phone: therapist.phone,
+              }
+            : {
+                id: null,
+                name: "Unknown Therapist",
+                email: "",
+                phone: "",
+              },
         };
       });
 
@@ -371,15 +395,13 @@ export class PatientsService {
     const patient = await this.patientModel.findById(patientId);
 
     if (!patient || patient.deleted) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException("Patient not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST') {
+    if (userRole === "therapist") {
       if (patient.therapistId.toString() !== userId) {
-        throw new ForbiddenException(
-          'You can only update your own patients',
-        );
+        throw new ForbiddenException("You can only update your own patients");
       }
     }
 
@@ -391,7 +413,7 @@ export class PatientsService {
 
     return {
       success: true,
-      message: 'Patient updated successfully',
+      message: "Patient updated successfully",
       patient: {
         id: patient._id,
         mrn: patient.mrn,
@@ -407,28 +429,26 @@ export class PatientsService {
     const patient = await this.patientModel.findById(patientId);
 
     if (!patient || patient.deleted) {
-      throw new NotFoundException('Patient not found');
+      throw new NotFoundException("Patient not found");
     }
 
     // Access control
-    if (userRole === 'THERAPIST') {
+    if (userRole === "therapist") {
       if (patient.therapistId.toString() !== userId) {
-        throw new ForbiddenException(
-          'You can only delete your own patients',
-        );
+        throw new ForbiddenException("You can only delete your own patients");
       }
     }
 
     // Soft delete
     patient.deleted = true;
-    patient.status = 'archived';
+    patient.status = "archived";
     patient.updatedAt = new Date();
 
     await patient.save();
 
     return {
       success: true,
-      message: 'Patient deleted successfully',
+      message: "Patient deleted successfully",
     };
   }
 
@@ -439,37 +459,39 @@ export class PatientsService {
   async calculatePatientProgress(patientId: string): Promise<number> {
     try {
       // Import TherapyGoal model dynamically to avoid circular dependency
-      const TherapyGoal = this.patientModel.db.model('TherapyGoal');
+      const TherapyGoal = this.patientModel.db.model("TherapyGoal");
 
       // Count total active goals (excluding discontinued)
       const totalGoals = await TherapyGoal.countDocuments({
         patientId,
         deleted: false,
-        status: { $ne: 'discontinued' },
+        status: { $ne: "discontinued" },
       });
 
       // Count achieved goals
       const achievedGoals = await TherapyGoal.countDocuments({
         patientId,
         deleted: false,
-        status: { $in: ['achieved', 'completed'] },
+        status: { $in: ["achieved", "completed"] },
       });
 
       // Calculate progress percentage
-      const progressScore = totalGoals > 0
-        ? Math.round((achievedGoals / totalGoals) * 100)
-        : 0;
+      const progressScore =
+        totalGoals > 0 ? Math.round((achievedGoals / totalGoals) * 100) : 0;
 
       // Update patient's progress score
       await this.patientModel.findByIdAndUpdate(
         patientId,
         { progressScore },
-        { new: true }
+        { new: true },
       );
 
       return progressScore;
     } catch (error) {
-      console.error(`Error calculating progress for patient ${patientId}:`, error);
+      console.error(
+        `Error calculating progress for patient ${patientId}:`,
+        error,
+      );
       return 0;
     }
   }
@@ -480,30 +502,36 @@ export class PatientsService {
 
   // Get patient's own profile (for patient role)
   async getPatientProfile(userId: string) {
-    const logger = new Logger('PatientsService');
+    const logger = new Logger("PatientsService");
     const user = await this.userModel.findById(userId);
 
     if (!user) {
       logger.error(`User record NOT FOUND for ID: ${userId}`);
-      throw new NotFoundException('User account not found');
+      throw new NotFoundException("User account not found");
     }
 
-    logger.log(`🔍 Attempting to find patient profile for User: ${user.email} (ID: ${userId})`);
+    logger.log(
+      `🔍 Attempting to find patient profile for User: ${user.email} (ID: ${userId})`,
+    );
 
     let patient = await this.patientModel.findOne({ userId });
 
     if (!patient) {
-      logger.warn(`Patient record NOT FOUND by userId: ${userId}. Attempting MRN fallback...`);
+      logger.warn(
+        `Patient record NOT FOUND by userId: ${userId}. Attempting MRN fallback...`,
+      );
 
       // Attempt to derive MRN from email if it follows the pattern mrn@patient...
-      const emailParts = user.email.split('@');
-      if (emailParts.length > 1 && emailParts[1].includes('patient')) {
+      const emailParts = user.email.split("@");
+      if (emailParts.length > 1 && emailParts[1].includes("patient")) {
         const derivedMrn = emailParts[0].toUpperCase();
         logger.log(`🔍 Derived MRN from email: ${derivedMrn}. Searching...`);
         patient = await this.patientModel.findOne({ mrn: derivedMrn });
 
         if (patient) {
-          logger.log(`✅ Found patient by MRN fallback: ${patient._id}. RELINKING userId...`);
+          logger.log(
+            `✅ Found patient by MRN fallback: ${patient._id}. RELINKING userId...`,
+          );
           // Fix the link if it was broken
           patient.userId = user._id as any;
           await patient.save();
@@ -513,11 +541,11 @@ export class PatientsService {
 
     if (!patient) {
       logger.error(`CRITICAL: No patient record found for user ${user.email}`);
-      throw new NotFoundException('Patient profile not found');
+      throw new NotFoundException("Patient profile not found");
     }
 
     if (patient.deleted) {
-      throw new NotFoundException('Patient profile is archived');
+      throw new NotFoundException("Patient profile is archived");
     }
 
     return this.formatPatientProfile(patient);

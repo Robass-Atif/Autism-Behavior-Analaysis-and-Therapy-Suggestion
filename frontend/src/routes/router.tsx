@@ -43,6 +43,7 @@ import CaregiverDashboard from "../components/screens/caregiver/CaregiverDashboa
 import GuidedVideoRecording from "../components/screens/caregiver/GuidedVideoRecording";
 import RecordingScheduleScreen from "../components/screens/caregiver/RecordingScheduleScreen";
 import CaregiverReportsScreen from "../components/screens/caregiver/CaregiverReportsScreen";
+import CaregiverVideoLibrary from "../components/screens/caregiver/CaregiverVideoLibrary";
 
 // Admin Screens
 import AdminDashboard from "../components/screens/admin/AdminDashboard";
@@ -50,6 +51,9 @@ import TherapistApplicationsScreen from "../components/screens/admin/TherapistAp
 import UserManagementScreen from "../components/screens/admin/UserManagementScreen";
 import SystemHealthScreen from "../components/screens/admin/SystemHealthScreen";
 import AuditLogScreen from "../components/screens/admin/AuditLogScreen";
+
+// Shared Screens
+import ProfileScreen from "../components/screens/shared/ProfileScreen";
 
 // Auth check helper
 const isAuthenticated = () => {
@@ -163,8 +167,8 @@ export const handleScreenNavigation = (screen: Screen, data?: any) => {
     path = "/patients/$patientId";
     params = { patientId: data.patientId };
   } else if (screen === Screen.VIDEO_REVIEW && data?.videoId) {
-    path = "/videos/$videoId";
-    params = { videoId: data.videoId };
+    path = "/sessions/$sessionId/report";
+    params = { sessionId: data.videoId };
   } else {
     path = routes[screen] || "";
   }
@@ -263,7 +267,11 @@ export const videoLibraryRoute = createRoute({
 export const videoReviewRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/videos/$videoId",
-  component: VideoReviewInterface,
+  component: () => {
+    const params = (videoReviewRoute as any).useParams();
+    window.location.replace(`/sessions/${params.videoId}/report`);
+    return null;
+  },
 });
 
 // New: Pending Review Queue
@@ -367,6 +375,12 @@ export const caregiverReportsRoute = createRoute({
   component: CaregiverReportsScreen,
 });
 
+export const caregiverLibraryRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/caregiver/videos",
+  component: CaregiverVideoLibrary,
+});
+
 // Admin routes
 export const adminDashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
@@ -425,6 +439,12 @@ export const auditLogRoute = createRoute({
   component: AuditLogScreen,
 });
 
+export const profileRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile",
+  component: ProfileScreen,
+});
+
 // Index redirect
 export const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -475,11 +495,13 @@ const routeTree = rootRoute.addChildren([
     videoRecordingRoute,
     recordingScheduleRoute,
     caregiverReportsRoute,
+    caregiverLibraryRoute,
     adminDashboardRoute,
     therapistApplicationsRoute,
     userManagementRoute,
     systemHealthRoute,
     auditLogRoute,
+    profileRoute,
   ]),
 ]);
 

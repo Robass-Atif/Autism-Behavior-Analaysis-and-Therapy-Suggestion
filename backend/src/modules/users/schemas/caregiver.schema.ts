@@ -1,8 +1,8 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
-import { User } from './user.schema';
-import { RelationshipType, Language } from '../../../common/enums/role.enum';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
+import * as bcrypt from "bcryptjs";
+import { User } from "./user.schema";
+import { RelationshipType, Language } from "../../../common/enums/role.enum";
 
 export type CaregiverDocument = Caregiver & Document;
 
@@ -47,10 +47,10 @@ export class Caregiver extends User {
   @Prop()
   invitationCode?: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Therapist' })
+  @Prop({ type: Types.ObjectId, ref: "Therapist" })
   invitedBy?: Types.ObjectId;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Patient' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: "Patient" }] })
   assignedPatients?: Types.ObjectId[];
 
   @Prop({ type: EmergencyContact })
@@ -72,8 +72,8 @@ export class Caregiver extends User {
 export const CaregiverSchema = SchemaFactory.createForClass(Caregiver);
 
 // Hash password before saving
-CaregiverSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+CaregiverSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);

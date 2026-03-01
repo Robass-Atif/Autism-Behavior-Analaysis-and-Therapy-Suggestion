@@ -73,7 +73,7 @@ export default function VideoLibraryScreen() {
   ];
 
   const handleViewVideo = (videoId: string) => {
-    window.location.href = `/videos/${videoId}`;
+    window.location.href = `/sessions/${videoId}/report`;
   };
 
   const getStatusStyle = (status?: string) => {
@@ -477,9 +477,14 @@ export default function VideoLibraryScreen() {
                   <h3 className="font-black text-zinc-900 text-sm uppercase tracking-tight truncate mb-1">
                     {video.actionType?.replace(/_/g, " ") || "Untitled Session"}
                   </h3>
-                  <p className="text-xs text-zinc-600 mb-4 truncate uppercase tracking-wider font-bold">
+                  <p className="text-xs text-zinc-600 mb-1 truncate uppercase tracking-wider font-bold">
                     {video.patientName}
                   </p>
+                  {video.caregiverName && (
+                    <p className="text-[10px] text-zinc-400 mb-3 truncate uppercase tracking-wider font-bold">
+                      Uploaded by: {video.caregiverName}
+                    </p>
+                  )}
 
                   <div className="flex items-center gap-2 mb-4">
                     <span
@@ -608,9 +613,14 @@ export default function VideoLibraryScreen() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider block">
                         {video.patientName}
                       </span>
+                      {video.caregiverName && (
+                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">
+                          By: {video.caregiverName}
+                        </span>
+                      )}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2 text-xs text-zinc-600 font-bold uppercase tracking-wider">

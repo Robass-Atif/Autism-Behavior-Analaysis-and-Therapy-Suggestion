@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "@tanstack/react-router";
 import { UserStatus } from "../../../types";
-import { useLogin } from "../../../api/auth";
+import { useLogin, useResendVerification } from "../../../api/auth";
+import toast from "react-hot-toast";
 import {
   Eye,
   EyeOff,
@@ -19,6 +20,7 @@ import {
   Clock,
   XCircle,
   UserX,
+  Send,
 } from "lucide-react";
 
 // Zod Schema for Validation
@@ -33,11 +35,14 @@ export default function LoginScreen() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
+  const [userStatus, setUserStatus] = useState<UserStatus | string | null>(
+    null,
+  );
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
@@ -48,6 +53,22 @@ export default function LoginScreen() {
   });
 
   const loginMutation = useLogin();
+  const resendMutation = useResendVerification();
+
+  const handleResendVerification = async () => {
+    const email = getValues("email");
+    if (!email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+
+    try {
+      await resendMutation.mutateAsync(email);
+      toast.success("Verification email resent!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend verification email");
+    }
+  };
 
   const onSubmit = (data: LoginFormInputs) => {
     setLoginError(null);
@@ -89,6 +110,12 @@ export default function LoginScreen() {
               setLoginError("Account rejected");
             } else if (error.response.data.status === UserStatus.SUSPENDED) {
               setLoginError("Account suspended");
+            } else if (
+              error.response.data.status === UserStatus.PENDING_VERIFICATION ||
+              error.response.data.status === "PENDING_VERIFICATION" ||
+              error.response.data.status === "pending_verification"
+            ) {
+              setLoginError("Email not verified");
             }
           } else {
             setLoginError("Invalid credentials");
@@ -140,6 +167,37 @@ export default function LoginScreen() {
                 Account temporarily suspended. Contact administrator.
               </p>
             </div>
+          </div>
+        );
+      case UserStatus.PENDING_VERIFICATION:
+      case "PENDING_VERIFICATION":
+      case "pending_verification":
+        return (
+          <div className="flex flex-col gap-4 bg-zinc-900 p-4 border border-zinc-700">
+            <div className="flex items-start gap-3">
+              <Mail className="flex-shrink-0 mt-0.5 w-4 h-4 text-emerald-500" />
+              <div className="font-mono text-xs">
+                <p className="text-emerald-500 uppercase tracking-wider">
+                  &gt; STATUS: EMAIL VERIFICATION REQUIRED
+                </p>
+                <p className="mt-1 text-zinc-400">
+                  Please check your inbox and verify your email address to
+                  continue.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleResendVerification}
+              disabled={resendMutation.isPending}
+              className="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 py-2 w-full font-bold text-white text-[10px] uppercase tracking-widest transition-colors border border-zinc-700"
+            >
+              {resendMutation.isPending ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <Send size={12} />
+              )}
+              RESEND VERIFICATION EMAIL
+            </button>
           </div>
         );
       default:
@@ -268,7 +326,7 @@ export default function LoginScreen() {
               {/* Email Field */}
               <div>
                 <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
-                  EMAIL 
+                  EMAIL
                 </label>
                 <div className="relative">
                   <Mail className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />
@@ -293,7 +351,7 @@ export default function LoginScreen() {
               {/* Password Field */}
               <div>
                 <label className="block mb-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
-                  PASSWORD 
+                  PASSWORD
                 </label>
                 <div className="relative">
                   <Lock className="top-3.5 left-4 absolute w-4 h-4 text-zinc-400" />

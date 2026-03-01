@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../lib/apiClient';
-import { DASHBOARD_ENDPOINTS } from '../config/apiConfig';
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "../lib/apiClient";
+import { DASHBOARD_ENDPOINTS } from "../config/apiConfig";
 
 // Dashboard Statistics Types
 export interface TherapistDashboardStats {
@@ -45,23 +45,30 @@ export interface AdminDashboardStats {
 }
 
 // Therapist Dashboard Stats
-export const useTherapistDashboardStats = () => {
+export const useTherapistDashboardStats = (
+  options: { enabled?: boolean } = {},
+) => {
   return useQuery({
-    queryKey: ['therapist-dashboard-stats'],
+    queryKey: ["therapist-dashboard-stats"],
     queryFn: async (): Promise<TherapistDashboardStats> => {
-      return apiClient.get<TherapistDashboardStats>(DASHBOARD_ENDPOINTS.THERAPIST_STATS);
+      return apiClient.get<TherapistDashboardStats>(
+        DASHBOARD_ENDPOINTS.THERAPIST_STATS,
+      );
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 5 * 60 * 1000, // Auto-refetch every 5 minutes
+    ...options,
   });
 };
 
 // Caregiver Dashboard Stats
 export const useCaregiverDashboardStats = () => {
   return useQuery({
-    queryKey: ['caregiver-dashboard-stats'],
+    queryKey: ["caregiver-dashboard-stats"],
     queryFn: async (): Promise<CaregiverDashboardStats> => {
-      return apiClient.get<CaregiverDashboardStats>(DASHBOARD_ENDPOINTS.CAREGIVER_STATS);
+      return apiClient.get<CaregiverDashboardStats>(
+        DASHBOARD_ENDPOINTS.CAREGIVER_STATS,
+      );
     },
     staleTime: 2 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
@@ -71,9 +78,11 @@ export const useCaregiverDashboardStats = () => {
 // Admin Dashboard Stats
 export const useAdminDashboardStats = () => {
   return useQuery({
-    queryKey: ['admin-dashboard-stats'],
+    queryKey: ["admin-dashboard-stats"],
     queryFn: async (): Promise<AdminDashboardStats> => {
-      return apiClient.get<AdminDashboardStats>(DASHBOARD_ENDPOINTS.ADMIN_STATS);
+      return apiClient.get<AdminDashboardStats>(
+        DASHBOARD_ENDPOINTS.ADMIN_STATS,
+      );
     },
     staleTime: 2 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,

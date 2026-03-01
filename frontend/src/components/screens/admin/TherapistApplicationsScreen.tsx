@@ -488,7 +488,16 @@ const TherapistApplicationsScreen: React.FC<
                         </td>
                         <td className="px-4 py-4 text-right">
                           <div className="flex justify-end items-center gap-2">
-                            {isPending ? (
+                            <button
+                              onClick={() => {
+                                setExpandedApp(app.id);
+                              }}
+                              className="flex items-center gap-1 hover:bg-zinc-50 px-3 py-1.5 border-2 border-zinc-200 hover:border-zinc-300 text-zinc-600 text-xs uppercase tracking-wider"
+                            >
+                              <Eye size={12} />
+                              VIEW
+                            </button>
+                            {isPending && (
                               <>
                                 <button
                                   onClick={() =>
@@ -511,16 +520,6 @@ const TherapistApplicationsScreen: React.FC<
                                   REJECT
                                 </button>
                               </>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setExpandedApp(app.id);
-                                }}
-                                className="flex items-center gap-1 hover:bg-zinc-50 px-3 py-1.5 border-2 border-zinc-200 hover:border-zinc-300 text-zinc-600 text-xs uppercase tracking-wider"
-                              >
-                                <Eye size={12} />
-                                VIEW
-                              </button>
                             )}
                           </div>
                         </td>

@@ -53,7 +53,9 @@ export default function MainLayout() {
   const router = useRouterState();
   const pathname = router.location.pathname;
 
-  const { data: therapistStats } = useTherapistDashboardStats();
+  const { data: therapistStats } = useTherapistDashboardStats({
+    enabled: normalizedRole === UserRole.THERAPIST,
+  });
   const pendingCount = therapistStats?.pendingReviews || 0;
 
   const handleLogout = () => {
@@ -150,7 +152,7 @@ export default function MainLayout() {
                 label="Data Sync"
               />
               <NavItem
-                to="/settings"
+                to="/profile"
                 icon={<Settings size={16} />}
                 label="Settings"
               />
@@ -173,6 +175,11 @@ export default function MainLayout() {
                 to="/caregiver/schedule"
                 icon={<Calendar size={16} />}
                 label="Care Schedule"
+              />
+              <NavItem
+                to="/caregiver/videos"
+                icon={<Video size={16} />}
+                label="Upload History"
               />
               <NavItem
                 to="/caregiver/reports"
@@ -313,8 +320,11 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-zinc-50 border border-zinc-100 shadow-sm">
-      <div className="w-8 h-8 rounded bg-zinc-900 flex items-center justify-center text-[10px] font-black text-white border-2 border-zinc-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]">
+    <Link
+      to="/profile"
+      className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-zinc-50 border border-zinc-100 shadow-sm hover:border-zinc-300 transition-all group"
+    >
+      <div className="w-8 h-8 rounded bg-zinc-900 flex items-center justify-center text-[10px] font-black text-white border-2 border-zinc-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] group-hover:scale-105 transition-transform">
         {userName.charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
@@ -328,6 +338,6 @@ const UserProfile = () => {
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
