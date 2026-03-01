@@ -56,7 +56,6 @@ export const useTherapistDashboardStats = (
       );
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 5 * 60 * 1000, // Auto-refetch every 5 minutes
     ...options,
   });
 };
@@ -71,7 +70,6 @@ export const useCaregiverDashboardStats = () => {
       );
     },
     staleTime: 2 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
   });
 };
 
@@ -85,7 +83,6 @@ export const useAdminDashboardStats = () => {
       );
     },
     staleTime: 2 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
   });
 };
 

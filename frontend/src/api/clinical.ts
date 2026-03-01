@@ -146,8 +146,7 @@ export const useRecentSessions = () => {
         CLINICAL_ENDPOINTS.LIST_VIDEO_SESSIONS,
       );
     },
-    staleTime: 2 * 1000,
-    refetchInterval: 10 * 1000, // Auto-poll every 10s
+    staleTime: 60 * 1000,
   });
 };
 
@@ -159,8 +158,7 @@ export const usePendingReviewSessions = () => {
         CLINICAL_ENDPOINTS.LIST_VIDEO_SESSIONS,
       );
     },
-    staleTime: 2 * 1000,
-    refetchInterval: 5 * 1000, // Auto-poll every 5s for processing queue
+    staleTime: 60 * 1000,
     select: (data) => ({
       sessions: data.sessions.filter(
         (s) =>
@@ -191,8 +189,7 @@ export const useVideoSession = (sessionId: string) => {
       );
     },
     enabled: !!sessionId,
-    staleTime: 2 * 1000,
-    refetchInterval: 5 * 1000, // Auto-poll every 5s for live updates
+    staleTime: 60 * 1000,
   });
 };
 

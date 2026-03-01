@@ -1,54 +1,118 @@
-import React, { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  Users, Search, Filter, MoreVertical, CheckCircle, XCircle, AlertCircle,
-  Shield, User, Heart, Mail, Calendar, Loader2, RefreshCw, ChevronLeft,
-  ChevronRight, Eye, Edit, Trash2, UserCheck, UserX, X,
-  Terminal, Activity
-} from 'lucide-react';
-import UserProfileDetails from './UserProfileDetails';
+  Users,
+  Search,
+  Filter,
+  MoreVertical,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Shield,
+  User,
+  Heart,
+  Mail,
+  Calendar,
+  Loader2,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Edit,
+  Trash2,
+  UserCheck,
+  UserX,
+  X,
+  Terminal,
+  Activity,
+} from "lucide-react";
+import UserProfileDetails from "./UserProfileDetails";
 import {
-  useAdminUsers, useSuspendUser, useActivateUser, useDeleteUser,
-  useAdminUserDetails, useUpdateUser, User as UserType
-} from '../../../api/admin';
+  useAdminUsers,
+  useSuspendUser,
+  useActivateUser,
+  useDeleteUser,
+  useAdminUserDetails,
+  useUpdateUser,
+  User as UserType,
+} from "../../../api/admin";
 
 interface UserManagementScreenProps {
   onBack?: () => void;
 }
 
-const ROLE_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
-  admin: { label: 'ADMIN', icon: Shield, color: 'bg-zinc-900 text-white' },
-  therapist: { label: 'THERAPIST', icon: User, color: 'bg-zinc-700 text-white' },
-  caregiver: { label: 'CAREGIVER', icon: Heart, color: 'bg-zinc-500 text-white' },
-  patient: { label: 'PATIENT', icon: User, color: 'bg-blue-500 text-white' },
-};
+const ROLE_CONFIG: Record<string, { label: string; icon: any; color: string }> =
+  {
+    admin: { label: "ADMIN", icon: Shield, color: "bg-zinc-900 text-white" },
+    therapist: {
+      label: "THERAPIST",
+      icon: User,
+      color: "bg-zinc-700 text-white",
+    },
+    caregiver: {
+      label: "CAREGIVER",
+      icon: Heart,
+      color: "bg-zinc-500 text-white",
+    },
+    patient: { label: "PATIENT", icon: User, color: "bg-blue-500 text-white" },
+  };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: 'ACTIVE', color: 'bg-green-100 text-green-700 border-green-200' },
-  pending: { label: 'PENDING', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  suspended: { label: 'SUSPENDED', color: 'bg-red-100 text-red-700 border-red-200' },
-  rejected: { label: 'REJECTED', color: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
+  active: {
+    label: "ACTIVE",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+  pending: {
+    label: "PENDING",
+    color: "bg-amber-100 text-amber-700 border-amber-200",
+  },
+  pending_approval: {
+    label: "PENDING APPROVAL",
+    color: "bg-amber-100 text-amber-700 border-amber-200 border-dashed",
+  },
+  pending_verification: {
+    label: "PENDING VERIFICATION",
+    color: "bg-zinc-100 text-zinc-700 border-zinc-200",
+  },
+  suspended: {
+    label: "SUSPENDED",
+    color: "bg-red-100 text-red-700 border-red-200",
+  },
+  rejected: {
+    label: "REJECTED",
+    color: "bg-zinc-100 text-zinc-700 border-zinc-200",
+  },
 };
 
-export default function UserManagementScreen({ onBack }: UserManagementScreenProps) {
+export default function UserManagementScreen({
+  onBack,
+}: UserManagementScreenProps) {
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editForm, setEditForm] = useState({ fullName: '', email: '', role: '' });
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    email: "",
+    role: "",
+  });
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
 
-  const { data: usersData, isLoading, refetch } = useAdminUsers({
+  const {
+    data: usersData,
+    isLoading,
+    refetch,
+  } = useAdminUsers({
     page,
     limit: 10,
     search: searchQuery,
-    role: roleFilter !== 'all' ? roleFilter : undefined,
-    status: statusFilter !== 'all' ? statusFilter : undefined,
+    role: roleFilter !== "all" ? roleFilter : undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
   });
 
   const suspendMutation = useSuspendUser();
@@ -67,7 +131,11 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
 
   const handleEditUser = (user: UserType) => {
     setSelectedUser(user);
-    setEditForm({ fullName: user.fullName, email: user.email, role: user.role });
+    setEditForm({
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+    });
     setShowEditModal(true);
     setActionMenuOpen(null);
   };
@@ -87,24 +155,30 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
             setShowEditModal(false);
             refetch();
           },
-        }
+        },
       );
     }
   };
 
   const handleConfirmDelete = () => {
     if (selectedUser) {
-      deleteMutation.mutate({ id: selectedUser.id }, {
-        onSuccess: () => {
-          setShowDeleteModal(false);
-          refetch();
+      deleteMutation.mutate(
+        { id: selectedUser.id },
+        {
+          onSuccess: () => {
+            setShowDeleteModal(false);
+            refetch();
+          },
         },
-      });
+      );
     }
   };
 
   const handleSuspend = (userId: string) => {
-    suspendMutation.mutate({ id: userId, reason: 'Admin Action' }, { onSuccess: () => refetch() });
+    suspendMutation.mutate(
+      { id: userId, reason: "Admin Action" },
+      { onSuccess: () => refetch() },
+    );
     setActionMenuOpen(null);
   };
 
@@ -123,7 +197,9 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
               <Users size={20} />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight uppercase">User Management</h1>
+              <h1 className="text-xl font-bold tracking-tight uppercase">
+                User Management
+              </h1>
               <p className="text-xs text-zinc-400 uppercase tracking-wider mt-0.5">
                 Manage all platform users
               </p>
@@ -145,7 +221,10 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
           <div className="flex flex-wrap gap-4 items-center">
             {/* Search */}
             <div className="relative flex-1 min-w-[250px]">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+              />
               <input
                 type="text"
                 value={searchQuery}
@@ -182,6 +261,10 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
                 <option value="all">ALL</option>
                 <option value="active">ACTIVE</option>
                 <option value="pending">PENDING</option>
+                <option value="pending_approval">PENDING APPROVAL</option>
+                <option value="pending_verification">
+                  PENDING VERIFICATION
+                </option>
                 <option value="suspended">SUSPENDED</option>
               </select>
             </div>
@@ -205,41 +288,62 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
               {isLoading ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center">
-                    <Loader2 size={24} className="animate-spin mx-auto text-zinc-400" />
-                    <p className="text-xs text-zinc-500 mt-2 uppercase">Loading users...</p>
+                    <Loader2
+                      size={24}
+                      className="animate-spin mx-auto text-zinc-400"
+                    />
+                    <p className="text-xs text-zinc-500 mt-2 uppercase">
+                      Loading users...
+                    </p>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-zinc-500 text-sm">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-12 text-center text-zinc-500 text-sm"
+                  >
                     No users found
                   </td>
                 </tr>
               ) : (
                 users.map((user: UserType) => {
-                  const roleConfig = ROLE_CONFIG[user.role] || ROLE_CONFIG.caregiver;
-                  const statusConfig = STATUS_CONFIG[user.status] || STATUS_CONFIG.active;
+                  const roleConfig =
+                    ROLE_CONFIG[user.role] || ROLE_CONFIG.caregiver;
+                  const statusConfig =
+                    STATUS_CONFIG[user.status] || STATUS_CONFIG.active;
                   const RoleIcon = roleConfig.icon;
 
                   return (
-                    <tr key={user.id} className="border-b border-zinc-100 hover:bg-zinc-50">
+                    <tr
+                      key={user.id}
+                      className="border-b border-zinc-100 hover:bg-zinc-50"
+                    >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 bg-zinc-200 flex items-center justify-center text-zinc-600 font-bold text-sm">
-                            {user.fullName?.charAt(0)?.toUpperCase() || '?'}
+                            {user.fullName?.charAt(0)?.toUpperCase() || "?"}
                           </div>
-                          <span className="font-medium text-zinc-900">{user.fullName}</span>
+                          <span className="font-medium text-zinc-900">
+                            {user.fullName}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-sm text-zinc-600 font-mono">{user.email}</td>
+                      <td className="px-4 py-4 text-sm text-zinc-600 font-mono">
+                        {user.email}
+                      </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase ${roleConfig.color}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase ${roleConfig.color}`}
+                        >
                           <RoleIcon size={10} />
                           {roleConfig.label}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`px-2 py-1 text-[10px] font-bold uppercase border ${statusConfig.color}`}>
+                        <span
+                          className={`px-2 py-1 text-[10px] font-bold uppercase border ${statusConfig.color}`}
+                        >
                           {statusConfig.label}
                         </span>
                       </td>
@@ -248,7 +352,11 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
                       </td>
                       <td className="px-4 py-4 text-right relative">
                         <button
-                          onClick={() => setActionMenuOpen(actionMenuOpen === user.id ? null : user.id)}
+                          onClick={() =>
+                            setActionMenuOpen(
+                              actionMenuOpen === user.id ? null : user.id,
+                            )
+                          }
                           className="p-2 hover:bg-zinc-100 transition-colors"
                         >
                           <MoreVertical size={16} className="text-zinc-500" />
@@ -270,7 +378,7 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
                               <Edit size={14} />
                               Edit User
                             </button>
-                            {user.status === 'active' ? (
+                            {user.status === "active" ? (
                               <button
                                 onClick={() => handleSuspend(user.id)}
                                 className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-amber-600 hover:bg-amber-50 text-left uppercase"
@@ -311,7 +419,7 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="p-2 border-2 border-zinc-200 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -321,7 +429,7 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
                 {page} / {totalPages}
               </span>
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="p-2 border-2 border-zinc-200 hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -343,28 +451,42 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
           actions={
             <>
               <button
-                onClick={() => { setShowViewModal(false); handleEditUser(selectedUser); }}
+                onClick={() => {
+                  setShowViewModal(false);
+                  handleEditUser(selectedUser);
+                }}
                 className="px-4 py-2 border-2 border-zinc-200 text-zinc-700 text-xs uppercase tracking-wider hover:bg-zinc-100 flex items-center gap-2"
               >
                 <Edit size={14} /> Edit
               </button>
-              {selectedUser.status !== 'suspended' ? (
+              {selectedUser.status !== "suspended" ? (
                 <button
-                  onClick={() => { setShowViewModal(false); handleSuspend(selectedUser.id); }}
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleSuspend(selectedUser.id);
+                  }}
                   className="px-4 py-2 border-2 border-amber-200 text-amber-700 text-xs uppercase tracking-wider hover:bg-amber-50 flex items-center gap-2"
                 >
                   <UserX size={14} /> Suspend
                 </button>
               ) : (
                 <button
-                  onClick={() => { setShowViewModal(false); handleActivate(selectedUser.id); }}
+                  onClick={() => {
+                    setShowViewModal(false);
+                    handleActivate(selectedUser.id);
+                  }}
                   className="px-4 py-2 border-2 border-green-200 text-green-700 text-xs uppercase tracking-wider hover:bg-green-50 flex items-center gap-2"
                 >
                   <UserCheck size={14} /> Activate
                 </button>
               )}
               <button
-                onClick={() => { setShowViewModal(false); setActionMenuOpen(null); setSelectedUser(selectedUser); setShowDeleteModal(true); }}
+                onClick={() => {
+                  setShowViewModal(false);
+                  setActionMenuOpen(null);
+                  setSelectedUser(selectedUser);
+                  setShowDeleteModal(true);
+                }}
                 className="px-4 py-2 bg-red-600 text-white text-xs uppercase tracking-wider hover:bg-red-700 flex items-center gap-2"
               >
                 <Trash2 size={14} /> Delete
@@ -380,34 +502,49 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
           <div className="bg-white border-2 border-zinc-200 w-full max-w-md">
             <div className="flex items-center justify-between px-6 py-4 bg-black text-white">
               <h3 className="font-bold uppercase tracking-wider">Edit User</h3>
-              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-white/20">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-1 hover:bg-white/20"
+              >
                 <X size={18} />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-xs text-zinc-500 uppercase mb-2">Name</label>
+                <label className="block text-xs text-zinc-500 uppercase mb-2">
+                  Name
+                </label>
                 <input
                   type="text"
                   value={editForm.fullName}
-                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, fullName: e.target.value })
+                  }
                   className="w-full px-4 py-2.5 border-2 border-zinc-200 font-mono focus:outline-none focus:border-black"
                 />
               </div>
               <div>
-                <label className="block text-xs text-zinc-500 uppercase mb-2">Email</label>
+                <label className="block text-xs text-zinc-500 uppercase mb-2">
+                  Email
+                </label>
                 <input
                   type="email"
                   value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
                   className="w-full px-4 py-2.5 border-2 border-zinc-200 font-mono focus:outline-none focus:border-black"
                 />
               </div>
               <div>
-                <label className="block text-xs text-zinc-500 uppercase mb-2">Role</label>
+                <label className="block text-xs text-zinc-500 uppercase mb-2">
+                  Role
+                </label>
                 <select
                   value={editForm.role}
-                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, role: e.target.value })
+                  }
                   className="w-full px-4 py-2.5 border-2 border-zinc-200 font-mono focus:outline-none focus:border-black"
                 >
                   <option value="admin">ADMIN</option>
@@ -429,7 +566,7 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
                 disabled={updateMutation.isPending}
                 className="flex-1 py-2.5 bg-black text-white text-xs uppercase tracking-wider hover:bg-zinc-800 disabled:opacity-50"
               >
-                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
@@ -441,14 +578,21 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white border-2 border-zinc-200 w-full max-w-md">
             <div className="flex items-center justify-between px-6 py-4 bg-red-600 text-white">
-              <h3 className="font-bold uppercase tracking-wider">Confirm Delete</h3>
-              <button onClick={() => setShowDeleteModal(false)} className="p-1 hover:bg-red-700">
+              <h3 className="font-bold uppercase tracking-wider">
+                Confirm Delete
+              </h3>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="p-1 hover:bg-red-700"
+              >
                 <X size={18} />
               </button>
             </div>
             <div className="p-6">
               <p className="text-zinc-700">
-                Are you sure you want to delete user <strong>{selectedUser.fullName}</strong>? This action cannot be undone.
+                Are you sure you want to delete user{" "}
+                <strong>{selectedUser.fullName}</strong>? This action cannot be
+                undone.
               </p>
             </div>
             <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex gap-3">
@@ -463,7 +607,7 @@ export default function UserManagementScreen({ onBack }: UserManagementScreenPro
                 disabled={deleteMutation.isPending}
                 className="flex-1 py-2.5 bg-red-600 text-white text-xs uppercase tracking-wider hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete User'}
+                {deleteMutation.isPending ? "Deleting..." : "Delete User"}
               </button>
             </div>
           </div>
