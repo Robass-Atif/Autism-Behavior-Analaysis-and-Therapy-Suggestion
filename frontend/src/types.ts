@@ -5,11 +5,13 @@ export enum UserRole {
 }
 
 export enum UserStatus {
-  PENDING = "PENDING",
-  PENDING_VERIFICATION = "PENDING_VERIFICATION",
-  ACTIVE = "ACTIVE",
-  REJECTED = "REJECTED",
-  SUSPENDED = "SUSPENDED",
+  PENDING = "pending",
+  PENDING_VERIFICATION = "pending_verification",
+  PENDING_APPROVAL = "pending_approval",
+  ACTIVE = "active",
+  REJECTED = "rejected",
+  SUSPENDED = "suspended",
+  REVOKED = "revoked",
 }
 
 export enum Screen {

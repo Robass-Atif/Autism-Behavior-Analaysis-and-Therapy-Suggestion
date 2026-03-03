@@ -79,21 +79,25 @@ export default function LoginScreen() {
       {
         onSuccess: (response: any) => {
           const userData = response.data || response.user || response;
-          const status = userData?.accountStatus || userData?.status;
+          const status = (
+            userData?.accountStatus ||
+            userData?.status ||
+            ""
+          ).toLowerCase();
 
-          if (status === UserStatus.PENDING || status === "pending") {
-            setUserStatus(UserStatus.PENDING);
+          if (status === "pending" || status === "pending_approval") {
+            setUserStatus(UserStatus.PENDING_APPROVAL);
             setLoginError("Account pending approval");
             return;
           }
 
-          if (status === UserStatus.REJECTED || status === "rejected") {
+          if (status === "rejected") {
             setUserStatus(UserStatus.REJECTED);
             setLoginError("Account application rejected");
             return;
           }
 
-          if (status === UserStatus.SUSPENDED || status === "suspended") {
+          if (status === "suspended" || status === "revoked") {
             setUserStatus(UserStatus.SUSPENDED);
             setLoginError("Account suspended");
             return;
@@ -103,22 +107,26 @@ export default function LoginScreen() {
         },
         onError: (error: any) => {
           if (error.response?.data?.status) {
-            setUserStatus(error.response.data.status);
-            if (error.response.data.status === UserStatus.PENDING) {
+            const rawStatus = (error.response.data.status || "").toLowerCase();
+            setUserStatus(rawStatus);
+
+            if (rawStatus === "pending" || rawStatus === "pending_approval") {
               setLoginError("Account pending approval");
-            } else if (error.response.data.status === UserStatus.REJECTED) {
+            } else if (rawStatus === "rejected") {
               setLoginError("Account rejected");
-            } else if (error.response.data.status === UserStatus.SUSPENDED) {
+            } else if (rawStatus === "suspended" || rawStatus === "revoked") {
               setLoginError("Account suspended");
-            } else if (
-              error.response.data.status === UserStatus.PENDING_VERIFICATION ||
-              error.response.data.status === "PENDING_VERIFICATION" ||
-              error.response.data.status === "pending_verification"
-            ) {
+            } else if (rawStatus === "pending_verification") {
               setLoginError("Email not verified");
+            } else {
+              setLoginError(
+                error.response.data.message || "Account not active",
+              );
             }
           } else {
-            setLoginError("Invalid credentials");
+            setLoginError(
+              error.response?.data?.message || "Invalid email or password",
+            );
           }
         },
       },
@@ -126,8 +134,9 @@ export default function LoginScreen() {
   };
 
   const getStatusMessage = () => {
-    switch (userStatus) {
-      case UserStatus.PENDING:
+    switch (userStatus?.toLowerCase()) {
+      case "pending":
+      case "pending_approval":
         return (
           <div className="flex items-start gap-3 bg-zinc-900 p-4 border border-zinc-700">
             <Clock className="flex-shrink-0 mt-0.5 w-4 h-4 text-yellow-500" />
@@ -141,7 +150,7 @@ export default function LoginScreen() {
             </div>
           </div>
         );
-      case UserStatus.REJECTED:
+      case "rejected":
         return (
           <div className="flex items-start gap-3 bg-zinc-900 p-4 border border-zinc-700">
             <XCircle className="flex-shrink-0 mt-0.5 w-4 h-4 text-red-500" />
@@ -155,7 +164,8 @@ export default function LoginScreen() {
             </div>
           </div>
         );
-      case UserStatus.SUSPENDED:
+      case "suspended":
+      case "revoked":
         return (
           <div className="flex items-start gap-3 bg-zinc-900 p-4 border border-zinc-700">
             <UserX className="flex-shrink-0 mt-0.5 w-4 h-4 text-orange-500" />
@@ -169,9 +179,8 @@ export default function LoginScreen() {
             </div>
           </div>
         );
-      case UserStatus.PENDING_VERIFICATION:
-      case "PENDING_VERIFICATION":
       case "pending_verification":
+      case "pending-verification":
         return (
           <div className="flex flex-col gap-4 bg-zinc-900 p-4 border border-zinc-700">
             <div className="flex items-start gap-3">

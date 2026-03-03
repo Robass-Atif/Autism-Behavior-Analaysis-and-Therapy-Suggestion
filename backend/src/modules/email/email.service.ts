@@ -1,17 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import * as nodemailer from "nodemailer";
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private transporter: nodemailer.Transporter;
 
-
   constructor(private configService: ConfigService) {
-    const smtpHost = this.configService.get<string>('SMTP_HOST');
-    const smtpPort = this.configService.get<number>('SMTP_PORT');
-    const smtpUser = this.configService.get<string>('SMTP_USER');
-    const smtpPass = this.configService.get<string>('SMTP_PASS');
+    const smtpHost = this.configService.get<string>("SMTP_HOST");
+    const smtpPort = this.configService.get<number>("SMTP_PORT");
+    const smtpUser = this.configService.get<string>("SMTP_USER");
+    const smtpPass = this.configService.get<string>("SMTP_PASS");
 
     this.transporter = nodemailer.createTransport({
       host: smtpHost,
@@ -22,23 +21,32 @@ export class EmailService {
         pass: smtpPass,
       },
       tls: {
-        rejectUnauthorized: false // Often needed for Gmail with some node versions
-      }
+        rejectUnauthorized: false, // Often needed for Gmail with some node versions
+      },
     });
 
-    this.logger.log(`✅ Email service initialized with SMTP: ${smtpHost}:${smtpPort}`);
+    this.logger.log(
+      `✅ Email service initialized with SMTP: ${smtpHost}:${smtpPort}`,
+    );
   }
 
-
-  private async sendEmail(to: string, subject: string, html: string): Promise<void> {
-    const from = this.configService.get<string>('EMAIL_FROM') || 'mohammad.abdullah.5434@gmail.com';
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    attachments?: any[],
+  ): Promise<void> {
+    const from =
+      this.configService.get<string>("EMAIL_FROM") ||
+      "mohammad.abdullah.5434@gmail.com";
 
     try {
-      const mailOptions = {
+      const mailOptions: any = {
         from: from,
         to,
         subject,
         html,
+        attachments,
       };
 
       await this.transporter.sendMail(mailOptions);
@@ -49,13 +57,12 @@ export class EmailService {
     }
   }
 
-
   async sendVerificationEmail(
     email: string,
     name: string,
     token: string,
   ): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const frontendUrl = this.configService.get<string>("FRONTEND_URL");
     const verificationLink = `${frontendUrl}/verify-email?token=${token}`;
 
     const html = `
@@ -106,7 +113,7 @@ export class EmailService {
       </html>
     `;
 
-    await this.sendEmail(email, 'Verify Your Email', html);
+    await this.sendEmail(email, "Verify Your Email", html);
   }
 
   async sendPasswordResetEmail(
@@ -114,7 +121,7 @@ export class EmailService {
     name: string,
     token: string,
   ): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const frontendUrl = this.configService.get<string>("FRONTEND_URL");
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 
     const html = `
@@ -162,7 +169,7 @@ export class EmailService {
       </html>
     `;
 
-    await this.sendEmail(email, 'Reset Your Password', html);
+    await this.sendEmail(email, "Reset Your Password", html);
   }
 
   async sendApprovalNotification(
@@ -171,10 +178,10 @@ export class EmailService {
     approved: boolean,
     reason?: string,
   ): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const frontendUrl = this.configService.get<string>("FRONTEND_URL");
     const loginLink = `${frontendUrl}/login`;
-    const color = approved ? '#10b981' : '#ef4444';
-    const status = approved ? 'Approved' : 'Not Approved';
+    const color = approved ? "#10b981" : "#ef4444";
+    const status = approved ? "Approved" : "Not Approved";
 
     const html = `
       <!DOCTYPE html>
@@ -206,12 +213,13 @@ export class EmailService {
           <div class="content">
             <h2>Status: ${status}</h2>
             <p>Hi ${name},</p>
-            ${approved
-        ? `<p>Congratulations! Your account has been approved. You can now access the platform.</p>
+            ${
+              approved
+                ? `<p>Congratulations! Your account has been approved. You can now access the platform.</p>
                  <p style="text-align: center;"><a href="${loginLink}" class="button">Login Now</a></p>`
-        : `<p>We reviewed your application, but unfortunately we cannot approve it at this time.</p>
-                 ${reason ? `<p style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 16px 0;"><strong>Reason:</strong> ${reason}</p>` : ''}`
-      }
+                : `<p>We reviewed your application, but unfortunately we cannot approve it at this time.</p>
+                 ${reason ? `<p style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 16px 0;"><strong>Reason:</strong> ${reason}</p>` : ""}`
+            }
           </div>
           <div class="footer">
             <p>&copy; ${new Date().getFullYear()} ASD Therapy Platform</p>
@@ -229,7 +237,7 @@ export class EmailService {
     therapistName: string,
     invitationCode: string,
   ): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const frontendUrl = this.configService.get<string>("FRONTEND_URL");
     const registerLink = `${frontendUrl}/register/caregiver?code=${invitationCode}`;
 
     const html = `
@@ -291,7 +299,64 @@ export class EmailService {
       </html>
     `;
 
-    await this.sendEmail(email, `Invitation to Join ASD Therapy Platform`, html);
+    await this.sendEmail(
+      email,
+      `Invitation to Join ASD Therapy Platform`,
+      html,
+    );
+  }
+
+  async sendPublishedReportEmail(
+    email: string,
+    caregiverName: string,
+    patientName: string,
+    pdfBuffer: Buffer,
+  ): Promise<void> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f5; }
+          .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+          .header { background: #18181b; color: white; padding: 24px; text-align: center; }
+          .content { padding: 40px; }
+          .footer { text-align: center; padding: 24px; background: #f4f4f5; color: #71717a; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Session Report Available</h1>
+          </div>
+          <div class="content">
+            <h2>Hi ${caregiverName},</h2>
+            <p>Your therapist has reviewed and published the latest session recording for <strong>${patientName}</strong>.</p>
+            <p>We've attached the newly generated <strong>Clinical ADOS-2 Summary Report</strong> to this email as a PDF for your convenience so you can track longitudinal progress and behavioral milestones.</p>
+            <p>You can also log into the Neurocare portal at any time to view the AI-analyzed metrics interactively.</p>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} ASD Therapy Platform</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const attachments = [
+      {
+        filename: `clinical_report_${patientName.replace(/\s+/g, "_")}.pdf`,
+        content: pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ];
+
+    await this.sendEmail(
+      email,
+      `Published Session Report: ${patientName}`,
+      html,
+      attachments,
+    );
   }
 
   // Keeping other methods but simplifying their templates if needed
@@ -301,11 +366,25 @@ export class EmailService {
     return this.sendApprovalNotification(email, name, true);
   }
 
-  async sendTherapistRejectionEmail(email: string, name: string, reason: string, count: number): Promise<void> {
-    return this.sendApprovalNotification(email, name, false, `${reason} (Attempt ${count}/3)`);
+  async sendTherapistRejectionEmail(
+    email: string,
+    name: string,
+    reason: string,
+    count: number,
+  ): Promise<void> {
+    return this.sendApprovalNotification(
+      email,
+      name,
+      false,
+      `${reason} (Attempt ${count}/3)`,
+    );
   }
 
-  async sendAccountSuspensionEmail(email: string, name: string, reason: string): Promise<void> {
+  async sendAccountSuspensionEmail(
+    email: string,
+    name: string,
+    reason: string,
+  ): Promise<void> {
     const html = `
       <h1>Account Suspended</h1>
       <p>Hi ${name},</p>
@@ -313,25 +392,32 @@ export class EmailService {
       <p><strong>Reason:</strong> ${reason}</p>
       <p>Contact support for assistance.</p>
     `;
-    await this.sendEmail(email, 'Account Suspended', html);
+    await this.sendEmail(email, "Account Suspended", html);
   }
 
-  async sendAccountReactivationEmail(email: string, name: string): Promise<void> {
+  async sendAccountReactivationEmail(
+    email: string,
+    name: string,
+  ): Promise<void> {
     const html = `
       <h1>Account Reactivated</h1>
       <p>Hi ${name},</p>
       <p>Your account is now active again. Welcome back!</p>
     `;
-    await this.sendEmail(email, 'Account Reactivated', html);
+    await this.sendEmail(email, "Account Reactivated", html);
   }
 
-  async sendAccountDeletionEmail(email: string, name: string, reason: string): Promise<void> {
+  async sendAccountDeletionEmail(
+    email: string,
+    name: string,
+    reason: string,
+  ): Promise<void> {
     const html = `
       <h1>Account Deleted</h1>
       <p>Hi ${name},</p>
       <p>Your account has been deleted.</p>
       <p><strong>Reason:</strong> ${reason}</p>
     `;
-    await this.sendEmail(email, 'Account Deleted', html);
+    await this.sendEmail(email, "Account Deleted", html);
   }
 }

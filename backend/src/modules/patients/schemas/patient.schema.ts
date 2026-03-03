@@ -1,5 +1,5 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 // Nested schemas for complex objects
 @Schema({ _id: false })
@@ -16,7 +16,7 @@ export class Address {
   @Prop()
   zipCode?: string;
 
-  @Prop({ default: 'USA' })
+  @Prop({ default: "USA" })
   country?: string;
 }
 
@@ -53,7 +53,7 @@ export class CommunicationPreferences {
 @Schema({ timestamps: true })
 export class Patient extends Document {
   // ===== BASIC INFORMATION =====
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   userId: Types.ObjectId;
 
   @Prop({ required: true, unique: true })
@@ -65,10 +65,10 @@ export class Patient extends Document {
   @Prop({ required: true })
   dob: Date;
 
-  @Prop({ required: true, enum: ['male', 'female', 'other'] })
+  @Prop({ required: true, enum: ["male", "female", "other"] })
   gender: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Therapist', required: true })
+  @Prop({ type: Types.ObjectId, ref: "Therapist", required: true })
   therapistId: Types.ObjectId;
 
   // ===== CONTACT INFORMATION =====
@@ -149,7 +149,7 @@ export class Patient extends Document {
   caregiverNotes?: string;
 
   // ===== SYSTEM FIELDS =====
-  @Prop({ default: 'active', enum: ['active', 'inactive', 'discharged'] })
+  @Prop({ default: "active", enum: ["active", "inactive", "discharged"] })
   status: string;
 
   @Prop()

@@ -1,7 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../lib/apiClient';
-import { PATIENTS_ENDPOINTS } from '../config/apiConfig';
-import { Patient, Address, EmergencyContact, CommunicationPreferences } from '../types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "../lib/apiClient";
+import { PATIENTS_ENDPOINTS } from "../config/apiConfig";
+import {
+  Patient,
+  Address,
+  EmergencyContact,
+  CommunicationPreferences,
+} from "../types";
 
 export interface CreatePatientData {
   // Required fields
@@ -45,43 +50,61 @@ export interface CreatePatientData {
   caregiverName?: string;
 }
 
-
 export interface UpdatePatientData extends Partial<CreatePatientData> {
-  status?: 'Active' | 'Inactive' | 'Discharged';
+  status?: "Active" | "Inactive" | "Discharged";
   dischargeReason?: string;
   dischargeDate?: string;
 }
 
 // Get Therapist's Patients with backend filtering
-export const usePatients = (params: { search?: string; status?: string; page?: number; limit?: number } = {}) => {
+export const usePatients = (
+  params: {
+    search?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  } = {},
+) => {
   const { search, status, page = 1, limit = 50 } = params;
 
   // Build query string for backend filtering
   const queryParams = new URLSearchParams();
-  if (search?.trim()) queryParams.append('search', search.trim());
-  if (status && status !== 'all') queryParams.append('status', status);
-  queryParams.append('page', page.toString());
-  queryParams.append('limit', limit.toString());
+  if (search?.trim()) queryParams.append("search", search.trim());
+  if (status && status !== "all") queryParams.append("status", status);
+  queryParams.append("page", page.toString());
+  queryParams.append("limit", limit.toString());
 
   const endpoint = queryParams.toString()
     ? `${PATIENTS_ENDPOINTS.GET_THERAPIST_PATIENTS}?${queryParams.toString()}`
     : PATIENTS_ENDPOINTS.GET_THERAPIST_PATIENTS;
 
   return useQuery({
-    queryKey: ['patients', search, status, page, limit],
-    queryFn: async (): Promise<{ patients: Patient[]; total: number; page: number; totalPages: number }> => {
-      return apiClient.get<{ patients: Patient[]; total: number; page: number; totalPages: number }>(endpoint);
+    queryKey: ["patients", search, status, page, limit],
+    queryFn: async (): Promise<{
+      patients: Patient[];
+      total: number;
+      page: number;
+      totalPages: number;
+    }> => {
+      return apiClient.get<{
+        patients: Patient[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(endpoint);
     },
-    staleTime: 5 * 1000, // Reduced to 5 seconds for more responsive management
+    staleTime: 60 * 1000, // Increased to 60 seconds to prevent query looping
   });
 };
 
 // Get Caregiver's Patients
 export const useCaregiverPatients = () => {
   return useQuery({
-    queryKey: ['caregiver-patients'],
+    queryKey: ["caregiver-patients"],
     queryFn: async (): Promise<{ patients: Patient[] }> => {
-      return apiClient.get<{ patients: Patient[] }>(PATIENTS_ENDPOINTS.GET_CAREGIVER_PATIENTS);
+      return apiClient.get<{ patients: Patient[] }>(
+        PATIENTS_ENDPOINTS.GET_CAREGIVER_PATIENTS,
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -90,7 +113,7 @@ export const useCaregiverPatients = () => {
 // Get Single Patient (NOW SUPPORTED BY BACKEND)
 export const usePatient = (id: string) => {
   return useQuery({
-    queryKey: ['patient', id],
+    queryKey: ["patient", id],
     queryFn: async (): Promise<Patient> => {
       const endpoint = `/patients/${id}`;
       return apiClient.get<Patient>(endpoint);
@@ -103,9 +126,9 @@ export const usePatient = (id: string) => {
 // Get Own Profile (Patient Access)
 export const useMyProfile = () => {
   return useQuery({
-    queryKey: ['my-profile'],
+    queryKey: ["my-profile"],
     queryFn: async (): Promise<Patient> => {
-      return apiClient.get<Patient>('/patients/me/profile');
+      return apiClient.get<Patient>("/patients/me/profile");
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -116,14 +139,22 @@ export const useCreatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreatePatientData): Promise<{ success: boolean; message: string; patient: Patient }> => {
-      return apiClient.post<{ success: boolean; message: string; patient: Patient }>(PATIENTS_ENDPOINTS.CREATE, data);
+    mutationFn: async (
+      data: CreatePatientData,
+    ): Promise<{ success: boolean; message: string; patient: Patient }> => {
+      return apiClient.post<{
+        success: boolean;
+        message: string;
+        patient: Patient;
+      }>(PATIENTS_ENDPOINTS.CREATE, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      queryClient.invalidateQueries({ queryKey: ['recent-patients'] });
-      queryClient.invalidateQueries({ queryKey: ['therapist-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-patients"] });
+      queryClient.invalidateQueries({
+        queryKey: ["therapist-dashboard-stats"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
     },
   });
 };
@@ -133,16 +164,27 @@ export const useUpdatePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdatePatientData }): Promise<{ success: boolean; patient: Patient }> => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdatePatientData;
+    }): Promise<{ success: boolean; patient: Patient }> => {
       const endpoint = `/patients/${id}`;
-      return apiClient.put<{ success: boolean; patient: Patient }>(endpoint, data);
+      return apiClient.put<{ success: boolean; patient: Patient }>(
+        endpoint,
+        data,
+      );
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      queryClient.invalidateQueries({ queryKey: ['patient', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['recent-patients'] });
-      queryClient.invalidateQueries({ queryKey: ['therapist-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["patient", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["recent-patients"] });
+      queryClient.invalidateQueries({
+        queryKey: ["therapist-dashboard-stats"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
     },
   });
 };
@@ -152,15 +194,19 @@ export const useDeletePatient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<{ success: boolean; message: string }> => {
+    mutationFn: async (
+      id: string,
+    ): Promise<{ success: boolean; message: string }> => {
       const endpoint = `/patients/${id}`;
       return apiClient.delete<{ success: boolean; message: string }>(endpoint);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patients'] });
-      queryClient.invalidateQueries({ queryKey: ['recent-patients'] });
-      queryClient.invalidateQueries({ queryKey: ['therapist-dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-patients"] });
+      queryClient.invalidateQueries({
+        queryKey: ["therapist-dashboard-stats"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] });
     },
   });
 };
@@ -168,9 +214,12 @@ export const useDeletePatient = () => {
 // Get Recent Patients
 export const useRecentPatients = () => {
   return useQuery({
-    queryKey: ['recent-patients'],
+    queryKey: ["recent-patients"],
     queryFn: async (): Promise<Patient[]> => {
-      const response = await apiClient.get<{ patients: Patient[]; total: number }>(PATIENTS_ENDPOINTS.GET_THERAPIST_PATIENTS + '?limit=5');
+      const response = await apiClient.get<{
+        patients: Patient[];
+        total: number;
+      }>(PATIENTS_ENDPOINTS.GET_THERAPIST_PATIENTS + "?limit=5");
       return response.patients || [];
     },
     staleTime: 5 * 60 * 1000,

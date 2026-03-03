@@ -165,19 +165,57 @@ export class PatientsService {
         throw new ForbiddenException("You can only access your own patients");
       }
     } else if (userRole === "caregiver") {
-      // Check if caregiver is linked to this patient
-      const link = await this.patientCaregiverModel.findOne({
-        patientId: patient._id,
-        caregiverId: userId,
-        status: "active",
-      });
+      // Check if caregiver is linked to this patient using the robust lookup logic
+      const caregiverData = await this.getCaregiverPatients(userId);
+      const isLinked = caregiverData.patients.some(
+        (p: any) => p.id && p.id.toString() === patientId.toString(),
+      );
 
-      if (!link) {
+      if (!isLinked) {
         throw new ForbiddenException("You do not have access to this patient");
       }
     }
 
     return patient;
+  }
+
+  // Internal method to find therapist name by ID
+  async getTherapistName(therapistId: string): Promise<string> {
+    try {
+      if (!therapistId) return "Unknown Therapist";
+
+      // therapistId is usually a Therapist document id (not always a base User id).
+      const therapistModel = this.userModel.db.model("Therapist");
+      const therapist: any = await therapistModel
+        .findById(therapistId)
+        .select("fullName userId")
+        .lean()
+        .exec();
+
+      if (therapist?.fullName) {
+        return therapist.fullName;
+      }
+
+      if (therapist?.userId) {
+        const linkedUser = await this.userModel
+          .findById(therapist.userId)
+          .select("fullName")
+          .lean()
+          .exec();
+        if (linkedUser?.fullName) {
+          return linkedUser.fullName;
+        }
+      }
+
+      const user = await this.userModel
+        .findById(therapistId)
+        .select("fullName")
+        .lean()
+        .exec();
+      return user?.fullName || "Unknown Therapist";
+    } catch (e) {
+      return "Unknown Therapist";
+    }
   }
 
   // Internal method to find patient by ID without access checks

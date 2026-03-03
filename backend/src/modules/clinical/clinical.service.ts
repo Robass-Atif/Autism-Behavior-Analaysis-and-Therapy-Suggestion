@@ -19,6 +19,7 @@ import { PatientsService } from "../patients/patients.service";
 import { PdfGeneratorService } from "./services/pdf-generator.service";
 import { AiAnalysisService } from "./services/ai-analysis.service";
 import { Role } from "../../common/enums/role.enum";
+import { EmailService } from "../email/email.service";
 
 @Injectable()
 export class ClinicalService {
@@ -30,6 +31,7 @@ export class ClinicalService {
     private patientsService: PatientsService,
     private pdfGeneratorService: PdfGeneratorService,
     private aiAnalysisService: AiAnalysisService,
+    private emailService: EmailService,
   ) {}
 
   // ========== THERAPY GOALS ==========
@@ -322,9 +324,12 @@ export class ClinicalService {
       throw new ForbiddenException("You can only publish your own sessions");
     }
 
-    if (session.status !== "therapist_review") {
+    if (
+      session.status !== "therapist_review" &&
+      session.status !== "completed"
+    ) {
       throw new BadRequestException(
-        `Cannot publish session with status "${session.status}". Session must be in "therapist_review" status.`,
+        `Cannot publish session with status "${session.status}". Session must be in "therapist_review" or "completed" status.`,
       );
     }
 
@@ -334,6 +339,56 @@ export class ClinicalService {
     session.updatedAt = new Date();
 
     await session.save();
+
+    // Send email to caregiver with PDF report
+    try {
+      const patient = await this.patientsService.getPatientById(
+        session.patientId.toString(),
+        therapistId,
+        "therapist",
+      );
+
+      if (patient) {
+        // Find caregiver email
+        const caregiverId =
+          (patient as any)?.caregiverId || session.caregiverId;
+
+        // We do a lookup to find the caregiver's actual email
+        // using the patient's existing populated data or fallback to patient user.
+        // Or if patient doc has caregiverEmail (it might not), we will look up the User by caregiverId.
+        const UserModule = require("mongoose").model("User");
+        let caregiverEmail =
+          (session as any).caregiverEmail || (patient as any)?.caregiverEmail;
+        let caregiverName = "Caregiver";
+
+        if (!caregiverEmail && caregiverId) {
+          const caregiverUser = await UserModule.findById(caregiverId).lean();
+          if (caregiverUser) {
+            caregiverEmail = caregiverUser.email;
+            caregiverName = caregiverUser.fullName || "Caregiver";
+          }
+        }
+
+        if (caregiverEmail) {
+          // Generate PDF
+          const pdfBuffer = await this.generatePatientPDF(
+            session.patientId.toString(),
+            therapistId,
+            { includeCharts: true, includeTables: true, watermark: true },
+            "therapist",
+          );
+
+          await this.emailService.sendPublishedReportEmail(
+            caregiverEmail,
+            caregiverName,
+            patient.fullName,
+            pdfBuffer,
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Failed to email caregiver on publish:", e);
+    }
 
     return {
       success: true,
@@ -845,21 +900,39 @@ export class ClinicalService {
     const patientObj =
       typeof patient.toObject === "function" ? patient.toObject() : patient;
 
-    // Get therapist name (use patient's therapistId for caregiver callers)
+    // Resolve therapist name robustly (works for populated objects and raw ids).
+    const therapistRef: any = patientObj.therapistId;
+    const inlineTherapistName =
+      typeof therapistRef === "object"
+        ? therapistRef?.fullName || therapistRef?.name
+        : null;
     const therapistLookupId =
-      userRole === "caregiver" ? patientObj.therapistId : userId;
-    const therapist = await this.patientsService["userModel"]
-      .findById(therapistLookupId)
-      .select("fullName")
-      .lean()
-      .exec();
+      typeof therapistRef === "object"
+        ? therapistRef?._id || therapistRef?.id || therapistRef?.userId
+        : therapistRef;
+
+    let therapistName =
+      inlineTherapistName ||
+      (await this.patientsService.getTherapistName(
+        therapistLookupId?.toString(),
+      ));
+
+    if (!therapistName || therapistName === "Unknown Therapist") {
+      const fallbackTherapistId = sessionsData.find((s: any) => s.therapistId)
+        ?.therapistId;
+      if (fallbackTherapistId) {
+        therapistName = await this.patientsService.getTherapistName(
+          fallbackTherapistId.toString(),
+        );
+      }
+    }
+
     const patientData = {
       ...patientObj,
-      therapistName: therapist?.fullName || "Unknown Therapist",
-      notes: sessionsData
-        .filter((s) => s.therapistNotes)
-        .map((s) => s.therapistNotes)
-        .join("\n\n"),
+      therapistName,
+      // We purposefully DO NOT concatenate all therapistNotes into one giant string
+      // because they are already printed individually in the sessions section.
+      notes: null,
     };
 
     // Generate PDF

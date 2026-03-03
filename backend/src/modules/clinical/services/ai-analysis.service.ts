@@ -21,8 +21,8 @@ export class AiAnalysisService {
     private videoSessionModel: Model<VideoSession>,
   ) {
     this.aiUrl =
-      this.configService.get<string>("AI_ANALYSIS_URL") ||
-      "http://localhost:8000/analyze";
+      this.configService.get<string>("PREDICTION_SERVICE_URL") ||
+      "http://localhost:8000/predict";
   }
 
   /**
@@ -112,16 +112,12 @@ export class AiAnalysisService {
           this.configService.get<string>("X-API-Key") ||
           "your-api-key-change-this-please";
         const response = await firstValueFrom(
-          this.httpService.post(
-            `${this.aiUrl.replace("/analyze", "")}/predict`,
-            payload,
-            {
-              headers: {
-                "X-API-Key": apiKey,
-                ...payload.getHeaders(),
-              },
+          this.httpService.post(this.aiUrl, payload, {
+            headers: {
+              "X-API-Key": apiKey,
+              ...payload.getHeaders(),
             },
-          ),
+          }),
         );
 
         this.logger.log(
@@ -231,10 +227,13 @@ export class AiAnalysisService {
             ? 50
             : Math.round(severityConfidence * 100);
 
-          // Save the full raw FastAPI response for SessionReportScreen
+          // Persist the complete raw model payload for PDF/report drill-down sections.
           session.rawPredictionResponse = {
+            ...data,
             predictions_2d: data.predictions_2d || null,
             predictions_3d: data.predictions_3d || null,
+            ensemble_prediction: data.ensemble_prediction || null,
+            processing_info: data.processing_info || null,
           };
 
           // Build ensemble prediction (use primary model data)

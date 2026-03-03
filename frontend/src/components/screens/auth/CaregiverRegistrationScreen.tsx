@@ -535,27 +535,6 @@ export default function CaregiverRegistrationScreen() {
                           </span>
                         </label>
                       </div>
-
-                      <div className="pt-6 border-t border-zinc-100">
-                        <h3 className="text-xs font-bold uppercase text-zinc-400 mb-4 tracking-widest">
-                          Notification Settings
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {["Email", "SMS", "Reminders"].map((pref) => (
-                            <div
-                              key={pref}
-                              className="border border-zinc-200 p-3 flex items-center justify-between"
-                            >
-                              <span className="text-[10px] font-bold uppercase">
-                                {pref}
-                              </span>
-                              <div className="w-8 h-4 bg-zinc-100 relative cursor-pointer">
-                                <div className="absolute right-0 top-0 w-4 h-4 bg-zinc-900"></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 )}

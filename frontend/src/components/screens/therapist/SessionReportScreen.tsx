@@ -23,7 +23,11 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Screen, VideoSession as Session } from "../../../types";
-import { useVideoSession } from "../../../api/clinical";
+import {
+  useVideoSession,
+  usePublishReport,
+  useGenerateReport,
+} from "../../../api/clinical";
 import { getFileUrl } from "../../../config/apiConfig";
 
 interface SessionReportScreenProps {
@@ -38,6 +42,9 @@ export default function SessionReportScreen({
   onBack,
 }: SessionReportScreenProps) {
   const { data: session, isLoading } = useVideoSession(sessionId);
+  const publish = usePublishReport();
+  const generateReport = useGenerateReport();
+
   const [isValidating, setIsValidating] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
   const [isFlagged, setIsFlagged] = useState(false);
@@ -71,24 +78,58 @@ export default function SessionReportScreen({
     });
   };
 
-  const handleExport = () => {
-    const exportPromise = new Promise((resolve) => setTimeout(resolve, 2000));
-    toast.promise(
-      exportPromise,
-      {
-        loading: "COMPILING NEURAL EXPORT...",
-        success: "EXPORT DOWNLOADED TO SECURE STORAGE.",
-        error: "EXPORT FAILED.",
-      },
-      { style: toastStyle },
-    );
+  const handleExport = async () => {
+    if (!session?.patientId) return;
+
+    try {
+      toast.loading("COMPILING NEURAL EXPORT...", {
+        id: "export-toast",
+        style: toastStyle,
+      });
+      const blob = await generateReport.mutateAsync({
+        patientId: session.patientId,
+        includeGoals: true,
+        includeNotes: true,
+        reportType: "individual",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `report-${session.patientId}-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("EXPORT DOWNLOADED TO SECURE STORAGE.", {
+        id: "export-toast",
+        style: toastStyle,
+      });
+    } catch (err: any) {
+      toast.error("EXPORT FAILED.", { id: "export-toast", style: toastStyle });
+    }
   };
 
-  const handleClinicalReview = () => {
-    toast.success("CLINICAL REVIEW MODE ENGAGED.", {
-      style: toastStyle,
-      icon: "📋",
-    });
+  const handleClinicalReview = async () => {
+    try {
+      toast.loading("ENGAGING CLINICAL REVIEW MODE...", {
+        id: "publish-toast",
+        style: toastStyle,
+      });
+      await publish.mutateAsync(sessionId);
+      toast.success("SESSION PUBLISHED SUCCESSFULLY.", {
+        id: "publish-toast",
+        style: toastStyle,
+        icon: "📋",
+      });
+      setTimeout(() => {
+        if (onBack) onBack();
+      }, 1000);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "FAILED TO PUBLISH SESSION", {
+        id: "publish-toast",
+        style: toastStyle,
+      });
+    }
   };
 
   if (isLoading) {
@@ -121,7 +162,7 @@ export default function SessionReportScreen({
   // ── Extract data ──
   const pred2d = session.rawPredictionResponse?.predictions_2d as any;
   const pred3d = session.rawPredictionResponse?.predictions_3d as any;
-  const ensemble = session.ensemblePrediction;
+  const ensemble = session.ensemblePrediction || pred2d || pred3d;
   const hasError = pred2d?.error || pred3d?.error;
   const activePred = pred2d?.explainability
     ? pred2d
@@ -899,8 +940,12 @@ export default function SessionReportScreen({
                 <Zap size={14} className="text-zinc-900" /> Assessment Summary
                 Narrative
               </h3>
-              <p className="text-xs font-bold uppercase tracking-tight leading-relaxed italic border-l-4 border-zinc-900 pl-4 text-zinc-600">
-                "{session.aiAnalysis?.summary || "INSUFFICIENT_DATA"}"
+              <p className="text-xs font-bold uppercase tracking-tight leading-relaxed italic border-l-4 border-zinc-900 pl-4 text-zinc-600 whitespace-pre-line">
+                "
+                {explainSummary ||
+                  session.aiAnalysis?.summary ||
+                  "INSUFFICIENT_DATA"}
+                "
               </p>
             </div>
 
@@ -1136,8 +1181,8 @@ export default function SessionReportScreen({
             {processingInfo && (
               <div className="p-5 border-2 border-dashed border-zinc-300">
                 <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <Settings size={12} className="text-zinc-900" />{" "}
-                  Processing Pipeline
+                  <Settings size={12} className="text-zinc-900" /> Processing
+                  Pipeline
                 </h4>
                 <div className="space-y-2 text-[8px] font-bold text-zinc-500 uppercase tracking-widest">
                   <div className="flex justify-between">
