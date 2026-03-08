@@ -1,0 +1,69 @@
+{
+  "source": {
+    "book": "DSM-5-TR",
+    "publisher": "American Psychiatric Association",
+    "page": 30
+  },
+  "severity_levels": [
+    {
+      "severity_level": "Level 3",
+      "label": "Requiring very substantial support",
+      "social_communication": {
+        "verbatim": "Severe deficits in verbal and nonverbal social communication skills cause severe impairments in functioning...",
+        "derived_support_characteristics": [
+          "minimal functional communication",
+          "very limited social initiation",
+          "minimal response to social overtures"
+        ]
+      },
+      "restricted_repetitive_behaviors": {
+        "verbatim": "Inflexibility of behavior, extreme difficulty coping with change...",
+        "derived_support_characteristics": [
+          "extreme behavioral inflexibility",
+          "high distress with change",
+          "significant interference across settings"
+        ]
+      }
+    },
+    {
+      "severity_level": "Level 2",
+      "label": "Requiring substantial support",
+      "social_communication": {
+        "verbatim": "Marked deficits in verbal and nonverbal social communication skills...",
+        "derived_support_characteristics": [
+          "limited functional communication",
+          "reduced social initiation",
+          "atypical social responses"
+        ]
+      },
+      "restricted_repetitive_behaviors": {
+        "verbatim": "Inflexibility of behavior, difficulty coping with change...",
+        "derived_support_characteristics": [
+          "behavioral rigidity",
+          "distress with transitions",
+          "interference in multiple contexts"
+        ]
+      }
+    },
+    {
+      "severity_level": "Level 1",
+      "label": "Requiring support",
+      "social_communication": {
+        "verbatim": "Without supports in place, deficits in social communication cause noticeable impairments...",
+        "derived_support_characteristics": [
+          "difficulty initiating interaction",
+          "ineffective social reciprocity",
+          "social awkwardness"
+        ]
+      },
+      "restricted_repetitive_behaviors": {
+        "verbatim": "Inflexibility of behavior causes significant interference...",
+        "derived_support_characteristics": [
+          "difficulty switching tasks",
+          "organizational challenges",
+          "mild-to-moderate rigidity"
+        ]
+      }
+    }
+  ]
+}

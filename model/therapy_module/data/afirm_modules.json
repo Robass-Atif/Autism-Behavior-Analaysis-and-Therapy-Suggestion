@@ -1,0 +1,424 @@
+[
+  {
+    "therapy_name": "Antecedent-Based Interventions (ABI)",
+    "intervention_targets": [
+      "reduction of interfering behaviors",
+      "behavioral regulation"
+    ],
+    "description": "Arrangement of events or circumstances that precede an activity or demand in order to increase the occurrence of a behavior or lead to the reduction of the interfering behaviors.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Antecedent-Based-Interventions/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Augmentative & Alternative Communication (AAC)",
+    "intervention_targets": [
+      "functional communication development",
+      "alternative communication methods"
+    ],
+    "description": "Interventions using and/or teaching the use of a system of communication that is not verbal/vocal which can be aided (e.g., device, communication book) or unaided (e.g., sign language).",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Augmentative-Alternative-Communication/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Ayres Sensory Integration (ASI)",
+    "intervention_targets": [
+      "sensory processing",
+      "adaptive behavior"
+    ],
+    "description": "Interventions that target a person's ability to integrate sensory information (visual, auditory, tactile, proprioceptive, and vestibular) from their body and environment in order to respond using organized and adaptive behavior.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Ayres-Sensory-Integration/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Behavioral Momentum Intervention (BMI)",
+    "intervention_targets": [
+      "task compliance",
+      "behavioral persistence"
+    ],
+    "description": "The organization of behavior expectations in a sequence in which low probability, or more difficult, responses are embedded in a series of high probability, or less effortful, responses to increase persistence and the occurrence of the low probability responses.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Behavioral-Momentum-Intervention/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Cognitive Behavioral/Instructional Strategies (CBIS)",
+    "intervention_targets": [
+      "cognitive self-regulation",
+      "behavioral change",
+      "academic performance"
+    ],
+    "description": "Instruction on management or control of cognitive processes that lead to changes in behavioral, social, or academic behavior.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Cognitive-Behavioral-Instructional-Strategies/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Differential Reinforcement (DR)",
+    "intervention_targets": [
+      "behavioral regulation",
+      "reduction of interfering behaviors"
+    ],
+    "description": "A systematic process that increases desirable behavior or the absence of an undesirable behavior by providing positive consequences for demonstration/non-demonstration of such behavior.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Differential-Reinforcement/content",
+      "time_to_complete": "3 hours"
+    }
+  },
+  {
+    "therapy_name": "Direct Instruction (DI)",
+    "intervention_targets": [
+      "academic skill acquisition",
+      "structured learning"
+    ],
+    "description": "A systematic approach to teaching using a sequenced instructional package with scripted protocols or lessons. It emphasizes teacher and student dialogue through choral and independent student responses and employs systematic and explicit error corrections to promote mastery and generalization.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Direct-Instruction/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Discrete Trial Training (DTT)",
+    "intervention_targets": [
+      "structured skill acquisition",
+      "behavioral regulation"
+    ],
+    "description": "Instructional approach with massed or repeated trials with each trial consisting of the teacher's instruction/presentation, the child's response, a carefully planned consequence, and a pause prior to presenting the next instruction.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Discrete-Trial-Training/content",
+      "time_to_complete": "3 hours"
+    }
+  },
+  {
+    "therapy_name": "Exercise & Movement (EXM)",
+    "intervention_targets": [
+      "physical fitness",
+      "motor skill development",
+      "behavioral regulation"
+    ],
+    "description": "Interventions that use physical exertion, specific motor skills/techniques, or mindful movement to target a variety of skills and behaviors.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Exercise-Movement/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Extinction (EXT)",
+    "intervention_targets": [
+      "reduction of interfering behaviors"
+    ],
+    "description": "The removal of reinforcing consequences of a behavior that interferes with the learner's safety or learning in order to reduce the future occurrence of that behavior.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Extinction/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Functional Behavioral Assessment (FBA)",
+    "intervention_targets": [
+      "behavioral assessment",
+      "intervention planning"
+    ],
+    "description": "A systematic way of determining the underlying function or purpose of a behavior so that an effective intervention plan can be developed.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Functional-Behavior-Assessment/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Functional Communication Training (FCT)",
+    "intervention_targets": [
+      "reduction of interfering behaviors",
+      "functional communication development"
+    ],
+    "description": "A set of practices that replace an interfering behavior that has a communication function with more appropriate and effective communication behaviors or skills.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Functional-Communication-Training/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Modeling (MD)",
+    "intervention_targets": [
+      "skill acquisition",
+      "social learning"
+    ],
+    "description": "Demonstration of a desired target behavior that results in use of the behavior by the learner and that leads to the acquisition of the target behavior.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Modeling/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Music-Mediated Intervention (MMI)",
+    "intervention_targets": [
+      "social communication facilitation",
+      "skill acquisition",
+      "behavioral regulation"
+    ],
+    "description": "Intervention that incorporates songs, melodic intonation, and/or rhythm to support learning or performance of skills/behaviors. It includes music therapy, as well as other interventions that incorporate music to address target skills.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Music-Mediated%20Intervention/content/",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Naturalistic Interventions (NI)",
+    "intervention_targets": [
+      "social communication facilitation",
+      "functional skill generalization"
+    ],
+    "description": "A collection of techniques and strategies that are embedded in typical activities and/or routines in which the learner participates to naturally promote, support, and encourage target skills/behaviors.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Naturalistic-Intervention/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Parent-Implemented Intervention (PII)",
+    "intervention_targets": [
+      "generalization of skills",
+      "support across environments"
+    ],
+    "description": "Parent delivery of an intervention to their child that promotes their social communication or other skills or decreases their behavior that interferes with their safety or learning.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Parent-Implemented%20Intervention/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Peer-Based Instruction & Intervention (PBII)",
+    "intervention_targets": [
+      "social interaction facilitation",
+      "peer engagement"
+    ],
+    "description": "Intervention in which peers directly promote autistic children's social interactions and/or other individual learning goals, or the teacher/other adult organizes the social context and when necessary provides support to the autistic children and their peer to engage in social interactions.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Peer-Based-Instruction-Intervention/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Prompting (PP)",
+    "intervention_targets": [
+      "skill acquisition",
+      "independent functioning"
+    ],
+    "description": "Verbal, gestural, or physical assistance given to learners to support them in acquiring or engaging in a targeted behavior or skill.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Prompting/content",
+      "time_to_complete": "3 hours"
+    }
+  },
+  {
+    "therapy_name": "Reinforcement (R)",
+    "intervention_targets": [
+      "behavioral regulation",
+      "skill maintenance"
+    ],
+    "description": "The application of a consequence following a learner's use of a response or skills that increases the likelihood that the learner will use the response/skills in the future.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Reinforcement/content",
+      "time_to_complete": "3 hours"
+    }
+  },
+  {
+    "therapy_name": "Response Interruption & Redirection (RIR)",
+    "intervention_targets": [
+      "reduction of interfering behaviors",
+      "behavioral redirection"
+    ],
+    "description": "The introduction of a prompt, comment, or other distractors when an interfering behavior is occurring that is designed to divert the learner's attention away from the interfering behavior and results in its reduction.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Response-Interruption-Redirection/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Self-Management (SM)",
+    "intervention_targets": [
+      "self-regulation",
+      "independent functioning"
+    ],
+    "description": "Instruction focusing on learners discriminating between appropriate and inappropriate behaviors, accurately monitoring and recording their own behaviors, and rewarding themselves for behaving appropriately.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Self-Management/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Social Narratives (SN)",
+    "intervention_targets": [
+      "social understanding",
+      "appropriate social responding"
+    ],
+    "description": "Interventions that describe social situations in order to highlight relevant features of a target behavior or skill and offer examples of appropriate responding.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Social-Narratives/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Social Skills Training (SST)",
+    "intervention_targets": [
+      "social interaction facilitation",
+      "peer engagement"
+    ],
+    "description": "Group or individual instruction designed to teach learners ways to participate in their interactions appropriately and successfully with others.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Social-Skills-Training/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Task Analysis (TA)",
+    "intervention_targets": [
+      "adaptive skill development",
+      "structured skill acquisition"
+    ],
+    "description": "A process in which an activity or behavior is divided into small, manageable steps in order to assess and teach the skill. Other practices, such as reinforcement, video modeling, or time delay, are often used to facilitate acquisition of the smaller steps.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Task-Analysis/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Technology-Aided Instruction & Intervention (TAII)",
+    "intervention_targets": [
+      "skill acquisition",
+      "independent functioning"
+    ],
+    "description": "Instruction or intervention in which technology is the central feature and the technology is specifically designed or employed to support the learning or performance of a behavior or skill for the learner.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Technology-Aided-Instruction-Intervention/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Time Delay (TD)",
+    "intervention_targets": [
+      "skill acquisition",
+      "prompt fading"
+    ],
+    "description": "A practice used to systematically fade the use of prompts during instructional activities by using a brief delay between the initial instruction and any additional instructions or prompts.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Time-Delay/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Video Modeling (VM)",
+    "intervention_targets": [
+      "skill acquisition",
+      "social learning"
+    ],
+    "description": "A video-recorded demonstration of the targeted behavior or skill shown to the learner to assist learning in or engaging in a desired behavior or skill.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Video-Modeling/content",
+      "time_to_complete": "2 hours"
+    }
+  },
+  {
+    "therapy_name": "Visual Supports (VS)",
+    "intervention_targets": [
+      "support for transitions and change",
+      "independent functioning"
+    ],
+    "description": "A visual display that supports the learner engaging in a desired behavior or skills independent of additional prompts.",
+    "age_range": "birth-22",
+    "evidence_basis": "Evidence-Based Practice",
+    "source": {
+      "organization": "AFIRM",
+      "link": "https://afirm-modules.fpg.unc.edu/Visual-Supports/content",
+      "time_to_complete": "2 hours"
+    }
+  }
+]
