@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePatients, useUpdatePatient, useDeletePatient } from '../../../api/patient';
 import { Search, Plus, Filter, MoreHorizontal, Loader2, Users, Eye, UserPlus, Edit, Archive, X, Mail, Phone, MapPin, Calendar, Activity, User, Shield, ChevronLeft, ChevronRight, TrendingUp, AlertCircle } from 'lucide-react';
 import { Screen } from '../../../types';
-import toast from 'react-hot-toast';
+import toast from '../../../lib/toast';
 
 interface PatientListScreenProps {
   onNavigate?: (screen: Screen, data?: any) => void;

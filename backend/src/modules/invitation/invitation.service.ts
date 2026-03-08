@@ -307,13 +307,16 @@ export class InvitationService {
         id: inv._id,
         invitationCode: inv.invitationCode,
         therapistName: (inv.therapistId as any)?.fullName,
-        patientName: (inv.patientId as any)?.fullName,
+        patientId: (inv.patientId as any)?._id?.toString() || inv.patientId?.toString(),
+        patientName: (inv.patientId as any)?.fullName || inv.patientName,
         caregiverEmail: inv.caregiverEmail,
         caregiverName: inv.caregiverName,
         status: inv.status,
         expiresAt: inv.expiresAt,
         acceptedAt: inv.acceptedAt,
         createdAt: inv.createdAt,
+        // The user ID of the caregiver who accepted the invitation
+        caregiverUserId: (inv.acceptedBy as any)?._id?.toString() || inv.acceptedBy?.toString(),
         // Include caregiver account info for accepted invitations
         caregiverAccountStatus: (inv.acceptedBy as any)?.accountStatus,
         isEmailVerified: (inv.acceptedBy as any)?.isEmailVerified ?? false,

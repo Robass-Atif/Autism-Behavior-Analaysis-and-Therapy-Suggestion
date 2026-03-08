@@ -15,29 +15,31 @@ import {
   ChevronRight,
   Loader2,
   Plus,
+  X,
 } from "lucide-react";
 import { useVideoSessions, useDeleteVideoSession } from "../../../api/clinical";
 import { getFileUrl } from "../../../config/apiConfig";
 import { format } from "date-fns";
+import { ActionIcon } from "../../ui/ActionIcon";
 
 interface CaregiverVideoLibraryProps {
   patientId?: string;
   onRecordNew?: () => void;
 }
 
-const ACTION_LABELS: Record<string, { name: string; icon: string }> = {
-  arm_swing_left: { name: "Arm Swing Left", icon: "🦾" },
-  arm_swing_right: { name: "Arm Swing Right", icon: "💪" },
-  body_swing: { name: "Body Swing", icon: "🧍" },
-  chest_expansion: { name: "Chest Expansion", icon: "🫁" },
-  sing_and_clap: { name: "Sing and Clap", icon: "👏" },
-  drumming: { name: "Drumming", icon: "🥁" },
-  frog_pose: { name: "Frog Pose", icon: "🐸" },
-  maracas_shaking: { name: "Maracas Shaking", icon: "🎵" },
-  maracas_forward: { name: "Maracas Forward", icon: "🎶" },
-  squat: { name: "Squat", icon: "🏋️" },
-  tree_pose: { name: "Tree Pose", icon: "🌳" },
-  twist_pose: { name: "Twist Pose", icon: "🔄" },
+const ACTION_LABELS: Record<string, { name: string; icon: React.ReactNode }> = {
+  arm_swing_left: { name: "Arm Swing Left", icon: <ActionIcon id="arm_swing_left" /> },
+  arm_swing_right: { name: "Arm Swing Right", icon: <ActionIcon id="arm_swing_right" /> },
+  body_swing: { name: "Body Swing", icon: <ActionIcon id="body_swing" /> },
+  chest_expansion: { name: "Chest Expansion", icon: <ActionIcon id="chest_expansion" /> },
+  sing_and_clap: { name: "Sing and Clap", icon: <ActionIcon id="sing_and_clap" /> },
+  drumming: { name: "Drumming", icon: <ActionIcon id="drumming" /> },
+  frog_pose: { name: "Frog Pose", icon: <ActionIcon id="frog_pose" /> },
+  maracas_shaking: { name: "Maracas Shaking", icon: <ActionIcon id="maracas_shaking" /> },
+  maracas_forward: { name: "Maracas Forward", icon: <ActionIcon id="maracas_forward" /> },
+  squat: { name: "Squat", icon: <ActionIcon id="squat" /> },
+  tree_pose: { name: "Tree Pose", icon: <ActionIcon id="tree_pose" /> },
+  twist_pose: { name: "Twist Pose", icon: <ActionIcon id="twist_pose" /> },
 };
 
 export default function CaregiverVideoLibrary({
@@ -48,6 +50,7 @@ export default function CaregiverVideoLibrary({
   const [filterAction, setFilterAction] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
 
   const {
     data: sessionsData,
@@ -196,7 +199,7 @@ export default function CaregiverVideoLibrary({
       {/* Video Content */}
       <div className="p-8">
         {filteredSessions.length === 0 ? (
-          <div className="py-24 flex flex-col items-center justify-center border border-dashed border-zinc-200 grayscale">
+          <div className="py-24 flex flex-col items-center justify-center border border-dashed border-zinc-200">
             <Video size={48} className="text-zinc-200 mb-6" />
             <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 mb-2">
               Null Entries Detected
@@ -215,6 +218,7 @@ export default function CaregiverVideoLibrary({
               return (
                 <div
                   key={session.id}
+                  onClick={() => setSelectedVideo(session)}
                   className="border-r border-b border-zinc-100 bg-white group cursor-pointer relative overflow-hidden"
                 >
                   {/* Thumbnail Placeholder */}
@@ -223,18 +227,18 @@ export default function CaregiverVideoLibrary({
                       <img
                         src={getFileUrl(session.thumbnailUrl)}
                         alt={actionInfo.name}
-                        className="w-full h-full object-cover mix-blend-luminosity opacity-80 group-hover:opacity-100 transition-opacity"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                       />
                     ) : session.videoUrl ? (
                       <video
                         src={`${getFileUrl(session.videoUrl)}#t=0.001`}
-                        className="w-full h-full object-cover mix-blend-luminosity opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none"
                         preload="metadata"
                         muted
                         playsInline
                       />
                     ) : (
-                      <div className="text-5xl opacity-[0.05] grayscale group-hover:opacity-20 transition-opacity">
+                      <div className="text-5xl opacity-[0.05] group-hover:opacity-20 transition-opacity">
                         {actionInfo.icon}
                       </div>
                     )}
@@ -309,19 +313,20 @@ export default function CaregiverVideoLibrary({
               return (
                 <div
                   key={session.id}
+                  onClick={() => setSelectedVideo(session)}
                   className="flex items-center gap-6 p-6 bg-white border-b border-zinc-100 hover:bg-zinc-50 group cursor-pointer transition-colors"
                 >
-                  <div className="w-12 h-12 bg-zinc-50 flex items-center justify-center text-3xl grayscale opacity-30 group-hover:opacity-100 transition-opacity border border-zinc-100 overflow-hidden">
+                  <div className="w-12 h-12 bg-zinc-50 flex items-center justify-center text-3xl opacity-30 group-hover:opacity-100 transition-opacity border border-zinc-100 overflow-hidden">
                     {session.thumbnailUrl ? (
                       <img
                         src={getFileUrl(session.thumbnailUrl)}
                         alt={actionInfo.name}
-                        className="w-full h-full object-cover mix-blend-luminosity"
+                        className="w-full h-full object-cover"
                       />
                     ) : session.videoUrl ? (
                       <video
                         src={`${getFileUrl(session.videoUrl)}#t=0.001`}
-                        className="w-full h-full object-cover mix-blend-luminosity pointer-events-none"
+                        className="w-full h-full object-cover pointer-events-none"
                         preload="metadata"
                         muted
                         playsInline
@@ -377,6 +382,70 @@ export default function CaregiverVideoLibrary({
           LOCK STATUS: ENGAGED | ENCRYPTION: AES 256
         </div>
       </div>
+
+      {/* Video Player Overlay Modal */}
+      {selectedVideo && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-zinc-200 w-full max-w-4xl relative shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-zinc-50">
+              <div className="flex items-center gap-3">
+                <Video size={16} className="text-zinc-400" />
+                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900">
+                  {ACTION_LABELS[selectedVideo.actionType]?.name?.replace(" ", "_") || "UNKNOWN_ACTION"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="w-8 h-8 flex items-center justify-center border border-zinc-200 hover:bg-zinc-900 hover:text-white transition-all bg-white"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            
+            {/* Video Player */}
+            <div className="aspect-video bg-zinc-950 flex items-center justify-center relative">
+              {selectedVideo.videoUrl ? (
+                <video
+                  src={getFileUrl(selectedVideo.videoUrl)}
+                  className="w-full h-full object-contain"
+                  controls
+                  autoPlay
+                />
+              ) : (
+                <div className="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                  <AlertCircle size={14} className="text-zinc-500" />
+                  NO VIDEO DATA FOUND
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">RECORDED ON</span>
+                  <span className="text-xs font-black uppercase text-zinc-900">
+                    {selectedVideo.recordedAt ? format(new Date(selectedVideo.recordedAt), "yyyy.MM.dd | HH:mm") : "0000.00.00"}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 border-l border-zinc-200 pl-6">
+                  <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">DURATION</span>
+                  <span className="text-xs font-black uppercase text-zinc-900">
+                    {formatDuration(selectedVideo.duration || 0)}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 border-l border-zinc-200 pl-6">
+                  <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">STATUS</span>
+                  <span className="text-xs font-black uppercase text-zinc-900">
+                    {selectedVideo.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

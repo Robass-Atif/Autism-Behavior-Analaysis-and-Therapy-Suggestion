@@ -3,7 +3,7 @@ import { useTherapyGoals, useCreateTherapyGoal, useUpdateTherapyGoal, useDeleteT
 import { usePatients } from '../../../api/patient';
 import { Plus, Target, Clock, Loader2, AlertCircle, X, Trash2, Edit2, CheckCircle, ChevronDown, Search } from 'lucide-react';
 import { Screen } from '../../../types';
-import toast from 'react-hot-toast';
+import toast from '../../../lib/toast';
 
 interface TherapyGoalsScreenProps {
   onNavigate: (screen: Screen) => void;

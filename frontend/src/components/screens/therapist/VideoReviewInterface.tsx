@@ -28,7 +28,7 @@ import {
   useUpdateVideoSession,
   useRetryAIAnalysis,
 } from "../../../api/clinical";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import { getFileUrl } from "../../../config/apiConfig";
 
 export default function VideoReviewInterface() {

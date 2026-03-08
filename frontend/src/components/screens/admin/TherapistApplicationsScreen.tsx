@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "../../../lib/toast";
 import {
   Search,
   CheckCircle,
@@ -283,8 +283,6 @@ const TherapistApplicationsScreen: React.FC<
 
   return (
     <>
-      <Toaster position="top-right" />
-
       <div className="bg-zinc-50 min-h-screen font-mono">
         {/* Header */}
         <div className="bg-black px-8 py-6 text-white">

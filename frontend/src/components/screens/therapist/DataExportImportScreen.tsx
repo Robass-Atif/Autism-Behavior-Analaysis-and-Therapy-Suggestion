@@ -10,7 +10,7 @@ import {
   Database,
   Shield,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import { usePatients } from "../../../api/patient";
 import { useVideoSessions, useTherapyGoals } from "../../../api/clinical";
 

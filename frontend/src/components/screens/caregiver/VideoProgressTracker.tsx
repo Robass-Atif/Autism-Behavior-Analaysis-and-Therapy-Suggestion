@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, Circle, Clock, Video, PlayCircle, AlertCircle } from 'lucide-react';
+import { ActionIcon } from '../../ui/ActionIcon';
 import { useVideoSessions } from '../../../api/clinical';
 
 interface VideoProgressTrackerProps {
@@ -8,18 +9,18 @@ interface VideoProgressTrackerProps {
 }
 
 const GUIDED_ACTIONS = [
-    { id: 'arm_swing_left', name: 'Arm Swing Left', icon: '🦾' },
-    { id: 'arm_swing_right', name: 'Arm Swing Right', icon: '💪' },
-    { id: 'body_swing', name: 'Body Swing', icon: '🧍' },
-    { id: 'chest_expansion', name: 'Chest Expansion', icon: '🫁' },
-    { id: 'sing_and_clap', name: 'Sing and Clap', icon: '👏' },
-    { id: 'drumming', name: 'Drumming', icon: '🥁' },
-    { id: 'frog_pose', name: 'Frog Pose', icon: '🐸' },
-    { id: 'maracas_shaking', name: 'Maracas Shaking', icon: '🎵' },
-    { id: 'maracas_forward', name: 'Maracas Forward', icon: '🎶' },
-    { id: 'squat', name: 'Squat', icon: '🏋️' },
-    { id: 'tree_pose', name: 'Tree Pose', icon: '🌳' },
-    { id: 'twist_pose', name: 'Twist Pose', icon: '🔄' },
+    { id: 'arm_swing_left', name: 'Arm Swing Left', icon: <ActionIcon id="arm_swing_left" className="w-10 h-10" /> },
+    { id: 'arm_swing_right', name: 'Arm Swing Right', icon: <ActionIcon id="arm_swing_right" className="w-10 h-10" /> },
+    { id: 'body_swing', name: 'Body Swing', icon: <ActionIcon id="body_swing" className="w-10 h-10" /> },
+    { id: 'chest_expansion', name: 'Chest Expansion', icon: <ActionIcon id="chest_expansion" className="w-10 h-10" /> },
+    { id: 'sing_and_clap', name: 'Sing and Clap', icon: <ActionIcon id="sing_and_clap" className="w-10 h-10" /> },
+    { id: 'drumming', name: 'Drumming', icon: <ActionIcon id="drumming" className="w-10 h-10" /> },
+    { id: 'frog_pose', name: 'Frog Pose', icon: <ActionIcon id="frog_pose" className="w-10 h-10" /> },
+    { id: 'maracas_shaking', name: 'Maracas Shaking', icon: <ActionIcon id="maracas_shaking" className="w-10 h-10" /> },
+    { id: 'maracas_forward', name: 'Maracas Forward', icon: <ActionIcon id="maracas_forward" className="w-10 h-10" /> },
+    { id: 'squat', name: 'Squat', icon: <ActionIcon id="squat" className="w-10 h-10" /> },
+    { id: 'tree_pose', name: 'Tree Pose', icon: <ActionIcon id="tree_pose" className="w-10 h-10" /> },
+    { id: 'twist_pose', name: 'Twist Pose', icon: <ActionIcon id="twist_pose" className="w-10 h-10" /> },
 ];
 
 export default function VideoProgressTracker({ patientId, onRecordAction }: VideoProgressTrackerProps) {
@@ -116,7 +117,7 @@ export default function VideoProgressTracker({ patientId, onRecordAction }: Vide
                                     }`}></div>
                             </div>
 
-                            <div className="text-3xl mb-4 grayscale flex justify-center">{action.icon}</div>
+                            <div className="text-3xl mb-4 flex justify-center">{action.icon}</div>
 
                             <div className="space-y-1">
                                 <div className={`text-[9px] font-black uppercase truncate tracking-tight ${status === 'complete' ? 'text-zinc-400' : 'text-zinc-900'
@@ -138,21 +139,6 @@ export default function VideoProgressTracker({ patientId, onRecordAction }: Vide
                 })}
             </div>
 
-            {/* Technical Legend */}
-            <div className="flex flex-wrap items-center justify-center gap-8 mt-12 pt-8 border-t border-zinc-100">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-zinc-900"></div>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">COMPLIANT (3+)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 border border-zinc-900"></div>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">PARTIAL (1-2)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-zinc-100 border border-zinc-200"></div>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-400">INACTIVE (0)</span>
-                </div>
-            </div>
         </div>
     );
 }

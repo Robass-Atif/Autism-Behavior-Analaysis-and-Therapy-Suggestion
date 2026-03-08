@@ -21,10 +21,14 @@ import {
 } from "lucide-react";
 import { useUploadVideoSession } from "../../../api/clinical";
 import { useCaregiverPatients } from "../../../api/caregiver";
+import { useUpdateScheduleEntry } from "../../../api/schedule";
+import { ActionIcon } from "../../ui/ActionIcon";
 
 interface GuidedVideoRecordingProps {
   onClose: () => void;
   patientId?: string;
+  scheduleEntryId?: string;
+  actionType?: string;
 }
 
 type RecordingStep =
@@ -41,7 +45,7 @@ const GUIDED_ACTIONS = [
   {
     id: "arm_swing_left",
     name: "Arm Swing Left",
-    icon: "🦾",
+    icon: <ActionIcon id="arm_swing_left" />,
     description: "Bilateral arm movement study | Forward and backward swing.",
     duration: 30,
     instructions: [
@@ -54,7 +58,7 @@ const GUIDED_ACTIONS = [
   {
     id: "arm_swing_right",
     name: "Arm Swing Right",
-    icon: "💪",
+    icon: <ActionIcon id="arm_swing_right" />,
     description: "Bilateral arm movement study | Forward and backward swing.",
     duration: 30,
     instructions: [
@@ -67,7 +71,7 @@ const GUIDED_ACTIONS = [
   {
     id: "body_swing",
     name: "Body Swing",
-    icon: "🧍",
+    icon: <ActionIcon id="body_swing" />,
     description: "Trunk stability and lateral motion analysis.",
     duration: 30,
     instructions: [
@@ -80,7 +84,7 @@ const GUIDED_ACTIONS = [
   {
     id: "chest_expansion",
     name: "Chest Expansion",
-    icon: "🫁",
+    icon: <ActionIcon id="chest_expansion" />,
     description: "Respiratory and thoracic expansion metrics.",
     duration: 30,
     instructions: [
@@ -93,7 +97,7 @@ const GUIDED_ACTIONS = [
   {
     id: "sing_and_clap",
     name: "Sing and Clap",
-    icon: "👏",
+    icon: <ActionIcon id="sing_and_clap" />,
     description: "Rhythmic coordination and vocalization study.",
     duration: 45,
     instructions: [
@@ -106,7 +110,7 @@ const GUIDED_ACTIONS = [
   {
     id: "drumming",
     name: "Drumming",
-    icon: "🥁",
+    icon: <ActionIcon id="drumming" />,
     description: "Motor rhythm and surface interaction analysis.",
     duration: 30,
     instructions: [
@@ -119,7 +123,7 @@ const GUIDED_ACTIONS = [
   {
     id: "frog_pose",
     name: "Frog Pose",
-    icon: "🐸",
+    icon: <ActionIcon id="frog_pose" />,
     description: "Isometric lower limb and core stability.",
     duration: 20,
     instructions: [
@@ -132,7 +136,7 @@ const GUIDED_ACTIONS = [
   {
     id: "maracas_shaking",
     name: "Maracas Shaking",
-    icon: "🎵",
+    icon: <ActionIcon id="maracas_shaking" />,
     description: "Hand-arm oscillation and tremor analysis.",
     duration: 30,
     instructions: [
@@ -145,7 +149,7 @@ const GUIDED_ACTIONS = [
   {
     id: "maracas_forward",
     name: "Maracas Forward Shaking",
-    icon: "🎶",
+    icon: <ActionIcon id="maracas_forward" />,
     description: "Extended limb oscillation and reach study.",
     duration: 30,
     instructions: [
@@ -158,7 +162,7 @@ const GUIDED_ACTIONS = [
   {
     id: "squat",
     name: "Squat",
-    icon: "🏋️",
+    icon: <ActionIcon id="squat" />,
     description: "Mechanical squat trajectory and depth analysis.",
     duration: 30,
     instructions: [
@@ -171,7 +175,7 @@ const GUIDED_ACTIONS = [
   {
     id: "tree_pose",
     name: "Tree Pose",
-    icon: "🌳",
+    icon: <ActionIcon id="tree_pose" />,
     description: "Bilateral balance and equilibrium metrics.",
     duration: 20,
     instructions: [
@@ -184,7 +188,7 @@ const GUIDED_ACTIONS = [
   {
     id: "twist_pose",
     name: "Twist Pose",
-    icon: "🔄",
+    icon: <ActionIcon id="twist_pose" />,
     description: "Segmented upper body rotation analysis.",
     duration: 30,
     instructions: [
@@ -199,10 +203,22 @@ const GUIDED_ACTIONS = [
 export default function GuidedVideoRecording({
   onClose,
   patientId,
+  scheduleEntryId,
+  actionType,
 }: GuidedVideoRecordingProps) {
   const [step, setStep] = useState<RecordingStep>("SELECTION");
   const [selectedPatient, setSelectedPatient] = useState(patientId || "");
-  const [selectedAction, setSelectedAction] = useState(GUIDED_ACTIONS[0]);
+  // Pre-select action from the prop if provided (e.g. launched from a scheduled task)
+  const initialAction = actionType
+    ? GUIDED_ACTIONS.find(
+        (a) =>
+          a.id === actionType ||
+          a.name.toLowerCase() === actionType.toLowerCase() ||
+          a.id === actionType.toLowerCase().replace(/\s+/g, '_') ||
+          a.id === actionType.toLowerCase().replace(/\s+/g, '_').replace('frog_pose', 'frog_pose'),
+      ) || GUIDED_ACTIONS[0]
+    : GUIDED_ACTIONS[0];
+  const [selectedAction, setSelectedAction] = useState(initialAction);
   const [isRecording, setIsRecording] = useState(false);
   const [timer, setTimer] = useState(0);
   const [uploadedBlob, setUploadedBlob] = useState<Blob | null>(null);
@@ -296,7 +312,7 @@ export default function GuidedVideoRecording({
                     >
                       <div className="flex flex-col gap-4">
                         <span
-                          className={`text-2xl transition-all grayscale ${selectedAction.id === action.id ? "grayscale-0" : "opacity-40 group-hover:opacity-100"}`}
+                          className={`text-2xl transition-all ${selectedAction.id === action.id ? "" : "opacity-40 group-hover:opacity-100"}`}
                         >
                           {action.icon}
                         </span>
@@ -378,6 +394,7 @@ export default function GuidedVideoRecording({
         blob={uploadedBlob}
         action={selectedAction}
         patientId={selectedPatient}
+        scheduleEntryId={scheduleEntryId}
         onClose={onClose}
         onRetake={() => {
           setStep("SELECTION");
@@ -394,6 +411,7 @@ export default function GuidedVideoRecording({
     <CameraInterface
       action={selectedAction}
       patientId={selectedPatient}
+      scheduleEntryId={scheduleEntryId}
       onClose={onClose}
       step={step}
       setStep={setStep}
@@ -408,6 +426,7 @@ export default function GuidedVideoRecording({
 const CameraInterface = ({
   action,
   patientId,
+  scheduleEntryId,
   onClose,
   step,
   setStep,
@@ -517,6 +536,8 @@ const CameraInterface = ({
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const updateScheduleMutation = useUpdateScheduleEntry();
+
   const handleUpload = () => {
     if (!recordedBlob) return;
 
@@ -529,7 +550,20 @@ const CameraInterface = ({
     formData.append("video", recordedBlob, `recording-${action.id}.webm`);
 
     uploadMutation.mutate(formData, {
-      onSuccess: () => setStep("SUCCESS"),
+      onSuccess: () => {
+        // Auto-complete the linked schedule task if one was provided
+        if (scheduleEntryId) {
+          updateScheduleMutation.mutate(
+            { id: scheduleEntryId, data: { status: "completed" } },
+            {
+              onSuccess: () => setStep("SUCCESS"),
+              onError: () => setStep("SUCCESS"), // still go to success even if status update fails
+            },
+          );
+        } else {
+          setStep("SUCCESS");
+        }
+      },
       onError: (err: any) => {
         console.error("Upload failed:", err);
         setError(`UPLOAD FAILED: ${err.message || "Unknown network error"}`);
@@ -755,7 +789,7 @@ const CameraInterface = ({
                     {action.name.replace("_", " ")}
                   </h3>
                 </div>
-                <div className="text-4xl grayscale mb-2">{action.icon}</div>
+                <div className="text-4xl mb-2">{action.icon}</div>
               </header>
 
               <div className="mb-10 space-y-6">
@@ -871,6 +905,7 @@ const UploadReviewInterface = ({
   blob,
   action,
   patientId,
+  scheduleEntryId,
   onClose,
   onRetake,
   onSuccess,
@@ -878,18 +913,34 @@ const UploadReviewInterface = ({
   blob: Blob | null;
   action: (typeof GUIDED_ACTIONS)[number];
   patientId: string;
+  scheduleEntryId?: string;
   onClose: () => void;
   onRetake: () => void;
   onSuccess: () => void;
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [duration, setDuration] = useState<number>(0);
   const uploadMutation = useUploadVideoSession();
+  const updateScheduleMutation = useUpdateScheduleEntry();
 
   useEffect(() => {
     if (blob) {
       const url = URL.createObjectURL(blob);
       setPreviewUrl(url);
+
+      // Extract duration from the blob
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        // Sometimes duration is Infinity or NaN on webm blobs initially
+        if (isFinite(video.duration)) {
+          setDuration(Math.round(video.duration));
+        }
+      };
+      video.src = URL.createObjectURL(blob);
+
       return () => URL.revokeObjectURL(url);
     }
   }, [blob]);
@@ -900,7 +951,8 @@ const UploadReviewInterface = ({
     const formData = new FormData();
     formData.append("patientId", patientId);
     formData.append("actionType", action.id);
-    formData.append("duration", "0");
+    // If the video extraction failed (e.g. Infinity), fallback to a default or the extracted duration
+    formData.append("duration", duration > 0 ? duration.toString() : "60"); 
     formData.append("recordedAt", new Date().toISOString());
     formData.append("qualityScore", "high");
     formData.append(
@@ -910,7 +962,19 @@ const UploadReviewInterface = ({
     );
 
     uploadMutation.mutate(formData, {
-      onSuccess: () => onSuccess(),
+      onSuccess: () => {
+        if (scheduleEntryId) {
+          updateScheduleMutation.mutate(
+            { id: scheduleEntryId, data: { status: "completed" } },
+            {
+              onSuccess: () => onSuccess(),
+              onError: () => onSuccess(), // still proceed even if status update fails
+            },
+          );
+        } else {
+          onSuccess();
+        }
+      },
       onError: (err: any) => {
         console.error("Upload failed:", err);
         setError(`UPLOAD FAILED: ${err.message || "Unknown network error"}`);

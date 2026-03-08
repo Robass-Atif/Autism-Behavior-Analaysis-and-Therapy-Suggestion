@@ -12,6 +12,7 @@ import { Admin } from "../users/schemas/admin.schema";
 import { TherapyGoal } from "../therapy-goals/schemas/therapy-goal.schema";
 import { VideoSession } from "../clinical/schemas/video-session.schema";
 import { Invitation } from "../invitation/schemas/invitation.schema";
+import { CaregiverSchedule } from "../caregiver-schedule/schemas/caregiver-schedule.schema";
 
 @Injectable()
 export class DashboardService {
@@ -28,6 +29,7 @@ export class DashboardService {
     @InjectModel(VideoSession.name)
     private videoSessionModel: Model<VideoSession>,
     @InjectModel(Invitation.name) private invitationModel: Model<Invitation>,
+    @InjectModel(CaregiverSchedule.name) private scheduleModel: Model<CaregiverSchedule>,
   ) {}
 
   async getTherapistStats(therapistId: string) {
@@ -185,7 +187,7 @@ export class DashboardService {
     const caregiverQuery = { $in: [caregiverId, cId] };
     const linkedPatientIds = await this.getLinkedPatientIds(caregiverId);
 
-    const [linkedPatients, uploadedVideos, pendingReviews, completedReports] =
+    const [linkedPatients, uploadedVideos, pendingReviews, completedReports, scheduledSessions, patientDocs] =
       await Promise.all([
         this.patientModel.countDocuments({
           _id: { $in: linkedPatientIds },
@@ -213,14 +215,28 @@ export class DashboardService {
           status: { $in: ["published", "therapist_review"] },
           deleted: false,
         }),
+        this.scheduleModel.countDocuments({
+          caregiverId: caregiverQuery,
+          status: "pending",
+        }),
+        this.patientModel.find({
+          _id: { $in: linkedPatientIds },
+          deleted: false,
+        }).select("progressScore").exec()
       ]);
+
+    const avgProgress = patientDocs.length > 0
+      ? patientDocs.reduce((sum, p) => sum + (p.progressScore || 0), 0) / patientDocs.length
+      : 0;
 
     return {
       linkedPatients,
       uploadedVideos,
       pendingReviews,
       completedReports,
-      scheduledSessions: 0, // Would need separate scheduling schema
+      scheduledSessions,
+      avgProgress: Math.round(avgProgress),
+      activePatients: linkedPatients,
     };
   }
 

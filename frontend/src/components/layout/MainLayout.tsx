@@ -27,6 +27,8 @@ import {
   ClipboardCheck,
   TrendingUp,
   Search,
+  CalendarPlus,
+  ListChecks,
 } from "lucide-react";
 import { UserRole } from "../../types";
 import { useTherapistDashboardStats } from "../../api/dashboard";
@@ -110,6 +112,11 @@ export default function MainLayout() {
                 icon={<UserCheck size={16} />}
                 label="Caregiver Invites"
               />
+              <NavItem
+                to="/schedule"
+                icon={<CalendarPlus size={16} />}
+                label="Recording Tasks"
+              />
 
               <NavSection title="Diagnostics" />
               <NavItem
@@ -165,6 +172,11 @@ export default function MainLayout() {
                 to="/caregiver"
                 icon={<LayoutDashboard size={16} />}
                 label="Dashboard"
+              />
+              <NavItem
+                to="/caregiver/tasks"
+                icon={<ListChecks size={16} />}
+                label="My Tasks"
               />
               <NavItem
                 to="/caregiver/record"
@@ -275,13 +287,13 @@ const NavItem = ({
   <Link
     to={to}
     activeOptions={{ exact: true }}
-    className="w-full flex items-center justify-between px-3 py-2.5 text-xs rounded-md transition-all duration-200"
+    className="w-full block"
   >
     {({ isActive }) => {
       const isReallyActive = forceActive ?? isActive;
       return (
         <div
-          className={`w-full flex items-center justify-between transition-all duration-200 ${isReallyActive ? "bg-zinc-900 text-white font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 border border-transparent"} px-3 py-2.5 text-xs rounded-md -m-3`}
+          className={`w-full flex items-center justify-between transition-all duration-200 ${isReallyActive ? "bg-zinc-900 text-white font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 border border-transparent"} px-3 py-2.5 text-xs rounded-md`}
         >
           <div className="flex items-center gap-3">
             <span className={isReallyActive ? "text-white" : "text-zinc-400"}>

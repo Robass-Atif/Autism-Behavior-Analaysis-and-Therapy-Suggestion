@@ -4,6 +4,7 @@ import { PDFDocument as PDFLib } from "pdf-lib";
 
 export interface ReportOptions {
   patientId: string;
+  sessionId?: string;
   includeGoals?: boolean;
   includeCharts?: boolean;
   includeTables?: boolean;
@@ -67,6 +68,8 @@ export class PdfGeneratorService {
         const W = 505; // usable width
         const LEFT = 45;
         const RIGHT = 550;
+        const isSessionReport =
+          options.reportType === "session" || !!options.sessionId;
 
         // ── COVER / HEADER ──
         if (options.watermark) {
@@ -104,7 +107,9 @@ export class PdfGeneratorService {
 
         // Report title
         const reportTitle =
-          options.reportType === "progress"
+          isSessionReport
+            ? "SINGLE SESSION CLINICAL REPORT"
+            : options.reportType === "progress"
             ? "PROGRESS REPORT (QUARTERLY)"
             : options.reportType === "consolidated"
               ? "CONSOLIDATED ANALYSIS REPORT"
@@ -122,16 +127,32 @@ export class PdfGeneratorService {
             `Generated: ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`,
             { align: "center" },
           );
+        if (isSessionReport && patientData?.reportSession) {
+          const rs = patientData.reportSession;
+          const label = rs?.actionType
+            ? String(rs.actionType).replace(/_/g, " ")
+            : "Video Session";
+          const dateText = rs?.recordedAt
+            ? new Date(rs.recordedAt).toLocaleDateString()
+            : "Unknown date";
+          doc
+            .fontSize(8)
+            .font("Helvetica-Bold")
+            .fillColor(C.mid)
+            .text(`Session: ${label} | Recorded: ${dateText}`, {
+              align: "center",
+            });
+        }
         doc.moveDown(1.5);
 
         // ── PATIENT INFORMATION ──
         this.sectionHeader(doc, "PATIENT INFORMATION", LEFT, W);
 
-        const age = patientData.dob
-          ? Math.floor(
-              (Date.now() - new Date(patientData.dob).getTime()) /
-                (365.25 * 24 * 60 * 60 * 1000),
-            )
+        const dobTime = patientData.dob
+          ? new Date(patientData.dob).getTime()
+          : Number.NaN;
+        const age = Number.isFinite(dobTime)
+          ? Math.floor((Date.now() - dobTime) / (365.25 * 24 * 60 * 60 * 1000))
           : null;
 
         const infoY = doc.y;
@@ -254,6 +275,76 @@ export class PdfGeneratorService {
         doc.y = statsY + 55;
         doc.moveDown(1);
 
+        if (isSessionReport && sessionsData.length > 0) {
+          const session = sessionsData[0];
+          const reviewedSeverity =
+            session?.therapistReview?.isOverridden &&
+            session?.therapistReview?.overrideSeverity != null
+              ? session.therapistReview.overrideSeverity
+              : session?.ensemblePrediction?.severity;
+          const durationLabel =
+            typeof session?.duration === "number"
+              ? `${Math.round(session.duration)} seconds`
+              : "N/A";
+
+          this.checkPage(doc, 90);
+          this.sectionHeader(doc, "SESSION DETAILS", LEFT, W);
+
+          const details = [
+            {
+              label: "Session ID",
+              value: session?._id?.toString?.() || session?.id || "N/A",
+            },
+            {
+              label: "Action Type",
+              value: session?.actionType
+                ? String(session.actionType).replace(/_/g, " ")
+                : "N/A",
+            },
+            {
+              label: "Recorded At",
+              value: session?.recordedAt
+                ? new Date(session.recordedAt).toLocaleString()
+                : "N/A",
+            },
+            {
+              label: "Status",
+              value: session?.status
+                ? String(session.status).replace(/_/g, " ")
+                : "N/A",
+            },
+            {
+              label: "Duration",
+              value: durationLabel,
+            },
+            {
+              label: "Reviewed Severity",
+              value:
+                reviewedSeverity === null || reviewedSeverity === undefined
+                  ? "N/A"
+                  : String(reviewedSeverity),
+            },
+          ];
+
+          details.forEach((row, index) => {
+            const y = doc.y;
+            doc.rect(LEFT, y, W, 14).fillColor(index % 2 === 0 ? C.bg : C.white).fill();
+            doc
+              .fontSize(7)
+              .font("Helvetica-Bold")
+              .fillColor(C.mid)
+              .text(row.label, LEFT + 6, y + 4, { width: 130 });
+            doc
+              .fontSize(7)
+              .font("Helvetica")
+              .fillColor(C.dark)
+              .text(String(row.value), LEFT + 136, y + 4, { width: W - 142 });
+            doc.y = y + 15;
+          });
+
+          doc.moveDown(0.6);
+        }
+
         // AI ANALYSIS (full model-response view per session)
         const sessionsWithAI = sessionsData
           .filter((s) => this.hasMeaningfulAIData(s))
@@ -262,14 +353,26 @@ export class PdfGeneratorService {
               new Date(b.recordedAt || 0).getTime() -
               new Date(a.recordedAt || 0).getTime(),
           );
+        const reportMode = options.reportType || "individual";
+        const sessionsToRender =
+          isSessionReport
+            ? sessionsWithAI.slice(0, 1)
+            : reportMode === "individual"
+              ? sessionsWithAI.slice(0, 1)
+              : reportMode === "progress"
+                ? sessionsWithAI.slice(0, 6)
+                : sessionsWithAI;
 
-        if (options.includeCharts !== false && sessionsWithAI.length > 0) {
-          sessionsWithAI.forEach((session, idx) => {
+        if (options.includeCharts !== false && sessionsToRender.length > 0) {
+          sessionsToRender.forEach((session, idx) => {
             this.renderAiSession(doc, session, idx, LEFT, W);
           });
         }
 
-        if (options.includeGoals && goalsData.length > 0) {
+        const shouldIncludeGoals =
+          reportMode === "consolidated" ||
+          (reportMode === "individual" && options.includeGoals);
+        if (shouldIncludeGoals && goalsData.length > 0) {
           this.checkPage(doc, 100);
           this.sectionHeader(doc, "THERAPY GOALS", LEFT, W);
 
@@ -324,7 +427,11 @@ export class PdfGeneratorService {
         }
 
         // ── SESSION TABLE ──
-        if (options.includeTables && sessionsData.length > 0) {
+        const shouldIncludeTables =
+          !isSessionReport &&
+          (reportMode === "consolidated" ||
+            (reportMode !== "progress" && options.includeTables));
+        if (shouldIncludeTables && sessionsData.length > 0) {
           this.checkPage(doc, 100);
           this.sectionHeader(doc, "SESSION HISTORY", LEFT, W);
 
@@ -386,7 +493,11 @@ export class PdfGeneratorService {
         }
 
         // ── LONGITUDINAL TREND (if multiple analyzed sessions) ──
-        if (analyzedSessions.length >= 2) {
+        const shouldIncludeTrend =
+          !isSessionReport &&
+          (reportMode === "progress" || reportMode === "consolidated") &&
+          analyzedSessions.length >= 2;
+        if (shouldIncludeTrend) {
           this.checkPage(doc, 140);
           this.sectionHeader(doc, "LONGITUDINAL TREND", LEFT, W);
 
@@ -668,6 +779,9 @@ export class PdfGeneratorService {
     const pred3d = raw.predictions_3d;
     const processingInfo =
       raw.processing_info || session.aiAnalysis?.rawPrediction?.processingInfo;
+    const inputAge = raw.input_age ?? pred2d?.input_age ?? pred3d?.input_age;
+    const inputGender =
+      raw.input_gender ?? pred2d?.input_gender ?? pred3d?.input_gender;
 
     const sessionDate = session.recordedAt
       ? new Date(session.recordedAt).toLocaleDateString("en-US", {
@@ -688,10 +802,13 @@ export class PdfGeneratorService {
       session.status && `Status: ${String(session.status).replace(/_/g, " ")}`,
       session.actionType &&
         `Action: ${String(session.actionType).replace(/_/g, " ")}`,
-      (raw.input_age ?? pred2d?.input_age ?? pred3d?.input_age) != null &&
-        `Input Age: ${raw.input_age ?? pred2d?.input_age ?? pred3d?.input_age}`,
-      (raw.input_gender ?? pred2d?.input_gender ?? pred3d?.input_gender) &&
-        `Input Gender: ${raw.input_gender ?? pred2d?.input_gender ?? pred3d?.input_gender}`,
+      inputAge !== null &&
+        inputAge !== undefined &&
+        String(inputAge).trim() !== "" &&
+        `Input Age: ${inputAge}`,
+      inputGender &&
+        String(inputGender).trim() !== "" &&
+        `Input Gender: ${inputGender}`,
       raw.status && `Model Status: ${raw.status}`,
     ]
       .filter(Boolean)
@@ -787,6 +904,7 @@ export class PdfGeneratorService {
       : [];
 
     if (behaviors.length > 0) {
+      const displayedBehaviors = behaviors.slice(0, 30);
       this.checkPage(doc, 40);
       doc
         .fontSize(9)
@@ -795,7 +913,7 @@ export class PdfGeneratorService {
         .text("Behavior Event Log", left);
       doc.moveDown(0.2);
 
-      behaviors.forEach((b: any) => {
+      displayedBehaviors.forEach((b: any) => {
         this.checkPage(doc, 16);
         const y = doc.y;
         doc.rect(left, y, width, 13).fillColor(C.bg).fill();
@@ -836,6 +954,16 @@ export class PdfGeneratorService {
           );
         doc.y = y + 15;
       });
+      if (behaviors.length > displayedBehaviors.length) {
+        doc
+          .fontSize(7)
+          .font("Helvetica")
+          .fillColor(C.light)
+          .text(
+            `Showing first ${displayedBehaviors.length} of ${behaviors.length} behavior events`,
+            left,
+          );
+      }
       doc.moveDown(0.2);
     }
 
@@ -1166,7 +1294,8 @@ export class PdfGeneratorService {
       0.000001,
     );
 
-    contributors.forEach((item: any) => {
+    const displayedContributors = contributors.slice(0, 8);
+    displayedContributors.forEach((item: any) => {
       this.checkPage(doc, 12);
       const y = doc.y;
       const rawValue =
@@ -1196,6 +1325,17 @@ export class PdfGeneratorService {
 
       doc.y = y + 11;
     });
+    if (contributors.length > displayedContributors.length) {
+      doc
+        .fontSize(6)
+        .font("Helvetica")
+        .fillColor(C.light)
+        .text(
+          `Showing top ${displayedContributors.length} of ${contributors.length} contributors`,
+          left + 2,
+        );
+      doc.moveDown(0.1);
+    }
     doc.moveDown(0.15);
   }
 
@@ -1223,7 +1363,8 @@ export class PdfGeneratorService {
       return;
     }
 
-    segments.forEach((seg: any, idx: number) => {
+    const displayedSegments = segments.slice(0, 12);
+    displayedSegments.forEach((seg: any, idx: number) => {
       this.checkPage(doc, 16);
       const direction = seg?.influence_direction || "unknown";
       doc
@@ -1245,6 +1386,17 @@ export class PdfGeneratorService {
           { width: width - 4 },
         );
     });
+    if (segments.length > displayedSegments.length) {
+      doc
+        .fontSize(6)
+        .font("Helvetica")
+        .fillColor(C.light)
+        .text(
+          `Showing first ${displayedSegments.length} of ${segments.length} temporal segments`,
+          left + 2,
+        );
+      doc.moveDown(0.1);
+    }
     doc.moveDown(0.2);
   }
 

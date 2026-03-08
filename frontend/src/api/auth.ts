@@ -38,6 +38,7 @@ export interface RegisterTherapistData {
   password: string;
   confirmPassword: string;
   fullName: string;
+  dateOfBirth: string;
   professionalTitle: string;
   phoneNumber: string;
   licenseNumber: string;
@@ -194,6 +195,7 @@ export const useRegisterTherapist = () => {
       formData.append("password", data.password);
       formData.append("confirmPassword", data.confirmPassword);
       formData.append("fullName", data.fullName);
+      formData.append("dateOfBirth", data.dateOfBirth);
       formData.append("professionalTitle", data.professionalTitle);
       formData.append("phoneNumber", data.phoneNumber);
       formData.append("credentials[licenseNumber]", data.licenseNumber);

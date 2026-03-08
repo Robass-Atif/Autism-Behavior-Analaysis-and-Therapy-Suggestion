@@ -311,7 +311,26 @@ export class EmailService {
     caregiverName: string,
     patientName: string,
     pdfBuffer: Buffer,
+    details?: {
+      sessionId?: string;
+      actionType?: string;
+      recordedAt?: Date | string;
+      publishedAt?: Date | string;
+      severity?: number | null;
+    },
   ): Promise<void> {
+    const actionLabel = details?.actionType || "Video Session";
+    const recordedAtLabel = details?.recordedAt
+      ? new Date(details.recordedAt).toLocaleString()
+      : "N/A";
+    const publishedAtLabel = details?.publishedAt
+      ? new Date(details.publishedAt).toLocaleString()
+      : new Date().toLocaleString();
+    const severityLabel =
+      details?.severity === null || details?.severity === undefined
+        ? "N/A"
+        : String(details.severity);
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -332,7 +351,15 @@ export class EmailService {
           <div class="content">
             <h2>Hi ${caregiverName},</h2>
             <p>Your therapist has reviewed and published the latest session recording for <strong>${patientName}</strong>.</p>
-            <p>We've attached the newly generated <strong>Clinical ADOS-2 Summary Report</strong> to this email as a PDF for your convenience so you can track longitudinal progress and behavioral milestones.</p>
+            <p>We've attached a <strong>single-session Clinical ADOS-2 report</strong> as a PDF for this specific recording.</p>
+            <p><strong>Session details:</strong></p>
+            <ul>
+              <li>Session Type: ${actionLabel}</li>
+              <li>Recorded At: ${recordedAtLabel}</li>
+              <li>Published At: ${publishedAtLabel}</li>
+              <li>Reviewed Severity: ${severityLabel}</li>
+              <li>Session ID: ${details?.sessionId || "N/A"}</li>
+            </ul>
             <p>You can also log into the Neurocare portal at any time to view the AI-analyzed metrics interactively.</p>
           </div>
           <div class="footer">
@@ -345,7 +372,7 @@ export class EmailService {
 
     const attachments = [
       {
-        filename: `clinical_report_${patientName.replace(/\s+/g, "_")}.pdf`,
+        filename: `clinical_report_${patientName.replace(/\s+/g, "_")}_${details?.sessionId || "session"}.pdf`,
         content: pdfBuffer,
         contentType: "application/pdf",
       },
