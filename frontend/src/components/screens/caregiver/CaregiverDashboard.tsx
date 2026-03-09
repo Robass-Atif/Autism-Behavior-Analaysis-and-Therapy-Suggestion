@@ -19,7 +19,7 @@ export default function CaregiverDashboard() {
   const navigate = useNavigate();
   const { data: patientsData, isLoading: patientsLoading, error: patientsError } = useCaregiverPatients();
   const { data: stats, isLoading: statsLoading } = useCaregiverDashboardStats();
-  
+
   const today = new Date();
   const currentMonthKey = getMonthKey(today);
   const { data: scheduleData, isLoading: scheduleLoading } = useCaregiverSchedule(currentMonthKey);
@@ -96,7 +96,7 @@ export default function CaregiverDashboard() {
               <div className="w-12 h-12 bg-zinc-900 flex items-center justify-center text-white font-bold text-xl border border-zinc-900">
                 {primaryPatient?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'PT'}
               </div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver Terminal V1.0</p>
+              {/* <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver Terminal V1.0</p> */}
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none">
               {primaryPatient?.fullName || 'Patient'} PORTAL
@@ -106,14 +106,14 @@ export default function CaregiverDashboard() {
             </p>
           </div>
 
-          <div className="flex gap-4">
+          {/* <div className="flex gap-4">
             <button className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors text-zinc-400 hover:text-zinc-900">
               <Settings size={18} />
             </button>
             <button className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors text-zinc-400 hover:text-zinc-900">
               <AlertCircle size={18} />
             </button>
-          </div>
+          </div> */}
         </header>
 
         {/* Global CTA */}
@@ -209,8 +209,8 @@ export default function CaregiverDashboard() {
                   </div>
                 ) : (
                   todaysSessions.map((session: ScheduleEntry) => (
-                    <div 
-                      key={session._id} 
+                    <div
+                      key={session._id}
                       onClick={() => {
                         if (session.status === 'pending') {
                           navigate({ to: '/caregiver/record', search: { actionType: session.actionType, scheduleEntryId: session._id, patientId: getPatientId(session) } })
