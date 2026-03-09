@@ -8,8 +8,8 @@ import { useCreatePatient } from '../../../api/patient';
 // Validation Schema
 const patientSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  dob: z.string().refine((date) => new Date(date) < new Date(), "Date of birth must be in the past"),
-  gender: z.enum(['Male', 'Female', 'Non-binary', 'Prefer not to say']),
+  dob: z.string().min(1, 'Date of birth is required').refine((date) => new Date(date) < new Date(), "Date of birth must be in the past"),
+  gender: z.enum(['Male', 'Female']),
   mrn: z.string().min(1, 'Medical Record Number is required'),
   diagnosisDate: z.string(),
   asdSeverity: z.enum(['Level 1', 'Level 2', 'Level 3']),
@@ -118,8 +118,6 @@ export default function PatientProfile() {
                 <select {...register('gender')} className={`${inputClasses} appearance-none`}>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
-                  <option value="Non-binary">Non-binary</option>
-                  <option value="Prefer not to say">Prefer not to say</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
               </div>

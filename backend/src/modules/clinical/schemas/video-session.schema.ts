@@ -15,6 +15,16 @@ export class VideoSession extends Document {
   @Prop({ required: true })
   videoUrl: string;
 
+  // ========== ENCRYPTION CREDENTIALS ==========
+  @Prop({ type: String })
+  encryptionKeyPattern: string; // The encrypted Master-Key wrapped File-Key payload
+
+  @Prop({ type: String })
+  encryptionIV: string;
+
+  @Prop({ type: String })
+  encryptionAuthTag: string;
+
   @Prop({ type: String })
   thumbnailUrl: string;
 

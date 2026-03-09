@@ -214,7 +214,13 @@ export default function TherapyRecommendations({
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => onNavigate?.(Screen.REPORT_GENERATION)}
+                    onClick={() =>
+                      onNavigate?.(Screen.REPORT_GENERATION, {
+                        patientId: selectedPatientId,
+                        sessionId: latestSessionWithReport?.id,
+                        reportType: "session",
+                      })
+                    }
                     className="px-4 py-2 text-[10px] font-black text-zinc-400 bg-zinc-800 border-2 border-zinc-700 hover:border-zinc-500 transition-all uppercase tracking-widest flex items-center gap-2"
                   >
                     <FileText size={14} /> Export Report

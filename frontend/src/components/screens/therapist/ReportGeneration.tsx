@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Settings,
   FileText,
@@ -13,12 +13,13 @@ import {
 } from "lucide-react";
 import { useGenerateReport, useVideoSessions } from "../../../api/clinical";
 import { usePatients, usePatient } from "../../../api/patient";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import { Patient } from "../../../types";
 
 export default function ReportGeneration() {
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [reportType, setReportType] = useState("individual");
+  const [selectedSessionId, setSelectedSessionId] = useState("");
   const [config, setConfig] = useState({
     charts: true,
     tables: false,
@@ -33,6 +34,15 @@ export default function ReportGeneration() {
     selectedPatientId || undefined,
   );
   const generateReport = useGenerateReport();
+  const isSessionReport = reportType === "session";
+  const reportTypeLabel =
+    reportType === "session"
+      ? "Single Session"
+      : reportType === "progress"
+        ? "Progress Report"
+        : reportType === "consolidated"
+          ? "Consolidated Analysis"
+          : "Individual Summary";
 
   const selectedPatient =
     patientDetail ||
@@ -51,34 +61,93 @@ export default function ReportGeneration() {
     };
   }, [sessionsData]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const patientId = params.get("patientId");
+    const sessionId = params.get("sessionId");
+    const incomingReportType = params.get("reportType");
+
+    if (patientId) setSelectedPatientId(patientId);
+    if (sessionId) setSelectedSessionId(sessionId);
+    if (incomingReportType === "session") setReportType("session");
+  }, []);
+
+  useEffect(() => {
+    if (!isSessionReport) return;
+    const sessions = sessionsData?.sessions || [];
+    if (!sessions.length) {
+      setSelectedSessionId("");
+      return;
+    }
+    const hasCurrentSelection = sessions.some(
+      (s: any) => (s.id || s._id) === selectedSessionId,
+    );
+    if (!selectedSessionId || !hasCurrentSelection) {
+      const firstSessionId =
+        (sessions[0] as any)?.id || (sessions[0] as any)?._id || "";
+      setSelectedSessionId(firstSessionId);
+    }
+  }, [isSessionReport, sessionsData, selectedSessionId]);
+
+  useEffect(() => {
+    if (reportType === "session") {
+      setConfig((prev) => ({ ...prev, charts: true, tables: false, notes: true }));
+      return;
+    }
+    if (reportType === "progress") {
+      setConfig((prev) => ({ ...prev, charts: true, tables: false, notes: false }));
+      return;
+    }
+    if (reportType === "consolidated") {
+      setConfig((prev) => ({ ...prev, charts: true, tables: true, notes: true }));
+      return;
+    }
+    setConfig((prev) => ({ ...prev, charts: true, tables: false, notes: true }));
+  }, [reportType]);
+
+  const buildPayload = () => {
+    const payload: any = {
+      patientId: selectedPatientId,
+      includeCharts: config.charts,
+      includeTables: isSessionReport ? false : config.tables,
+      includeNotes: config.notes,
+      watermark: config.watermark,
+      password: config.password || undefined,
+      includeGoals: isSessionReport ? false : true,
+      reportType: isSessionReport ? "session" : reportType,
+    };
+    if (isSessionReport) {
+      payload.sessionId = selectedSessionId;
+    }
+    return payload;
+  };
+
   const handleGenerate = async () => {
     if (!selectedPatientId) {
       toast.error("Please select a patient first");
+      return;
+    }
+    if (isSessionReport && !selectedSessionId) {
+      toast.error("Please select a session first");
       return;
     }
 
     const toastId = toast.loading("Generating PDF report...");
 
     try {
-      const blob = await generateReport.mutateAsync({
-        patientId: selectedPatientId,
-        includeCharts: config.charts,
-        includeTables: config.tables,
-        includeNotes: config.notes,
-        watermark: config.watermark,
-        password: config.password || undefined,
-        includeGoals: true,
-        reportType,
-      });
+      const blob = await generateReport.mutateAsync(buildPayload());
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       const patientName =
         selectedPatient?.fullName?.replace(/\s+/g, "_") || "Patient";
+      const prefix = isSessionReport
+        ? `session-report-${selectedSessionId}`
+        : `Report_${patientName}`;
       link.setAttribute(
         "download",
-        `Report_${patientName}_${new Date().toISOString().split("T")[0]}.pdf`,
+        `${prefix}_${new Date().toISOString().split("T")[0]}.pdf`,
       );
       document.body.appendChild(link);
       link.click();
@@ -99,19 +168,15 @@ export default function ReportGeneration() {
       toast.error("Please select a patient first");
       return;
     }
+    if (isSessionReport && !selectedSessionId) {
+      toast.error("Please select a session first");
+      return;
+    }
 
     const toastId = toast.loading("Generating preview...");
 
     try {
-      const blob = await generateReport.mutateAsync({
-        patientId: selectedPatientId,
-        includeCharts: config.charts,
-        includeTables: config.tables,
-        includeNotes: config.notes,
-        watermark: config.watermark,
-        includeGoals: true,
-        reportType,
-      });
+      const blob = await generateReport.mutateAsync(buildPayload());
 
       const url = window.URL.createObjectURL(blob);
       window.open(url, "_blank");
@@ -152,11 +217,14 @@ export default function ReportGeneration() {
               Select Patient
             </h3>
             <div className="relative">
-              <select
-                className="w-full p-3 bg-zinc-50 border-2 border-zinc-200 font-sans text-sm font-medium focus:ring-0 focus:border-zinc-900 appearance-none"
-                value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
-              >
+                <select
+                  className="w-full p-3 bg-zinc-50 border-2 border-zinc-200 font-sans text-sm font-medium focus:ring-0 focus:border-zinc-900 appearance-none"
+                  value={selectedPatientId}
+                  onChange={(e) => {
+                    setSelectedPatientId(e.target.value);
+                    setSelectedSessionId("");
+                  }}
+                >
                 <option value="">-- Choose a Patient --</option>
                 {patientsData?.patients.map((p: Patient) => (
                   <option key={p.id} value={p.id}>
@@ -194,20 +262,61 @@ export default function ReportGeneration() {
                 active={reportType === "consolidated"}
                 onClick={() => setReportType("consolidated")}
               />
+              <ReportOption
+                label="Single Session"
+                active={reportType === "session"}
+                onClick={() => setReportType("session")}
+              />
+            </div>
+            <div className="mt-3 bg-zinc-50 border border-zinc-200 p-3 text-[10px] font-bold uppercase tracking-wider text-zinc-600">
+              Active mode: {reportTypeLabel}
             </div>
           </section>
+
+          {isSessionReport && (
+            <section>
+              <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">
+                  3
+                </span>{" "}
+                Select Session
+              </h3>
+              <div className="relative">
+                <select
+                  className="w-full p-3 bg-zinc-50 border-2 border-zinc-200 font-sans text-sm font-medium focus:ring-0 focus:border-zinc-900 appearance-none"
+                  value={selectedSessionId}
+                  onChange={(e) => setSelectedSessionId(e.target.value)}
+                  disabled={!selectedPatientId}
+                >
+                  <option value="">-- Choose a Session --</option>
+                  {(sessionsData?.sessions || []).map((s: any) => (
+                    <option key={s.id || s._id} value={s.id || s._id}>
+                      {new Date(s.recordedAt).toLocaleDateString()} -{" "}
+                      {s.actionType || "Session"} - {s.status || "N/A"}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+                  <ChevronDown size={16} />
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Section 2 */}
           <section>
             <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">
-                3
+                {isSessionReport ? 4 : 3}
               </span>{" "}
               Content
             </h3>
             <div className="bg-zinc-50 p-4 space-y-3 border-2 border-zinc-100">
               <Checkbox label="Demographics & History" checked={true} />
-              <Checkbox label="Therapy Goals Status" checked={true} />
+              <Checkbox
+                label="Therapy Goals Status"
+                checked={reportType === "consolidated" || reportType === "individual"}
+              />
               <Checkbox
                 label="AI Analysis Visualizations"
                 checked={config.charts}
@@ -218,8 +327,10 @@ export default function ReportGeneration() {
               <Checkbox
                 label="Raw Data Tables"
                 checked={config.tables}
-                onChange={() =>
-                  setConfig({ ...config, tables: !config.tables })
+                onChange={
+                  reportType === "session" || reportType === "progress"
+                    ? undefined
+                    : () => setConfig({ ...config, tables: !config.tables })
                 }
               />
               <Checkbox
@@ -234,7 +345,7 @@ export default function ReportGeneration() {
           <section>
             <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <span className="w-5 h-5 bg-zinc-900 text-white flex items-center justify-center text-[10px]">
-                4
+                {isSessionReport ? 5 : 4}
               </span>{" "}
               Security
             </h3>
@@ -268,8 +379,12 @@ export default function ReportGeneration() {
         <div className="p-6 border-t-2 border-zinc-200 bg-zinc-50 space-y-3">
           <button
             onClick={handlePreview}
-            disabled={!selectedPatientId || generateReport.isPending}
-            className={`w-full py-3 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all border-2 ${!selectedPatientId || generateReport.isPending ? "border-zinc-300 text-zinc-400 cursor-not-allowed" : "border-zinc-900 text-zinc-900 hover:bg-zinc-100"}`}
+            disabled={
+              !selectedPatientId ||
+              generateReport.isPending ||
+              (isSessionReport && !selectedSessionId)
+            }
+            className={`w-full py-3 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all border-2 ${!selectedPatientId || generateReport.isPending || (isSessionReport && !selectedSessionId) ? "border-zinc-300 text-zinc-400 cursor-not-allowed" : "border-zinc-900 text-zinc-900 hover:bg-zinc-100"}`}
           >
             {generateReport.isPending ? (
               <Loader2 size={16} className="animate-spin" />
@@ -280,8 +395,12 @@ export default function ReportGeneration() {
           </button>
           <button
             onClick={handleGenerate}
-            disabled={!selectedPatientId || generateReport.isPending}
-            className={`w-full py-3 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${!selectedPatientId || generateReport.isPending ? "bg-zinc-400 cursor-not-allowed" : "bg-zinc-900 hover:bg-zinc-800"}`}
+            disabled={
+              !selectedPatientId ||
+              generateReport.isPending ||
+              (isSessionReport && !selectedSessionId)
+            }
+            className={`w-full py-3 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${!selectedPatientId || generateReport.isPending || (isSessionReport && !selectedSessionId) ? "bg-zinc-400 cursor-not-allowed" : "bg-zinc-900 hover:bg-zinc-800"}`}
           >
             {generateReport.isPending ? (
               <Loader2 size={16} className="animate-spin" />
@@ -298,7 +417,7 @@ export default function ReportGeneration() {
         <div className="absolute top-4 right-4 flex gap-2">
           <button
             onClick={handlePreview}
-            disabled={!selectedPatientId}
+            disabled={!selectedPatientId || (isSessionReport && !selectedSessionId)}
             className="p-2 border-2 border-zinc-300 bg-white text-zinc-600 hover:border-zinc-900 hover:text-zinc-900 transition-all disabled:opacity-40"
           >
             <Printer size={20} />
@@ -319,7 +438,7 @@ export default function ReportGeneration() {
           <div className="border-b-4 border-zinc-900 pb-6 mb-8 flex justify-between items-end">
             <div>
               <h1 className="text-3xl font-black text-zinc-900 mb-1 uppercase tracking-tighter">
-                Clinical Summary
+                {reportTypeLabel}
               </h1>
               <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
                 Autism Behavior Analysis & Therapy
@@ -475,7 +594,7 @@ const ReportOption = ({ label, active, onClick }: any) => (
 
 const Checkbox = ({ label, checked, onChange }: any) => (
   <div
-    className="flex items-center gap-3 cursor-pointer group"
+    className={`flex items-center gap-3 group ${onChange ? "cursor-pointer" : "cursor-not-allowed opacity-50"}`}
     onClick={onChange}
   >
     <div

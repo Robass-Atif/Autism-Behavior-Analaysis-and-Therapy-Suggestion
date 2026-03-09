@@ -3,12 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "@tanstack/react-router";
+import { formatPhoneNumber } from "../../../lib/formatters";
 import {
   RegisterTherapistData,
   useRegisterTherapist,
   useCheckRegistrationEligibility,
 } from "../../../api/auth";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import {
   Upload,
   X,
@@ -28,13 +29,98 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+// ─── Shared validators ───────────────────────────────────────────────────────
+
+/**
+ * Email: blocks consecutive dots, duplicate TLDs (.com.com) and bad formats.
+ */
+const emailValidator = z
+  .string()
+  .min(1, "Email address is required")
+  .email("Enter a valid email address (e.g. name@example.com)")
+  .refine(
+    (val) => {
+      if (/\.{2,}/.test(val)) return false;
+      const tldPart = val.split("@")[1] || "";
+      if (/(\.[a-z]{2,6})\1/.test(tldPart)) return false;
+      return /\.[a-zA-Z]{2,6}$/.test(val);
+    },
+    { message: "Email domain is invalid (e.g. avoid .com.com or double dots)" },
+  );
+
+/**
+ * Phone: accepts digits, spaces, dashes, parentheses, optional leading +.
+ * 7–15 digits (E.164 standard).
+ */
+const phoneValidator = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (val) => {
+      const digits = val.replace(/\D/g, "");
+      return digits.length >= 7 && digits.length <= 15;
+    },
+    { message: "Phone number must be 7–15 digits" },
+  )
+  .refine(
+    (val) => /^[+]?[\d\s\-().]+$/.test(val),
+    { message: "Phone may only contain digits, spaces, +, -, (, )" },
+  );
+
+/**
+ * Date of Birth: required, user must be at least 18 and at most 120 years old.
+ */
+const dobValidator = z
+  .string()
+  .min(1, "Date of birth is required")
+  .refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: "Please enter a valid date" },
+  )
+  .refine(
+    (val) => {
+      const dob = new Date(val);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear() -
+        (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+      return age >= 18;
+    },
+    { message: "You must be at least 18 years old" },
+  )
+  .refine(
+    (val) => {
+      const dob = new Date(val);
+      const today = new Date();
+      return dob <= today;
+    },
+    { message: "Date of birth cannot be in the future" },
+  )
+  .refine(
+    (val) => {
+      const dob = new Date(val);
+      const minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - 120);
+      return dob >= minDate;
+    },
+    { message: "Please enter a realistic date of birth" },
+  );
+
+// ─── Therapist schema ─────────────────────────────────────────────────────────
+
 // Zod Schema for Therapist Registration with full validation
 const therapistRegistrationSchema = z
   .object({
-    fullName: z.string().min(2, "Full name is required"),
+    fullName: z
+      .string()
+      .min(2, "Full name must be at least 2 characters")
+      .max(100, "Full name is too long")
+      .refine((val) => /^[a-zA-Z\s'.,-]+$/.test(val), {
+        message: "Full name may only contain letters, spaces, and . , ' -",
+      }),
+    dateOfBirth: dobValidator,
     professionalTitle: z.string().min(2, "Professional title is required"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(10, "Valid phone number is required"),
+    email: emailValidator,
+    phone: phoneValidator,
     licenseNumber: z
       .string()
       .min(4, "License number is required")
@@ -43,6 +129,10 @@ const therapistRegistrationSchema = z
     issuingAuthority: z.string().min(2, "Issuing authority is required"),
     licenseExpiryDate: z
       .string()
+      .min(1, "License expiry date is required")
+      .refine((date) => !isNaN(Date.parse(date)), {
+        message: "Please enter a valid date",
+      })
       .refine((date) => new Date(date) > new Date(), {
         message: "License must not be expired",
       }),
@@ -80,6 +170,7 @@ const therapistRegistrationSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
 
 type TherapistFormInputs = z.infer<typeof therapistRegistrationSchema>;
 
@@ -189,6 +280,7 @@ export default function TherapistRegistrationScreen() {
         password: data.password,
         confirmPassword: data.confirmPassword,
         fullName: data.fullName,
+        dateOfBirth: data.dateOfBirth,
         professionalTitle: data.professionalTitle,
         phoneNumber: data.phone, // Map form's phone to API's phoneNumber
         licenseNumber: data.licenseNumber,
@@ -238,7 +330,7 @@ export default function TherapistRegistrationScreen() {
   };
 
   const nextStep = async () => {
-    const fieldsForStep1 = ["fullName", "professionalTitle", "email", "phone"];
+    const fieldsForStep1 = ["fullName", "dateOfBirth", "professionalTitle", "email", "phone"];
     const fieldsForStep2 = [
       "licenseNumber",
       "licenseType",
@@ -399,6 +491,23 @@ export default function TherapistRegistrationScreen() {
 
                       <div className="group">
                         <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
+                          Date Of Birth <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          {...register("dateOfBirth")}
+                          type="date"
+                          max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
+                          className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all placeholder:text-zinc-300"
+                        />
+                        {errors.dateOfBirth && (
+                          <p className="mt-2 text-xs text-red-500 font-bold flex items-center gap-1">
+                            <AlertCircle size={10} /> {errors.dateOfBirth.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="group">
+                        <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
                           Professional Title{" "}
                           <span className="text-red-500">*</span>
                         </label>
@@ -454,7 +563,11 @@ export default function TherapistRegistrationScreen() {
                           Phone Number <span className="text-red-500">*</span>
                         </label>
                         <input
-                          {...register("phone")}
+                          {...register("phone", {
+                            onChange: (e) => {
+                              e.target.value = formatPhoneNumber(e.target.value);
+                            }
+                          })}
                           type="tel"
                           className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
                           placeholder="+1 (555) 000-0000"

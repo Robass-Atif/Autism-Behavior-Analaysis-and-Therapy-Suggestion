@@ -14,9 +14,11 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { PatientsModule } from './modules/patients/patients.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ClinicalModule } from './modules/clinical/clinical.module';
+import { CommonModule } from './common/common.module';
 
 import { TherapyGoalsModule } from './modules/therapy-goals/therapy-goals.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CaregiverScheduleModule } from './modules/caregiver-schedule/caregiver-schedule.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     DashboardModule,
     TherapyGoalsModule,
     PredictModule,
+    CaregiverScheduleModule,
+    CommonModule,
   ],
   controllers: [HealthController],
   providers: [

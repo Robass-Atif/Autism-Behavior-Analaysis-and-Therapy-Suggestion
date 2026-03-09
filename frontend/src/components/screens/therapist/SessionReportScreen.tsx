@@ -21,7 +21,7 @@ import {
   User,
   Play,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import { Screen, VideoSession as Session } from "../../../types";
 import {
   useVideoSession,
@@ -88,14 +88,17 @@ export default function SessionReportScreen({
       });
       const blob = await generateReport.mutateAsync({
         patientId: session.patientId,
-        includeGoals: true,
+        sessionId: sessionId,
+        includeGoals: false,
+        includeCharts: true,
+        includeTables: false,
         includeNotes: true,
-        reportType: "individual",
+        reportType: "session",
       });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `report-${session.patientId}-${Date.now()}.pdf`;
+      a.download = `session-report-${sessionId}-${Date.now()}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

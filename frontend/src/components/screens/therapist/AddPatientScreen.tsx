@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Loader2, Plus, Save, UserPlus, Check, ChevronDown } from 'lucide-react';
 import { useCreatePatient, useUpdatePatient, CreatePatientData, UpdatePatientData } from '../../../api/patient';
 import { useCreateInvitation } from '../../../api/invitation';
-import toast from 'react-hot-toast';
+import toast from '../../../lib/toast';
+import { formatPhoneNumber } from '../../../lib/formatters';
 
 interface AddPatientScreenProps {
     onBack: () => void;
@@ -114,16 +115,50 @@ export default function AddPatientScreen({ onBack, onSuccess }: AddPatientScreen
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
+        
         if (!form.fullName.trim()) newErrors.fullName = 'Name is required';
-        if (!form.dob) newErrors.dob = 'Date of birth is required';
+        if (!form.dob) {
+            newErrors.dob = 'Date of birth is required';
+        } else if (new Date(form.dob) > new Date()) {
+            newErrors.dob = 'Date of birth cannot be in the future';
+        }
         if (!form.mrn.trim()) newErrors.mrn = 'MRN is required';
         if (!form.guardianName.trim()) newErrors.guardianName = 'Guardian name is required';
-        if (!form.guardianPhone.trim()) newErrors.guardianPhone = 'Guardian phone is required';
+        
+        // Strict Phone Validation
+        if (!form.guardianPhone.trim()) {
+            newErrors.guardianPhone = 'Guardian phone is required';
+        } else {
+            const digits = form.guardianPhone.replace(/\D/g, "");
+            if (digits.length < 7 || digits.length > 15) {
+                newErrors.guardianPhone = 'Invalid phone format (must be 7-15 digits)';
+            }
+        }
+
+        const isValidEmail = (email: string) => {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+            const parts = email.split('@');
+            if (parts.length !== 2) return false;
+            const domainPart = parts[1];
+            if (domainPart.includes('..')) return false;
+            const domainChunks = domainPart.split('.');
+            for (let i = 0; i < domainChunks.length - 1; i++) {
+                if (domainChunks[i] === domainChunks[i+1]) return false;
+            }
+            return true;
+        };
+
+        if (form.guardianEmail && form.guardianEmail.trim() !== '') {
+            if (!isValidEmail(form.guardianEmail)) {
+                newErrors.guardianEmail = 'Invalid email format';
+            }
+        }
 
         if (inviteCaregiver) {
             if (!form.caregiverName.trim()) newErrors.caregiverName = 'Caregiver name is required';
-            if (!form.caregiverEmail.trim()) newErrors.caregiverEmail = 'Caregiver email is required';
-            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.caregiverEmail)) {
+            if (!form.caregiverEmail.trim()) {
+                newErrors.caregiverEmail = 'Caregiver email is required';
+            } else if (!isValidEmail(form.caregiverEmail)) {
                 newErrors.caregiverEmail = 'Invalid email format';
             }
         }
@@ -269,7 +304,7 @@ export default function AddPatientScreen({ onBack, onSuccess }: AddPatientScreen
                                         Gender <span className="text-red-500">*</span>
                                     </label>
                                     <div className="flex gap-2">
-                                        {['male', 'female', 'other'].map((g) => (
+                                        {['male', 'female'].map((g) => (
                                             <button
                                                 key={g}
                                                 type="button"
@@ -400,7 +435,7 @@ export default function AddPatientScreen({ onBack, onSuccess }: AddPatientScreen
                                 label="Phone Number"
                                 type="tel"
                                 value={form.guardianPhone}
-                                onChange={(v) => updateField('guardianPhone', v)}
+                                onChange={(v) => updateField('guardianPhone', formatPhoneNumber(v))}
                                 placeholder="+1 (555) 123-4567"
                                 error={errors.guardianPhone}
                                 required
@@ -411,6 +446,7 @@ export default function AddPatientScreen({ onBack, onSuccess }: AddPatientScreen
                                 value={form.guardianEmail}
                                 onChange={(v) => updateField('guardianEmail', v)}
                                 placeholder="email@example.com"
+                                error={errors.guardianEmail}
                             />
                         </div>
                     </section>

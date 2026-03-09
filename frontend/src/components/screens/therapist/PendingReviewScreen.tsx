@@ -33,7 +33,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { VideoSession, Screen } from "../../../types";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 
 interface PendingReviewScreenProps {
   onNavigate?: (screen: Screen, data?: any) => void;

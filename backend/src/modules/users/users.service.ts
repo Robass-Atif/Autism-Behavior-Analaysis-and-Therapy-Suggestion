@@ -121,7 +121,8 @@ export class UsersService {
       password: data.password,
       phoneNumber: data.phoneNumber,
       role: Role.CAREGIVER,
-      accountStatus: AccountStatus.PENDING_VERIFICATION,
+      accountStatus: (data as any).accountStatus || AccountStatus.PENDING_VERIFICATION,
+      isEmailVerified: (data as any).isEmailVerified || false,
     });
     const savedUser = await user.save();
 
@@ -130,7 +131,8 @@ export class UsersService {
       userId: savedUser._id,
       email: data.email.toLowerCase(),
       role: Role.CAREGIVER,
-      accountStatus: AccountStatus.PENDING_VERIFICATION,
+      accountStatus: (data as any).accountStatus || AccountStatus.PENDING_VERIFICATION,
+      isEmailVerified: (data as any).isEmailVerified || false,
     });
 
     return caregiver.save();

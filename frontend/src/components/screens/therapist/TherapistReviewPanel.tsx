@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { VideoSession as Session, Screen } from '../../../types';
 import { useSubmitTherapistReview, usePublishReport } from '../../../api/clinical';
-import toast from 'react-hot-toast';
+import toast from '../../../lib/toast';
 
 interface TherapistReviewPanelProps {
   session: Session;

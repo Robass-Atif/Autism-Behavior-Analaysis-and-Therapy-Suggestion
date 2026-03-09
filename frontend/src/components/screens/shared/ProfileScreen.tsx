@@ -17,7 +17,8 @@ import {
   useUpdateProfile,
   useChangePassword,
 } from "../../../api/auth";
-import { toast } from "react-hot-toast";
+import toast from "../../../lib/toast";
+import { formatPhoneNumber } from "../../../lib/formatters";
 
 export default function ProfileScreen() {
   const { data: user, isLoading: userLoading } = useCurrentUser();
@@ -45,6 +46,19 @@ export default function ProfileScreen() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!fullName.trim()) {
+        toast.error("Full name is required");
+        return;
+      }
+      if (!phoneNumber.trim()) {
+        toast.error("Phone number is required");
+        return;
+      }
+      const digits = phoneNumber.replace(/\D/g, "");
+      if (digits.length < 7 || digits.length > 15) {
+        toast.error("Phone number must be between 7 and 15 digits");
+        return;
+      }
       await updateProfile.mutateAsync({ fullName, phoneNumber });
       toast.success("Profile updated successfully");
     } catch (error: any) {
@@ -201,7 +215,7 @@ export default function ProfileScreen() {
                     <input
                       type="text"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
                       className="w-full bg-zinc-50 border-2 border-zinc-200 px-12 py-3 text-xs font-bold focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
                       placeholder="+1 (555) 000-0000"
                     />

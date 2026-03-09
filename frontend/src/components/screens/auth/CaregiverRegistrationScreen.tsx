@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "@tanstack/react-router";
+import { formatPhoneNumber } from "../../../lib/formatters";
 import {
   X,
   Mail,
@@ -22,17 +23,105 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRegisterCaregiver } from "../../../api/auth";
-import { toast } from "react-hot-toast";
+import toast from "../../../lib/toast";
+
+// ─── Shared validators ──────────────────────────────────────────────────────
+
+/**
+ * Email: standard format, blocks consecutive dots, duplicate TLDs (.com.com),
+ * and ensures the TLD is 2–6 real letters.
+ */
+const emailValidator = z
+  .string()
+  .min(1, "Email address is required")
+  .email("Enter a valid email address (e.g. name@example.com)")
+  .refine(
+    (val) => {
+      // reject .com.com  or  ..  patterns
+      if (/\.{2,}/.test(val)) return false;
+      // reject duplicate consecutive TLD segments like .com.com
+      const tldPart = val.split("@")[1] || "";
+      if (/(\.[a-z]{2,6})\1/.test(tldPart)) return false;
+      // TLD must end with 2-6 letters only
+      return /\.[a-zA-Z]{2,6}$/.test(val);
+    },
+    { message: "Email domain is invalid (e.g. avoid .com.com or double dots)" },
+  );
+
+/**
+ * Phone: accepts digits, spaces, dashes, parentheses and optional leading +.
+ * Min 7 digits (local), max 15 (E.164 standard).
+ */
+const phoneValidator = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (val) => {
+      const digits = val.replace(/\D/g, "");
+      return digits.length >= 7 && digits.length <= 15;
+    },
+    { message: "Phone number must be 7–15 digits" },
+  )
+  .refine(
+    (val) => /^[+]?[\d\s\-().]+$/.test(val),
+    { message: "Phone may only contain digits, spaces, +, -, (, )" },
+  );
+
+/**
+ * Date of Birth: required, user must be at least 18 and at most 120 years old.
+ */
+const dobValidator = z
+  .string()
+  .min(1, "Date of birth is required")
+  .refine(
+    (val) => !isNaN(Date.parse(val)),
+    { message: "Please enter a valid date" },
+  )
+  .refine(
+    (val) => {
+      const dob = new Date(val);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear() -
+        (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+      return age >= 18;
+    },
+    { message: "You must be at least 18 years old" },
+  )
+  .refine(
+    (val) => {
+      const dob = new Date(val);
+      const today = new Date();
+      return dob <= today;
+    },
+    { message: "Date of birth cannot be in the future" },
+  )
+  .refine(
+    (val) => {
+      const dob = new Date(val);
+      const minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - 120);
+      return dob >= minDate;
+    },
+    { message: "Please enter a realistic date of birth" },
+  );
+
+// ─── Caregiver schema ────────────────────────────────────────────────────────
 
 // Zod Schema for Caregiver Registration
 const caregiverRegistrationSchema = z
   .object({
     // Step 1: Personal
-    fullName: z.string().min(2, "Full name is required"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(10, "Phone number is required"),
+    fullName: z
+      .string()
+      .min(2, "Full name must be at least 2 characters")
+      .max(100, "Full name is too long")
+      .refine((val) => /^[a-zA-Z\s'.,-]+$/.test(val), {
+        message: "Full name may only contain letters, spaces, and . , ' -",
+      }),
+    email: emailValidator,
+    phone: phoneValidator,
     preferredLanguage: z.string().min(1, "Preferred language is required"),
-    dateOfBirth: z.string().optional(),
+    dateOfBirth: dobValidator,
 
     // Step 2: Relationship
     relationshipType: z.string().min(1, "Relationship type is required"),
@@ -68,6 +157,7 @@ const caregiverRegistrationSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
+
 
 type CaregiverFormInputs = z.infer<typeof caregiverRegistrationSchema>;
 
@@ -144,7 +234,7 @@ export default function CaregiverRegistrationScreen() {
   const nextStep = async () => {
     let fieldsToValidate: any[] = [];
     if (currentStep === 1)
-      fieldsToValidate = ["fullName", "email", "phone", "preferredLanguage"];
+      fieldsToValidate = ["fullName", "email", "phone", "preferredLanguage", "dateOfBirth"];
     if (currentStep === 2)
       fieldsToValidate = ["relationshipType", "invitationCode"];
     if (currentStep === 3) fieldsToValidate = ["password", "confirmPassword"];
@@ -303,7 +393,11 @@ export default function CaregiverRegistrationScreen() {
                             Phone Number *
                           </label>
                           <input
-                            {...register("phone")}
+                            {...register("phone", {
+                              onChange: (e) => {
+                                e.target.value = formatPhoneNumber(e.target.value);
+                              }
+                            })}
                             type="tel"
                             className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
                             placeholder="+1 (555) 000-0000"
@@ -334,13 +428,19 @@ export default function CaregiverRegistrationScreen() {
                         </div>
                         <div className="group">
                           <label className="block text-xs font-bold uppercase text-zinc-500 mb-2 group-focus-within:text-zinc-900 transition-colors">
-                            Date Of Birth
+                            Date Of Birth *
                           </label>
                           <input
                             {...register("dateOfBirth")}
                             type="date"
+                            max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split("T")[0]}
                             className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-4 py-3 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all"
                           />
+                          {errors.dateOfBirth && (
+                            <p className="mt-1 text-[10px] text-red-500 font-bold uppercase">
+                              {errors.dateOfBirth.message}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>

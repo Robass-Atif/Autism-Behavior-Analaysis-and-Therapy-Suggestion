@@ -471,6 +471,7 @@ export const useGenerateReport = () => {
   return useMutation({
     mutationFn: async (data: {
       patientId: string;
+      sessionId?: string;
       includeGoals?: boolean;
       includeCharts?: boolean;
       includeTables?: boolean;

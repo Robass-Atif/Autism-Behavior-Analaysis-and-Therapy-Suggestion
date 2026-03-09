@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useNavigate } from "@tanstack/react-router";
 import { UserStatus } from "../../../types";
 import { useLogin, useResendVerification } from "../../../api/auth";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import {
   Eye,
   EyeOff,
@@ -23,11 +23,24 @@ import {
   Send,
 } from "lucide-react";
 
-// Zod Schema for Validation
+
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email format"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Enter a valid email address")
+    .refine(
+      (val) => {
+        if (/\.{2,}/.test(val)) return false;
+        const tldPart = val.split("@")[1] || "";
+        if (/(\.[a-z]{2,6})\1/.test(tldPart)) return false;
+        return /\.[a-zA-Z]{2,6}$/.test(val);
+      },
+      { message: "Email domain is invalid (e.g. avoid .com.com or double dots)" },
+    ),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
+
 
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
@@ -106,8 +119,11 @@ export default function LoginScreen() {
           navigate({ to: "/dashboard" });
         },
         onError: (error: any) => {
-          if (error.response?.data?.status) {
-            const rawStatus = (error.response.data.status || "").toLowerCase();
+          // In apiClient, `error.response` contains the actual parsed JSON data from the backend
+          const errData = error.response?.data || error.response;
+          
+          if (errData?.status) {
+            const rawStatus = (errData.status || "").toLowerCase();
             setUserStatus(rawStatus);
 
             if (rawStatus === "pending" || rawStatus === "pending_approval") {
@@ -120,12 +136,15 @@ export default function LoginScreen() {
               setLoginError("Email not verified");
             } else {
               setLoginError(
-                error.response.data.message || "Account not active",
+                errData.message || "Account not active",
               );
             }
+          } else if (errData?.error === "ACCOUNT_NOT_ACTIVE") {
+             setUserStatus("pending_verification");
+             setLoginError("Email not verified");
           } else {
             setLoginError(
-              error.response?.data?.message || "Invalid email or password",
+              errData?.message || error.message || "Invalid email or password",
             );
           }
         },

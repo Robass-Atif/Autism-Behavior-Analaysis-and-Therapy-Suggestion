@@ -13,6 +13,7 @@ import { TherapyGoal, TherapyGoalSchema } from '../therapy-goals/schemas/therapy
 
 import { VideoSession, VideoSessionSchema } from '../clinical/schemas/video-session.schema';
 import { Invitation, InvitationSchema } from '../invitation/schemas/invitation.schema';
+import { CaregiverSchedule, CaregiverScheduleSchema } from '../caregiver-schedule/schemas/caregiver-schedule.schema';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Invitation, InvitationSchema } from '../invitation/schemas/invitation.s
       { name: TherapyGoal.name, schema: TherapyGoalSchema },
       { name: VideoSession.name, schema: VideoSessionSchema },
       { name: Invitation.name, schema: InvitationSchema },
+      { name: CaregiverSchedule.name, schema: CaregiverScheduleSchema },
     ]),
   ],
   controllers: [DashboardController],
