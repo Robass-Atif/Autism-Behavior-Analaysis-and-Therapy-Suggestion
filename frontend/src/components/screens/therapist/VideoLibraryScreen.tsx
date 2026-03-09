@@ -137,7 +137,7 @@ export default function VideoLibraryScreen() {
       filterAction === "all" ||
       video.actionType === filterAction ||
       GUIDED_ACTIONS.find((a) => a.id === filterAction)?.name ===
-        video.actionType;
+      video.actionType;
 
     return matchesSearch && matchesStatus && matchesPatient && matchesAction;
   });
@@ -174,21 +174,19 @@ export default function VideoLibraryScreen() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2.5 border-2 transition-all ${
-                  viewMode === "grid"
+                className={`p-2.5 border-2 transition-all ${viewMode === "grid"
                     ? "bg-white text-zinc-900 border-white"
                     : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                }`}
+                  }`}
               >
                 <Grid size={18} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2.5 border-2 transition-all ${
-                  viewMode === "list"
+                className={`p-2.5 border-2 transition-all ${viewMode === "list"
                     ? "bg-white text-zinc-900 border-white"
                     : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                }`}
+                  }`}
               >
                 <List size={18} />
               </button>
@@ -261,22 +259,27 @@ export default function VideoLibraryScreen() {
         <div className="bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 p-6 border-2 border-zinc-900">
           <div className="flex lg:flex-row flex-col gap-6">
             {/* Search */}
-            <div className="relative flex-[2]">
-              <Search
-                className="top-1/2 left-4 absolute text-zinc-400 -translate-y-1/2 transform"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="SEARCH ACTIONS OR PATIENTS..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-zinc-50 py-3 pr-4 pl-12 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold placeholder:text-zinc-400 text-sm uppercase tracking-wider transition-all"
-              />
+            <div className="flex-[2] space-y-2 w-full">
+              <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em] invisible select-none">
+                <Search size={12} /> Search
+              </label>
+              <div className="relative">
+                <Search
+                  className="top-1/2 left-4 absolute text-zinc-400 -translate-y-1/2 transform"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="SEARCH ACTIONS OR PATIENTS..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-zinc-50 py-2.5 pr-4 pl-12 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold placeholder:text-zinc-400 text-xs uppercase tracking-widest transition-all"
+                />
+              </div>
             </div>
 
             {/* Quick Filters */}
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 w-full">
               <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
                 <User size={12} /> Patient
               </label>
@@ -294,7 +297,7 @@ export default function VideoLibraryScreen() {
               </select>
             </div>
 
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 w-full">
               <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
                 <Target size={12} /> Action Type
               </label>
@@ -312,7 +315,7 @@ export default function VideoLibraryScreen() {
               </select>
             </div>
 
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-2 w-full">
               <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
                 <Activity size={12} /> Status
               </label>
@@ -338,47 +341,47 @@ export default function VideoLibraryScreen() {
             filterAction !== "all" ||
             filterStatus !== "all" ||
             searchQuery) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-zinc-100 border-t">
-              <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
-                Active:
-              </span>
-              {searchQuery && (
-                <FilterBadge
-                  label={`Search: ${searchQuery}`}
-                  onClear={() => setSearchQuery("")}
-                />
-              )}
-              {filterPatient !== "all" && (
-                <FilterBadge
-                  label={`Patient: ${patientsData?.patients?.find((p) => p.id === filterPatient)?.fullName}`}
-                  onClear={() => setFilterPatient("all")}
-                />
-              )}
-              {filterAction !== "all" && (
-                <FilterBadge
-                  label={`Action: ${GUIDED_ACTIONS.find((a) => a.id === filterAction)?.name}`}
-                  onClear={() => setFilterAction("all")}
-                />
-              )}
-              {filterStatus !== "all" && (
-                <FilterBadge
-                  label={`Status: ${filterStatus.toUpperCase()}`}
-                  onClear={() => setFilterStatus("all")}
-                />
-              )}
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterPatient("all");
-                  setFilterAction("all");
-                  setFilterStatus("all");
-                }}
-                className="ml-auto font-black text-[10px] text-zinc-900 hover:text-red-600 uppercase tracking-widest transition-colors"
-              >
-                Clear All
-              </button>
-            </div>
-          )}
+              <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-zinc-100 border-t">
+                <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
+                  Active:
+                </span>
+                {searchQuery && (
+                  <FilterBadge
+                    label={`Search: ${searchQuery}`}
+                    onClear={() => setSearchQuery("")}
+                  />
+                )}
+                {filterPatient !== "all" && (
+                  <FilterBadge
+                    label={`Patient: ${patientsData?.patients?.find((p) => p.id === filterPatient)?.fullName}`}
+                    onClear={() => setFilterPatient("all")}
+                  />
+                )}
+                {filterAction !== "all" && (
+                  <FilterBadge
+                    label={`Action: ${GUIDED_ACTIONS.find((a) => a.id === filterAction)?.name}`}
+                    onClear={() => setFilterAction("all")}
+                  />
+                )}
+                {filterStatus !== "all" && (
+                  <FilterBadge
+                    label={`Status: ${filterStatus.toUpperCase()}`}
+                    onClear={() => setFilterStatus("all")}
+                  />
+                )}
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilterPatient("all");
+                    setFilterAction("all");
+                    setFilterStatus("all");
+                  }}
+                  className="ml-auto font-black text-[10px] text-zinc-900 hover:text-red-600 uppercase tracking-widest transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
         </div>
 
         {/* Content */}
@@ -505,12 +508,12 @@ export default function VideoLibraryScreen() {
                     >
                       <Eye size={14} />
                       {video.status === "completed" ||
-                      video.status === "therapist_review" ||
-                      video.status === "published"
+                        video.status === "therapist_review" ||
+                        video.status === "published"
                         ? "View Report"
                         : video.status === "pending_review" ||
-                            video.status === "approved_for_ai" ||
-                            video.status === "processing"
+                          video.status === "approved_for_ai" ||
+                          video.status === "processing"
                           ? "Review"
                           : "View"}
                     </button>
@@ -569,9 +572,8 @@ export default function VideoLibraryScreen() {
                 {filteredVideos.map((video, index) => (
                   <tr
                     key={video.id}
-                    className={`border-b-2 border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-zinc-50/50"
-                    }`}
+                    className={`border-b-2 border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors ${index % 2 === 0 ? "bg-white" : "bg-zinc-50/50"
+                      }`}
                     onClick={() => handleViewVideo(video.id)}
                   >
                     <td className="p-4">
@@ -685,8 +687,8 @@ export default function VideoLibraryScreen() {
                         >
                           <Eye size={12} />
                           {video.status === "completed" ||
-                          video.status === "published" ||
-                          video.status === "therapist_review"
+                            video.status === "published" ||
+                            video.status === "therapist_review"
                             ? "Review Report"
                             : "Review"}
                         </button>
