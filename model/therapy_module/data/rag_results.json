@@ -1,0 +1,424 @@
+{
+  "status": "success",
+  "metadata": {
+    "patient_age": 3,
+    "patient_gender": "Male",
+    "dsm5_level": 3,
+    "aggregated_joints": {
+      "2d": {
+        "Severity": {
+          "top_positive_joints": [
+            {
+              "joint": "right_ankle",
+              "contribution": 0.05593510810285807
+            },
+            {
+              "joint": "right_elbow",
+              "contribution": 0.04273904953151941
+            },
+            {
+              "joint": "right_big_toe",
+              "contribution": 0.028048502281308174
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "right_hip",
+              "contribution": -0.08159546181559563
+            },
+            {
+              "joint": "left_hip",
+              "contribution": -0.07776814047247171
+            },
+            {
+              "joint": "thorax",
+              "contribution": -0.026770359836518764
+            }
+          ]
+        },
+        "Social Affect": {
+          "top_positive_joints": [
+            {
+              "joint": "left_big_toe",
+              "contribution": 0.30038319528102875
+            },
+            {
+              "joint": "right_big_toe",
+              "contribution": 0.21963130682706833
+            },
+            {
+              "joint": "right_ankle",
+              "contribution": 0.20321683958172798
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "pelvis",
+              "contribution": -0.340423621237278
+            },
+            {
+              "joint": "left_wrist",
+              "contribution": -0.18493454903364182
+            },
+            {
+              "joint": "right_wrist",
+              "contribution": -0.07000462617725134
+            }
+          ]
+        },
+        "RRB": {
+          "top_positive_joints": [
+            {
+              "joint": "right_ankle",
+              "contribution": 0.041858614422380924
+            },
+            {
+              "joint": "right_elbow",
+              "contribution": 0.01884272089228034
+            },
+            {
+              "joint": "left_elbow",
+              "contribution": 0.016770922811701894
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "left_hip",
+              "contribution": -0.02222546376287937
+            },
+            {
+              "joint": "right_hip",
+              "contribution": -0.0218896078877151
+            },
+            {
+              "joint": "left_wrist",
+              "contribution": -0.021317515056580305
+            }
+          ]
+        },
+        "Comparison Score": {
+          "top_positive_joints": [
+            {
+              "joint": "pelvis",
+              "contribution": 4.477217197418213
+            },
+            {
+              "joint": "neck",
+              "contribution": 2.378844916820526
+            },
+            {
+              "joint": "left_wrist",
+              "contribution": 2.2819578647613525
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "right_big_toe",
+              "contribution": -4.724503755569458
+            },
+            {
+              "joint": "left_big_toe",
+              "contribution": -4.506801664829254
+            },
+            {
+              "joint": "right_ankle",
+              "contribution": -2.89886474609375
+            }
+          ]
+        }
+      },
+      "3d": {
+        "Severity": {
+          "top_positive_joints": [
+            {
+              "joint": "right_hip",
+              "contribution": 0.8175423741340637
+            },
+            {
+              "joint": "upper_neck",
+              "contribution": 0.7671353220939636
+            },
+            {
+              "joint": "right_ear",
+              "contribution": 0.7189669460058212
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "right_ankle",
+              "contribution": -2.147645354270935
+            },
+            {
+              "joint": "left_big_toe",
+              "contribution": -1.1977080255746841
+            },
+            {
+              "joint": "left_elbow",
+              "contribution": -0.5657820031046867
+            }
+          ]
+        },
+        "Social Affect": {
+          "top_positive_joints": [
+            {
+              "joint": "right_big_toe",
+              "contribution": 0.5508006364107132
+            },
+            {
+              "joint": "upper_neck",
+              "contribution": 0.28558656573295593
+            },
+            {
+              "joint": "right_ear",
+              "contribution": 0.23227792233228683
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "left_wrist",
+              "contribution": -0.2891489490866661
+            },
+            {
+              "joint": "left_big_toe",
+              "contribution": -0.27916060760617256
+            },
+            {
+              "joint": "right_ankle",
+              "contribution": -0.22500615566968918
+            }
+          ]
+        },
+        "RRB": {
+          "top_positive_joints": [
+            {
+              "joint": "right_big_toe",
+              "contribution": 0.5306234955787659
+            },
+            {
+              "joint": "upper_neck",
+              "contribution": 0.11151596903800964
+            },
+            {
+              "joint": "right_ankle",
+              "contribution": 0.056757633574306965
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "left_knee",
+              "contribution": -0.10214695706963539
+            },
+            {
+              "joint": "right_knee",
+              "contribution": -0.10193547233939171
+            },
+            {
+              "joint": "right_hip",
+              "contribution": -0.09279089979827404
+            }
+          ]
+        },
+        "Comparison Score": {
+          "top_positive_joints": [
+            {
+              "joint": "right_ankle",
+              "contribution": 17.13140368461609
+            },
+            {
+              "joint": "left_knee",
+              "contribution": 10.942747592926025
+            },
+            {
+              "joint": "left_eye",
+              "contribution": 9.738035202026367
+            }
+          ],
+          "top_negative_joints": [
+            {
+              "joint": "right_big_toe",
+              "contribution": -12.705692052841187
+            },
+            {
+              "joint": "upper_neck",
+              "contribution": -11.57407522201538
+            },
+            {
+              "joint": "right_hip",
+              "contribution": -9.091529846191406
+            }
+          ]
+        }
+      }
+    }
+  },
+  "retrieved_chunks_count": 10,
+  "retrieved_chunks": [
+    {
+      "id": "Subramanyam-India-CPG-autism-spectrum-disorder::p5::c23",
+      "text": "APPROACH TO TREATMENT\nJust as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  should  be the aim to yield the best outcome and results.\nDespite  advances  in  early diagnosis  and  intervention, efficacious  reversal  of  core  autistic  symptoms  is  still  not accomplished, to date.\nTreatments  include  a  range  of  behavioral,  psychosocial, educational, medical, and complementary approaches. The options vary by age and developmental status.\nChronic management is often required to maximize functional independence and quality of life by minimizing core deficits in social skills and communication, facilitating development and learning, promoting socialization, reducing maladaptive behaviors, and educating and supporting families.\nThe treatments can be broadly divided into the following:",
+      "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf",
+      "page": 5,
+      "content_type": "treatment_and_support",
+      "intervention_type": "none",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "Approach to Treatment",
+      "rrf_score": 0.078431,
+      "chroma_rank": 1,
+      "bm25_rank": null,
+      "rerank_score": 3.553884
+    },
+    {
+      "id": "NICE-CG170-2021-autism-support-management-under19s::p19::c30",
+      "text": "Psychosocial interventions\n- 1.3.1 Consider a specific social-communication intervention for the core features of autism in children and young people that includes play-based strategies with parents, carers and teachers to increase joint attention, engagement and reciprocal communication in the child or young person. Strategies should:\n-  be adjusted to the child or young person's developmental level\n-  aim to increase the parents', carers', teachers' or peers' understanding of, and sensitivity and responsiveness to, the child or young person's patterns of communication and interaction\n-  include techniques of therapist modelling and video-interaction feedback\n-  include techniques to expand the child or young person's communication, interactive play and social routines.\nThe intervention should be delivered by a trained professional. For pre-school children consider parent, carer or teacher mediation. For school-aged children consider peer mediation.",
+      "source": "NICE-CG170-2021-autism-support-management-under19s.pdf",
+      "page": 19,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "Social Communication Interventions",
+      "rrf_score": 0.067797,
+      "chroma_rank": 9,
+      "bm25_rank": null,
+      "rerank_score": 2.970147
+    },
+    {
+      "id": "NICE-CG170-2021-autism-support-management-under19s::p9::c15",
+      "text": "Psychosocial interventions\n-  Consider a specific social-communication intervention for the core features of autism\nin children and young people that includes play-based strategies with parents, carers and teachers to increase joint attention, engagement and reciprocal communication in the child or young person. Strategies should:\n- － be adjusted to the child or young person's developmental level\n- － aim to increase the parents', carers', teachers' or peers' understanding of, and sensitivity and responsiveness to, the child or young person's patterns of communication and interaction\n- － include techniques of therapist modelling and video-interaction feedback\n- － include techniques to expand the child or young person's communication, interactive play and social routines.\nThe intervention should be delivered by a trained professional. For pre-school children consider parent, carer or teacher mediation. For school-aged children consider peer mediation.",
+      "source": "NICE-CG170-2021-autism-support-management-under19s.pdf",
+      "page": 9,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "psychosocial intervention for autism",
+      "rrf_score": 0.072727,
+      "chroma_rank": 5,
+      "bm25_rank": null,
+      "rerank_score": 2.651164
+    },
+    {
+      "id": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay::p11::c18",
+      "text": "SECTION 5: WHAT ARE THE EVIDENCE-BASED TREATMENTS FOR AUTISM?\nEarly diagnosis and intervention can make a big difference to many children on the autism spectrum by improving their skills and participation, helping them to be more independent and have a better quality of life.\nThe  goals  of  intervention  are  to  promote  the  child's  health  and  well-being,  minimise developmental delay, enhance emerging competencies, prevent functional deterioration and promote adaptive parenting and overall family functioning. Every child on the autism spectrum should have an individualised intervention plan tailored to meet the child's developmental, education, and behavioural needs, with support for their families and caregivers. Parents and caregivers should be actively involved in the intervention plans and make informed choices for intervention. It would be useful to involve the child in this planning process as well where appropriate.\nIn Singapore, most children with autism receive their regular intervention in early intervention programmes provided by various Social Service Agencies (SSAs) or privately. A comprehensive  list  of  services  for  children  and  adolescents  on  the  autism  spectrum  in Singapore is available from:",
+      "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf",
+      "page": 11,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "early_intervention_treatment",
+      "rrf_score": 0.057143,
+      "chroma_rank": 20,
+      "bm25_rank": null,
+      "rerank_score": 2.303244
+    },
+    {
+      "id": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer::p17::c31",
+      "text": "Adult services\nAs individuals with autism progress into and through adulthood, the focus of management shifts from treating the core symptoms of autism to addressing associated symptoms or behaviours and promoting independence. However, there are few intervention studies to guide treatment options in adulthood. Indeed, a 2012 systematic review identified only 32 studies published between 1980 and 2010 that evaluated treatment studies for adolescents and young adults with autism 201 . A more recent review identified 41 studies of interventions targeting social functioning in adults over a 37-year period 202 .\nDespite the low number of treatment studies, there is some evidence supporting treatment efficacy for a limited number of symptoms, behaviours and functional outcomes such as employment, social skills and anxiety; however, in general, the evidence base is weak 201,202 . For example, only three randomized controlled trials (all of which included small cohort sizes) that tested job interviewing skills curricula have been published. Social skills interventions have a somewhat more robust literature base (see 202  for review), but most of these studies had very small sample sizes and were not well controlled. In addition, it is unclear whether social skills interventions can be generalized to other social settings and situations, that is, whether skills learned in the treatment context are used by the participants in other settings such as with peers or at work. There is some evidence for the use of CBT for effectively treating anxiety in people with autism who have sufficient cognitive and language skills to participate in current programmes 203 . However, nearly all of the existing research has been conducted with children and adolescents rather than with adults 202 , and individuals with substantial communication challenges are excluded from CBT studies. Furthermore, in contrast to the general population, CBT has not yet been shown to be effective for the treatment of depression in individuals with autism. Given this",
+      "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf",
+      "page": 17,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "Augmentative Communication Systems",
+      "rrf_score": 0.061538,
+      "chroma_rank": 15,
+      "bm25_rank": null,
+      "rerank_score": 2.179818
+    },
+    {
+      "id": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer::p16::c30",
+      "text": "School-age children and adolescents\nMany children and young people with autism can also benefit from interventions at later ages. A number of programmes and approaches are available that focus on the core social\ncommunication difficulties of autism, for example, social skills training programmes, for which moderate evidence of benefit exists 192,193 . In addition, non-verbal young people with autism can benefit from the use of augmentative communication systems such as the Picture Exchange Communication System (PECS) and more-sophisticated speech generating devices that use picture symbols and behavioural training methods to allow children to request and make choices 194  or of other technology-based augmentative communication systems. Increasingly, more generic interventions that target co-occurring emotional and behavioural problems are being adapted for youths with autism, with initial studies suggesting moderate benefits 195 . These interventions include modified CBT for anxiety (modified, for example, to include parents, increase the duration of sessions, use more visual materials and specific work on understanding one's own emotional states) 196 and parent-mediated interventions for disruptive behaviour and ADHD 197 . More recently, there have been efforts to develop and test interventions that target aspects of parental wellbeing, such as parental stress and self-efficacy 198 . Increasingly, interventions for school-age children and young people with autism are being delivered within the school environment, rather than the clinic, which has natural advantages for programmes that consist of groups or peer-to-peer interactions with an emphasis on social skills. Indeed, it is hoped that this approach may facilitate generalization of the skills learned 199,200 .",
+      "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf",
+      "page": 16,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "Social Skills Training Programs",
+      "rrf_score": 0.065574,
+      "chroma_rank": 11,
+      "bm25_rank": null,
+      "rerank_score": 1.700525
+    },
+    {
+      "id": "NICE-CG170-2021-autism-support-management-under19s::p6::c9",
+      "text": "Introduction\nThe core autism behaviours are typically present in early childhood, although some features may not manifest until a change of situation, for example, the start of nursery or school or, less commonly, the transition to secondary school. Regression or stasis of language and social behaviour is reported for at least a third of autistic children. This usually, but not exclusively, occurs between the ages of 1 and 2 years, and the reasons for regression and stasis are unknown.\nThe way in which autism is expressed will differ across different ages and therefore for any individual may change over time as they mature, in response to environmental demands, in response to interventions, and in the context of coexisting conditions.\nAround 70% of autistic people also meet diagnostic criteria for at least one other (often unrecognised) psychiatric disorder that further impairs psychosocial functioning, for example, attention deficit hyperactivity disorder (ADHD) or anxiety disorders. Intellectual disability (IQ below 70) coexists in approximately 50% of autistic children and young people.\nThere are many claims of a 'cure' for autism, all of which are without foundation. However, there are interventions that can help some of the core features of autism, some of the behaviours and problems commonly associated with autism, and support families and carers. There is also evidence for treatment strategies to reduce behaviour that challenges. This guideline will summarise the different ways that health and social care professionals can provide support, treatment and help for autistic children and young people, and their families and carers, from the early years through to their transition into young adult life.\nThis guideline covers autistic children and young people (across the full range of intellectual ability) from birth until their 19th birthday, and their parents and carers. It should be used alongside the NICE guidelines on autism: recognition, referral and diagnosis of children and young people on the autism spectrum and autism: recognition, referral, diagnosis and management of adults on the autism spectrum.\nGood communication between healthcare professionals and autistic children and young people and their families and carers is essential. It should be supported by evidencebased written information tailored to the person's needs. Support and care, and the information people are given about it, should be culturally appropriate. It should also be accessible to people with additional needs such as physical, sensory or learning disabilities, and to people who do not speak or read English.",
+      "source": "NICE-CG170-2021-autism-support-management-under19s.pdf",
+      "page": 6,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "difficulty initiating interaction",
+        "ineffective social reciprocity",
+        "extreme behavioral inflexibility",
+        "high distress with change",
+        "difficulty switching tasks",
+        "organizational challenges"
+      ],
+      "topic": "Behavioral Challenges",
+      "rrf_score": 0.064516,
+      "chroma_rank": 12,
+      "bm25_rank": null,
+      "rerank_score": 0.731672
+    },
+    {
+      "id": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer::p15::c27",
+      "text": "Early intervention\nEarly intervention is seen as a priority because many young children with autism struggle to communicate and interact with others, restricting their opportunities to learn and affecting their parents, who can find their child's behaviour perplexing and challenging to manage. Thus, outcomes of such interventions include changes in the individual's availability for learning and increased parent understanding. Intervention delivered in the preschool years at an age when there is increased brain plasticity might lead to additional benefit, although this theory has not yet been empirically supported.\nThe primary models of psychological intervention for preschool children with autism are developmental and behavioural. Although some consensus has been reached on the interventions that have more supporting evidence (termed naturalistic developmental behavioural interventions 176 ), there is some uncertainty and disagreement about the strength of evidence for different approaches, with almost no direct comparisons of treatments or studies to assess which child should receive what treatment or the treatment intensity. Indeed, clinical trials in autism are limited by cost, time, placebo effects and limited outcome measures, and are far behind much other research. This gap leaves parents and practitioners with no options other than what is available and sometimes marketed in their region. Indeed, access to early intervention services is variable in most communities, including in high-income countries, and is mostly carried out by nonspecialists supervised by specially trained professionals. In low-income and middle-income countries, most children and young people with autism - similar to those with intellectual and developmental disabilities - will not receive specialized services 177 , although a number of groups have begun to test community delivery of early intervention in such settings 178 .\nMany current interventions build on the original applied behavioural analysis (ABA) 179  and have shifted to more natural, child-initiated developmentally appropriate strategies and tasks instead of dependence on repeated 'discrete trials' (known as discrete trial training (DTT)). In addition, considerable variation exists between different intervention models in terms of mode of delivery (for example, parent mediated versus therapist implemented), length (12-week versus 2-year programmes), intensity (from a few hours a week to ~15 hours per week) and the balance between the developmental or dyadic versus behavioural components.",
+      "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf",
+      "page": 15,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "early intervention for autism",
+      "rrf_score": 0.060606,
+      "chroma_rank": 16,
+      "bm25_rank": null,
+      "rerank_score": 0.422602
+    },
+    {
+      "id": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay::p15::c24",
+      "text": "SECTION 6: WHAT ARE COMPLEMENTARY AND ALTERNATIVE TREATMENTS FOR AUTISM?\nChildren  and  adolescents  on  the  autism  spectrum  who  exhibit  symptoms  suggestive  of  a vitamin, mineral, amino acid or other nutritional deficiency, should be evaluated, treated and monitored as per standard clinical practice by trained healthcare professionals.",
+      "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf",
+      "page": 15,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "difficulty initiating interaction",
+        "ineffective social reciprocity"
+      ],
+      "topic": "Behavioral Interventions",
+      "rrf_score": 0.071429,
+      "chroma_rank": 6,
+      "bm25_rank": null,
+      "rerank_score": 0.354707
+    },
+    {
+      "id": "SIGN-145-2016-autism-assessment-diagnosis-interventions::p28::c97",
+      "text": "R Interventions to support social communication should be considered for children and young people with ASD, with the most appropriate intervention being assessed on an individual basis.\n\u0017\nAdapting the communicative, social and physical environments of children and young people with ASD may be of benefit (options include providing visual prompts, reducing requirements for complex social interactions, using routine, timetabling and prompting and minimising sensory irritations).\n3\n1 ++\n2 -\n2 +",
+      "source": "SIGN-145-2016-autism-assessment-diagnosis-interventions.pdf",
+      "page": 28,
+      "content_type": "treatment_and_support",
+      "intervention_type": "behavioral",
+      "dsm5_symptoms": [
+        "None"
+      ],
+      "topic": "social communication interventions",
+      "rrf_score": 0.0625,
+      "chroma_rank": 14,
+      "bm25_rank": null,
+      "rerank_score": 0.067763
+    }
+  ],
+  "clinical_report": "### 1. Patient Details\n*   **Age:** 3 years\n*   **Gender:** Male\n*   **DSM-5 Severity Level:** Level 3\n\n### 2. Evidence Based Interventions from RAG\n\n**General Approach and Principles:**\n*   Treatment should involve a multi-sensory, multi-disciplinary approach [Subramanyam-India-CPG-autism-spectrum-disorder, p.5].\n*   Early intervention is a priority to yield the best outcomes, improve skills, participation, independence, and quality of life [Subramanyam-India-CPG-autism-spectrum-disorder, p.5; Singapore-MOH-2023-CPG-autism-children-adolescents-lay, p.11; Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.15].\n*   Interventions should be individualized, tailored to the child's developmental, educational, and behavioral needs, with active involvement of parents and caregivers [Singapore-MOH-2023-CPG-autism-children-adoloescents-lay, p.11].\n*   Chronic management is often required to maximize functional independence and quality of life by minimizing core deficits, facilitating development and learning, promoting socialization, and reducing maladaptive behaviors [Subramanyam-India-CPG-autism-spectrum-disorder, p.5].\n\n**Behavioral and Developmental Interventions:**\n*   Consider specific social-communication interventions for core features of autism [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9; SIGN-145-2016-autism-assessment-diagnosis-interventions, p.28].\n*   Interventions should include play-based strategies with parents, carers, and teachers to increase joint attention, engagement, and reciprocal communication [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   Strategies should be adjusted to the child's developmental level [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   Techniques should aim to increase parents', carers', teachers', or peers' understanding of, and sensitivity and responsiveness to, the child's communication and interaction patterns [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   Interventions should include therapist modeling and video-interaction feedback [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   Techniques to expand the child's communication, interactive play, and social routines should be included [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   The intervention should be delivered by a trained professional [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   For pre-school children, consider parent, carer, or teacher mediation [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   For non-verbal young people with autism, augmentative communication systems such as the Picture Exchange Communication System (PECS) and more sophisticated speech-generating devices can be beneficial [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.16].\n*   Interventions for co-occurring emotional and behavioral problems are being adapted for youth with autism, with initial studies suggesting moderate benefits [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.16]. This includes modified CBT for anxiety (adapted to include parents, increase session duration, use more visual materials, and specific work on emotional states) [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.16].\n*   The primary models of psychological intervention for preschool children with autism are developmental and behavioral, with some consensus on naturalistic developmental behavioral interventions [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.15]. Many current interventions build on Applied Behavioral Analysis (ABA) but have shifted to more natural, child-initiated developmentally appropriate strategies [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.15].\n\n**Environmental Interventions:**\n*   Adapting the communicative, social, and physical environments may be beneficial [SIGN-145-2016-autism-assessment-diagnosis-interventions, p.28].\n*   Options include providing visual prompts, reducing requirements for complex social interactions, using routine, timetabling and prompting, and minimizing sensory irritations [SIGN-145-2016-autism-assessment-diagnosis-interventions, p.28].\n\n### 3. AFIRM Modules (Suggested Therapies)\n\n*   **Discrete Trial Training (DTT)**\n    *   Description: Instructional approach with massed or repeated trials, each consisting of the teacher's instruction/presentation, the child's response, a carefully planned consequence, and a pause prior to presenting the next instruction.\n    *   Targets: structured skill acquisition, behavioral regulation\n    *   Age range: birth-22\n    *   Evidence: Evidence-Based Practice\n    *   Link: [Discrete Trial Training](https://afirm-modules.fpg.unc.edu/Discrete-Trial-Training/content)\n*   **Prompting (PP)**\n    *   Description: Verbal, gestural, or physical assistance given to learners to support them in acquiring or engaging in a targeted behavior or skill.\n    *   Targets: skill acquisition, independent functioning\n    *   Age range: birth-22\n    *   Evidence: Evidence-Based Practice\n    *   Link: [Prompting](https://afirm-modules.fpg.unc.edu/Prompting/content)\n*   **Social Skills Training (SST)**\n    *   Description: Group or individual instruction designed to teach learners ways to participate in their interactions appropriately and successfully with others.\n    *   Targets: social interaction facilitation, peer engagement\n    *   Age range: birth-22\n    *   Evidence: Evidence-Based Practice\n    *   Link: [Social Skills Training](https://afirm-modules.fpg.unc.edu/Social-Skills-Training/content)\n\n### 4. Top Joints and Kinematic Rankings\n\n**2D Model Analysis:**\n*   **Severity:**\n    *   Positively associated: right_ankle, right_elbow, right_big_toe\n    *   Negatively associated: right_hip, left_hip, thorax\n*   **Social Affect:**\n    *   Positively associated: left_big_toe, right_big_toe, right_ankle\n    *   Negatively associated: pelvis, left_wrist, right_wrist\n*   **RRB (Repetitive Behaviors):**\n    *   Positively associated: right_ankle, right_elbow, left_elbow\n    *   Negatively associated: left_hip, right_hip, left_wrist\n*   **Comparison Score:**\n    *   Positively associated: pelvis, neck, left_wrist\n    *   Negatively associated: right_big_toe, left_big_toe, right_ankle\n\n**3D Model Analysis:**\n*   **Severity:**\n    *   Positively associated: right_hip, upper_neck, right_ear\n    *   Negatively associated: right_ankle, left_big_toe, left_elbow\n*   **Social Affect:**\n    *   Positively associated: right_big_toe, upper_neck, right_ear\n    *   Negatively associated: left_wrist, left_big_toe, right_ankle\n*   **RRB (Repetitive Behaviors):**\n    *   Positively associated: right_big_toe, upper_neck, right_ankle\n    *   Negatively associated: left_knee, right_knee, right_hip\n*   **Comparison Score:**\n    *   Positively associated: right_ankle, left_knee, left_eye\n    *   Negatively associated: right_big_toe, upper_neck, right_hip\n\n*Clinical Note:* The kinematic analysis highlights specific joint movements associated with different diagnostic criteria and overall comparison scores. For this patient, interventions targeting motor skills, gait, and upper limb coordination may be particularly relevant, especially considering the consistent positive association of the right ankle and big toes with severity, social affect, and RRB in 2D analysis, and the upper neck and right ear in 3D analysis for severity, social affect, and RRB. Conversely, the hips and wrists show negative associations in several 2D categories, suggesting potential areas for motor assessment and intervention. The comparison score associations provide additional insights into overall movement patterns. These findings can inform the tailoring of physical and occupational therapy components within the individualized intervention plan.\n\n### 5. Pharmacological Interventions\n*   The provided clinical guidelines generally mention \"medical approaches\" as part of a multi-disciplinary treatment [Subramanyam-India-CPG-autism-spectrum-disorder, p.5]. However, no specific pharmacological interventions for core autism symptoms or co-occurring conditions like irritability or sleep are detailed within the provided context.\n*   Children and adolescents on the autism spectrum exhibiting symptoms suggestive of a vitamin, mineral, amino acid, or other nutritional deficiency should be evaluated, treated, and monitored as per standard clinical practice by trained healthcare professionals [Singapore-MOH-2023-CPG-autism-children-adolescents-lay, p.15].\n\n### 6. Parent-Mediated Interventions and Family Support\n*   Parents and caregivers should be actively involved in the intervention plans and make informed choices for intervention [Singapore-MOH-2023-CPG-autism-children-adolescents-lay, p.11].\n*   For pre-school children, parent, carer, or teacher mediation should be considered for social-communication interventions [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   Interventions should aim to increase parents' and carers' understanding of, and sensitivity and responsiveness to, the child's patterns of communication and interaction [NICE-CG170-2021-autism-support-management-under19s, p.19; NICE-CG170-2021-autism-support-management-under19s, p.9].\n*   Parent-mediated interventions for disruptive behavior and ADHD have shown moderate benefits [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.16].\n*   There are efforts to develop and test interventions that target aspects of parental well-being, such as parental stress and self-efficacy [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.16].\n*   Educating and supporting families is a key component of chronic management to maximize functional independence and quality of life [Subramanyam-India-CPG-autism-spectrum-disorder, p.5].\n*   Outcomes of early interventions include increased parent understanding [Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer, p.15]."
+}

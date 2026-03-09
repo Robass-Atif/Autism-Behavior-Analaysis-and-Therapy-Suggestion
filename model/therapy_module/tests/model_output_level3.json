@@ -1,0 +1,12 @@
+{
+    "input_age": 4,
+    "input_gender": "M",
+    "ensemble_prediction": {
+        "severity": 2,
+        "severity_confidence": 0.95,
+        "social_affect": 19.7,
+        "rrb": 7.1,
+        "comparison_score": 9,
+        "comparison_confidence": 0.93
+    }
+}

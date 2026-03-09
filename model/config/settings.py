@@ -20,7 +20,11 @@ class Settings(BaseSettings):
     API_KEY: str = "your-api-key-change-this-please"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    
+
+    # Therapy Module (RAG System)
+    GEMINI_API_KEY: str = ""
+    THERAPY_MODULE_DIR: str = str(BASE_DIR / "therapy_module")
+
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 10
     RATE_LIMIT_PER_HOUR: int = 100

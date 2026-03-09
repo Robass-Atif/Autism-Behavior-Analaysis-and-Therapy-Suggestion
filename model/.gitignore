@@ -9,3 +9,6 @@ __pycache__/
 *.pyd
 *.log
 models/mediapipe/
+therapy_module/databases
+therapy_module/pdfs
+models/ROMP

@@ -1,0 +1,1846 @@
+[
+    {
+  "predictions_2d": {
+    "severity": 0,
+    "severity_confidence": 0.9963040351867676,
+    "social_affect": 10.832612747186424,
+    "rrb": 4.168099924649911,
+    "comparison_score": 5,
+    "comparison_confidence": 0.9446560144424438,
+    "input_age": 3,
+    "input_gender": "M",
+    "model_type": "2D",
+    "sequence_length": 18,
+    "explainability": {
+      "predictions": {
+        "severity": 0,
+        "social_affect": 10.832612747186424,
+        "rrb": 4.168099924649911,
+        "comparison_score": 5,
+        "age_input": 2.999999761581421,
+        "gender_input": 1
+      },
+      "video_metadata": {
+        "duration_seconds": 0.6,
+        "num_frames": 18,
+        "fps": 30
+      },
+      "task_explanations": {
+        "Severity": {
+          "prediction": 0,
+          "baseline": 1,
+          "confidence": {
+            "confidence_score": 50,
+            "confidence_level": "Low",
+            "prediction_std": 0,
+            "prediction_mean": 0
+          },
+          "joints": {
+            "positive_contributors": [
+              {
+                "joint": "right_ankle",
+                "contribution": 0.669426441192627
+              },
+              {
+                "joint": "left_eye",
+                "contribution": 0.3365879952907562
+              },
+              {
+                "joint": "left_ear",
+                "contribution": 0.31263071298599243
+              },
+              {
+                "joint": "right_ear",
+                "contribution": 0.29869982600212097
+              },
+              {
+                "joint": "right_eye",
+                "contribution": 0.1780085414648056
+              },
+              {
+                "joint": "upper_neck",
+                "contribution": 0.1627684384584427
+              },
+              {
+                "joint": "thorax",
+                "contribution": 0.10655389726161957
+              },
+              {
+                "joint": "head_top",
+                "contribution": 0.0744171142578125
+              },
+              {
+                "joint": "right_shoulder",
+                "contribution": 0.06506694108247757
+              },
+              {
+                "joint": "right_elbow",
+                "contribution": 0.0196364913135767
+              },
+              {
+                "joint": "left_elbow",
+                "contribution": 0.009086103178560734
+              }
+            ],
+            "negative_contributors": [
+              {
+                "joint": "right_big_toe",
+                "contribution": -0.24184288084506989
+              },
+              {
+                "joint": "left_wrist",
+                "contribution": -0.21994201838970184
+              },
+              {
+                "joint": "nose",
+                "contribution": -0.19913078844547272
+              },
+              {
+                "joint": "right_knee",
+                "contribution": -0.18818382918834686
+              },
+              {
+                "joint": "right_wrist",
+                "contribution": -0.15463155508041382
+              },
+              {
+                "joint": "left_ankle",
+                "contribution": -0.13690070807933807
+              },
+              {
+                "joint": "left_hip",
+                "contribution": -0.08211483061313629
+              },
+              {
+                "joint": "neck",
+                "contribution": -0.07678263634443283
+              },
+              {
+                "joint": "right_hip",
+                "contribution": -0.053333621472120285
+              },
+              {
+                "joint": "left_knee",
+                "contribution": -0.036456234753131866
+              },
+              {
+                "joint": "left_shoulder",
+                "contribution": -0.03586457297205925
+              },
+              {
+                "joint": "left_big_toe",
+                "contribution": -0.016885673627257347
+              },
+              {
+                "joint": "pelvis",
+                "contribution": -0.0032812077552080154
+              }
+            ]
+          },
+          "temporal_segments": {
+            "positive_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 4.848618030548096,
+                "influence_direction": "positive",
+                "raw_attribution": 1.3242844343185425
+              }
+            ],
+            "negative_segments": [],
+            "all_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 4.848618030548096,
+                "influence_direction": "positive",
+                "raw_attribution": 1.3242844343185425
+              }
+            ]
+          },
+          "demographic_contributions": {
+            "age_contribution": 0.2734649181365967,
+            "gender_contribution": 0.4938962161540985
+          },
+          "total_sequence_attribution": 5.215568542480469,
+          "total_demographic_attribution": 0.7673611640930176
+        },
+        "Social Affect": {
+          "prediction": -1.1231439113616943,
+          "baseline": -0.38975754380226135,
+          "confidence": {
+            "confidence_score": 84.57749139428746,
+            "confidence_level": "High",
+            "prediction_std": 1.6582878232837852,
+            "prediction_mean": 10.752387083574398
+          },
+          "joints": {
+            "positive_contributors": [
+              {
+                "joint": "right_big_toe",
+                "contribution": 0.10725795477628708
+              },
+              {
+                "joint": "left_wrist",
+                "contribution": 0.05440741032361984
+              },
+              {
+                "joint": "right_ear",
+                "contribution": 0.03694625198841095
+              },
+              {
+                "joint": "nose",
+                "contribution": 0.03072301484644413
+              },
+              {
+                "joint": "head_top",
+                "contribution": 0.02483929693698883
+              },
+              {
+                "joint": "left_ankle",
+                "contribution": 0.02245158515870571
+              },
+              {
+                "joint": "neck",
+                "contribution": 0.02000453695654869
+              },
+              {
+                "joint": "thorax",
+                "contribution": 0.019567962735891342
+              },
+              {
+                "joint": "left_elbow",
+                "contribution": 0.016063617542386055
+              },
+              {
+                "joint": "right_knee",
+                "contribution": 0.013297133147716522
+              },
+              {
+                "joint": "left_shoulder",
+                "contribution": 0.0024165958166122437
+              }
+            ],
+            "negative_contributors": [
+              {
+                "joint": "right_ankle",
+                "contribution": -0.1789490282535553
+              },
+              {
+                "joint": "left_ear",
+                "contribution": -0.054930854588747025
+              },
+              {
+                "joint": "right_elbow",
+                "contribution": -0.035411812365055084
+              },
+              {
+                "joint": "right_shoulder",
+                "contribution": -0.029632706195116043
+              },
+              {
+                "joint": "left_knee",
+                "contribution": -0.026097958907485008
+              },
+              {
+                "joint": "right_wrist",
+                "contribution": -0.022586729377508163
+              },
+              {
+                "joint": "left_hip",
+                "contribution": -0.0215948186814785
+              },
+              {
+                "joint": "left_eye",
+                "contribution": -0.019971514120697975
+              },
+              {
+                "joint": "upper_neck",
+                "contribution": -0.01938018389046192
+              },
+              {
+                "joint": "right_hip",
+                "contribution": -0.016715923324227333
+              },
+              {
+                "joint": "right_eye",
+                "contribution": -0.007970789447426796
+              },
+              {
+                "joint": "left_big_toe",
+                "contribution": -0.0005487094167619944
+              },
+              {
+                "joint": "pelvis",
+                "contribution": -0.0005041390541009605
+              }
+            ]
+          },
+          "temporal_segments": {
+            "positive_segments": [],
+            "negative_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 0.9815701246261597,
+                "influence_direction": "negative",
+                "raw_attribution": -0.13663733005523682
+              }
+            ],
+            "all_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 0.9815701246261597,
+                "influence_direction": "negative",
+                "raw_attribution": -0.13663733005523682
+              }
+            ]
+          },
+          "demographic_contributions": {
+            "age_contribution": -0.29503798484802246,
+            "gender_contribution": -0.29045289754867554
+          },
+          "total_sequence_attribution": 1.1010336875915527,
+          "total_demographic_attribution": 0.585490882396698
+        },
+        "RRB": {
+          "prediction": -0.32132843136787415,
+          "baseline": -0.2699783742427826,
+          "confidence": {
+            "confidence_score": 85.60120020181452,
+            "confidence_level": "High",
+            "prediction_std": 0.5945125726767452,
+            "prediction_mean": 4.128903665649028
+          },
+          "joints": {
+            "positive_contributors": [
+              {
+                "joint": "right_big_toe",
+                "contribution": 0.021259909495711327
+              },
+              {
+                "joint": "left_shoulder",
+                "contribution": 0.020404864102602005
+              },
+              {
+                "joint": "right_eye",
+                "contribution": 0.018029209226369858
+              },
+              {
+                "joint": "head_top",
+                "contribution": 0.01183157879859209
+              },
+              {
+                "joint": "right_ankle",
+                "contribution": 0.008923028595745564
+              },
+              {
+                "joint": "left_ear",
+                "contribution": 0.007964357733726501
+              },
+              {
+                "joint": "right_elbow",
+                "contribution": 0.007414049003273249
+              },
+              {
+                "joint": "right_ear",
+                "contribution": 0.0066331736743450165
+              },
+              {
+                "joint": "right_hip",
+                "contribution": 0.0038001977372914553
+              },
+              {
+                "joint": "left_hip",
+                "contribution": 0.0029548383317887783
+              },
+              {
+                "joint": "right_wrist",
+                "contribution": 0.002454914152622223
+              },
+              {
+                "joint": "left_elbow",
+                "contribution": 0.0020917756482958794
+              },
+              {
+                "joint": "neck",
+                "contribution": 0.00048790627624839544
+              },
+              {
+                "joint": "pelvis",
+                "contribution": 0.00003482424290268682
+              }
+            ],
+            "negative_contributors": [
+              {
+                "joint": "upper_neck",
+                "contribution": -0.012311931699514389
+              },
+              {
+                "joint": "left_wrist",
+                "contribution": -0.008956164121627808
+              },
+              {
+                "joint": "left_knee",
+                "contribution": -0.006463504862040281
+              },
+              {
+                "joint": "right_shoulder",
+                "contribution": -0.005086250603199005
+              },
+              {
+                "joint": "nose",
+                "contribution": -0.004860509652644396
+              },
+              {
+                "joint": "left_ankle",
+                "contribution": -0.004488800186663866
+              },
+              {
+                "joint": "right_knee",
+                "contribution": -0.002821351634338498
+              },
+              {
+                "joint": "left_eye",
+                "contribution": -0.0019113596063107252
+              },
+              {
+                "joint": "left_big_toe",
+                "contribution": -0.0013954080641269684
+              },
+              {
+                "joint": "thorax",
+                "contribution": -0.00009511183452559635
+              }
+            ]
+          },
+          "temporal_segments": {
+            "positive_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 0.20355652272701263,
+                "influence_direction": "positive",
+                "raw_attribution": 0.0802590474486351
+              }
+            ],
+            "negative_segments": [],
+            "all_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 0.20355652272701263,
+                "influence_direction": "positive",
+                "raw_attribution": 0.0802590474486351
+              }
+            ]
+          },
+          "demographic_contributions": {
+            "age_contribution": -0.00043246918357908726,
+            "gender_contribution": -0.12562473118305206
+          },
+          "total_sequence_attribution": 0.24860335886478424,
+          "total_demographic_attribution": 0.1260572075843811
+        },
+        "Comparison Score": {
+          "prediction": 5,
+          "baseline": 7,
+          "confidence": {
+            "confidence_score": 90.53116640298184,
+            "confidence_level": "High",
+            "prediction_std": 0.4955356249106168,
+            "prediction_mean": 5.233333333333333
+          },
+          "joints": {
+            "positive_contributors": [
+              {
+                "joint": "right_big_toe",
+                "contribution": 2.2394323348999023
+              },
+              {
+                "joint": "nose",
+                "contribution": 0.5734528303146362
+              },
+              {
+                "joint": "left_wrist",
+                "contribution": 0.5679249167442322
+              },
+              {
+                "joint": "right_ear",
+                "contribution": 0.5471584796905518
+              },
+              {
+                "joint": "right_eye",
+                "contribution": 0.37315377593040466
+              },
+              {
+                "joint": "thorax",
+                "contribution": 0.2914799153804779
+              },
+              {
+                "joint": "left_ankle",
+                "contribution": 0.21602323651313782
+              },
+              {
+                "joint": "left_elbow",
+                "contribution": 0.19363610446453094
+              },
+              {
+                "joint": "head_top",
+                "contribution": 0.19268351793289185
+              },
+              {
+                "joint": "neck",
+                "contribution": 0.12203230708837509
+              },
+              {
+                "joint": "left_eye",
+                "contribution": 0.11642016470432281
+              },
+              {
+                "joint": "left_big_toe",
+                "contribution": 0.11365514248609543
+              },
+              {
+                "joint": "left_shoulder",
+                "contribution": 0.08302399516105652
+              },
+              {
+                "joint": "right_knee",
+                "contribution": 0.04285718873143196
+              }
+            ],
+            "negative_contributors": [
+              {
+                "joint": "right_ankle",
+                "contribution": -1.610525131225586
+              },
+              {
+                "joint": "upper_neck",
+                "contribution": -0.639432966709137
+              },
+              {
+                "joint": "right_shoulder",
+                "contribution": -0.46678364276885986
+              },
+              {
+                "joint": "left_hip",
+                "contribution": -0.426429808139801
+              },
+              {
+                "joint": "left_knee",
+                "contribution": -0.37786394357681274
+              },
+              {
+                "joint": "right_hip",
+                "contribution": -0.36476272344589233
+              },
+              {
+                "joint": "right_elbow",
+                "contribution": -0.3381964862346649
+              },
+              {
+                "joint": "right_wrist",
+                "contribution": -0.23517076671123505
+              },
+              {
+                "joint": "left_ear",
+                "contribution": -0.22278711199760437
+              },
+              {
+                "joint": "pelvis",
+                "contribution": -0.003709607757627964
+              }
+            ]
+          },
+          "temporal_segments": {
+            "positive_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 13.113365173339844,
+                "influence_direction": "positive",
+                "raw_attribution": 0.9275647401809692
+              }
+            ],
+            "negative_segments": [],
+            "all_segments": [
+              {
+                "start_time": 0,
+                "end_time": 0.6,
+                "start_frame": 0,
+                "end_frame": 18,
+                "contribution": 13.113365173339844,
+                "influence_direction": "positive",
+                "raw_attribution": 0.9275647401809692
+              }
+            ]
+          },
+          "demographic_contributions": {
+            "age_contribution": -2.441209077835083,
+            "gender_contribution": -3.9644272327423096
+          },
+          "total_sequence_attribution": 15.545263290405273,
+          "total_demographic_attribution": 6.405636310577393
+        }
+      },
+      "summary": "Multi-Task ADOS Assessment (Using Age & Gender as Inputs):\n\nPREDICTIONS:\n  Severity: 0.0\n  Social Affect: 10.8\n  RRB: 4.2\n  Comparison Score: 5.0\n\nINPUT DEMOGRAPHICS:\n  Age: 3.0 years\n  Gender: 1\n\nSeverity: Top joint=right_ankle (+0.67), Demographic impact=0.77\nSocial Affect: Top joint=right_big_toe (+0.11), Demographic impact=0.59\nRRB: Top joint=right_big_toe (+0.02), Demographic impact=0.13\nComparison Score: Top joint=right_big_toe (+2.24), Demographic impact=6.41\n"
+    }
+  },
+  "predictions_3d": null,
+  "ensemble_prediction": null,
+  "input_age": 3,
+  "input_gender": "M",
+  "status": "success",
+  "processing_info": {
+    "input_type": "video",
+    "video_duration_seconds": 0.6,
+    "original_fps": 30,
+    "frames_extracted": 18,
+    "poses_2d_extracted": 18,
+    "3d_processing_enabled": false
+  }
+},
+    {
+        "predictions_2d": {
+            "severity": 1,
+            "severity_confidence": 0.9999774694442749,
+            "social_affect": 19.497718746325013,
+            "rrb": 5.3029943307140615,
+            "comparison_score": 9,
+            "comparison_confidence": 0.9993791580200195,
+            "input_age": 3,
+            "input_gender": "M",
+            "model_type": "2D",
+            "sequence_length": 18,
+            "explainability": {
+                "predictions": {
+                    "severity": 1,
+                    "social_affect": 19.497718746325013,
+                    "rrb": 5.3029943307140615,
+                    "comparison_score": 9,
+                    "age_input": 2.999999761581421,
+                    "gender_input": 1
+                },
+                "video_metadata": {
+                    "duration_seconds": 0.6,
+                    "num_frames": 18,
+                    "fps": 30
+                },
+                "task_explanations": {
+                    "Severity": {
+                        "prediction": 1,
+                        "baseline": 0,
+                        "confidence": {
+                            "confidence_score": 100,
+                            "confidence_level": "High",
+                            "prediction_std": 0,
+                            "prediction_mean": 1
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": 0.005593510810285807
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": 0.004273904953151941
+                                },
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": 0.0028048502281308174
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": 0.0023035157937556505
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": 0.002172405831515789
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": 0.0018986176000908017
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": 0.0017728429520502687
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": 0.0017030560411512852
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": 0.001513343770056963
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": 0.001045464538037777
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": 0.0009463620372116566
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": 0.0009425384341739118
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.0003644921234808862
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": 0.00011114167864434421
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": -0.008159546181559563
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": -0.007776814047247171
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": -0.0026770359836518764
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": -0.0023720143362879753
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": -0.001577691058628261
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": -0.00036254615406505764
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": -0.00034055678406730294
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": -0.0003338503011036664
+                                },
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": -0.00013850812683813274
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": -0.00010338271385990083
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.07825236022472382,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.0020992381032556295
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.07825236022472382,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.0020992381032556295
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": -0.021157963201403618,
+                            "gender_contribution": -0.027095329016447067
+                        },
+                        "total_sequence_attribution": 2.9765191078186035,
+                        "total_demographic_attribution": 0.048253290355205536
+                    },
+                    "Social Affect": {
+                        "prediction": 0.47075772285461426,
+                        "baseline": -0.6589454412460327,
+                        "confidence": {
+                            "confidence_score": 94.64818795512119,
+                            "confidence_level": "High",
+                            "prediction_std": 1.0375477986784618,
+                            "prediction_mean": 19.386850471912563
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": 0.030038319528102875
+                                },
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": 0.021963130682706833
+                                },
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": 0.020321683958172798
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": 0.010986638255417347
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": 0.008750773966312408
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": 0.005522021092474461
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": 0.005369450896978378
+                                },
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": 0.004322490654885769
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": 0.003229111433029175
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": 0.0023329167161136866
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": 0.0018571446416899562
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.0013101303484290838
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": 0.0009910505032166839
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": -0.0340423621237278
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": -0.01849345490336418
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": -0.007000462617725134
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": -0.005884555168449879
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": -0.004768632352352142
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": -0.003850232809782028
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": -0.003606448881328106
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": -0.003558042459189892
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": -0.002717456081882119
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": -0.000521402049344033
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": -0.0003050695522688329
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.2606341540813446,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.016048772260546684
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.2606341540813446,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.016048772260546684
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": 0.10656379163265228,
+                            "gender_contribution": -0.039597708731889725
+                        },
+                        "total_sequence_attribution": 3.971040725708008,
+                        "total_demographic_attribution": 0.1461614966392517
+                    },
+                    "RRB": {
+                        "prediction": -0.08929561823606491,
+                        "baseline": -0.3432878851890564,
+                        "confidence": {
+                            "confidence_score": 91.72594767205533,
+                            "confidence_level": "High",
+                            "prediction_std": 0.44801675691488885,
+                            "prediction_mean": 5.414719887639131
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": 0.004185861442238092
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": 0.001884272089228034
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": 0.0016770922811701894
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": 0.0016178374644368887
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": 0.0011335430899634957
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": 0.0009466282208450139
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": 0.0009029977372847497
+                                },
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": 0.0006417780532501638
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": 0.0005721583729609847
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": 0.0005113022052682936
+                                },
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": 0.0004102371458429843
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": 0.0003723223344422877
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": 0.0003381880815140903
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": 0.0002724613295868039
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": 0.00021379461395554245
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": 0.00020150223281234503
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.00010485739767318591
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": 0.00009385063458466902
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": -0.002222546376287937
+                                },
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": -0.00218896078877151
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": -0.0021317515056580305
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": -0.0008228637161664665
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": -0.00038390507688745856
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": -0.00019411837274674326
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.03250212222337723,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.006433253176510334
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.03250212222337723,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.006433253176510334
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": 0.0370233915746212,
+                            "gender_contribution": -0.043858353048563004
+                        },
+                        "total_sequence_attribution": 1.1092331409454346,
+                        "total_demographic_attribution": 0.0808817446231842
+                    },
+                    "Comparison Score": {
+                        "prediction": 9,
+                        "baseline": 6,
+                        "confidence": {
+                            "confidence_score": 100,
+                            "confidence_level": "High",
+                            "prediction_std": 0,
+                            "prediction_mean": 9
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": 0.4477217197418213
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": 0.2378844916820526
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": 0.22819578647613525
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": 0.19205886125564575
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": 0.18871355056762695
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": 0.16989845037460327
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": 0.1467730700969696
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": 0.11232348531484604
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": 0.10715930163860321
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": 0.053779080510139465
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.029391290619969368
+                                },
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": 0.01457158476114273
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": 0.014289932325482368
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": -0.4724503755569458
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": -0.4506801664829254
+                                },
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": -0.289886474609375
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": -0.18838010728359222
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": -0.1051410660147667
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": -0.08406075090169907
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": -0.0782339796423912
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": -0.07782323658466339
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": -0.0620865635573864
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": -0.005758157465606928
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": -0.00020122685236856341
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 4.992739677429199,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.23362550139427185
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 4.992739677429199,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.23362550139427185
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": -4.131969928741455,
+                            "gender_contribution": 2.671731948852539
+                        },
+                        "total_sequence_attribution": 50.84573745727539,
+                        "total_demographic_attribution": 6.803701877593994
+                    }
+                },
+                "summary": "Multi-Task ADOS Assessment (Using Age \u0026 Gender as Inputs):\n\nPREDICTIONS:\n  Severity: 1.0\n  Social Affect: 19.5\n  RRB: 5.3\n  Comparison Score: 9.0\n\nINPUT DEMOGRAPHICS:\n  Age: 3.0 years\n  Gender: 1\n\nSeverity: Top joint=right_ankle (+0.01), Demographic impact=0.05\nSocial Affect: Top joint=left_big_toe (+0.03), Demographic impact=0.15\nRRB: Top joint=right_ankle (+0.00), Demographic impact=0.08\nComparison Score: Top joint=pelvis (+0.45), Demographic impact=6.80\n"
+            }
+        },
+        "predictions_3d": {
+            "severity": 1,
+            "severity_confidence": 0.9999208450317383,
+            "social_affect": 16.49514627146115,
+            "rrb": 6.045199539831343,
+            "comparison_score": 9,
+            "comparison_confidence": 0.9859225749969482,
+            "input_age": 3,
+            "input_gender": "M",
+            "model_type": "3D",
+            "sequence_length": 18,
+            "explainability": {
+                "predictions": {
+                    "severity": 1,
+                    "social_affect": 16.49514627146115,
+                    "rrb": 6.045199539831343,
+                    "comparison_score": 9,
+                    "age_input": 2.999999761581421,
+                    "gender_input": 1
+                },
+                "video_metadata": {
+                    "duration_seconds": 0.6,
+                    "num_frames": 18,
+                    "fps": 30
+                },
+                "task_explanations": {
+                    "Severity": {
+                        "prediction": 1,
+                        "baseline": 1,
+                        "confidence": {
+                            "confidence_score": 100,
+                            "confidence_level": "High",
+                            "prediction_std": 0,
+                            "prediction_mean": 1
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": 0.08175423741340637
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": 0.07671353220939636
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": 0.07189669460058212
+                                },
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": 0.051326725631952286
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": 0.04561840370297432
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": 0.043011415749788284
+                                },
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": 0.036811042577028275
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": 0.02309071086347103
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": 0.020441874861717224
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": 0.005213279277086258
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.003116379724815488
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": 0.001106893876567483
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": -0.2147645354270935
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": -0.11977080255746841
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": -0.056578200310468674
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": -0.0484510101377964
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": -0.048378001898527145
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": -0.03529141843318939
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": -0.026774579659104347
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": -0.022164976224303246
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": -0.015012159012258053
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": -0.013632028363645077
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": -0.008213859982788563
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": -0.002911889925599098
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 1.9869035482406616,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.07805591076612473
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 1.9869035482406616,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.07805591076612473
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": 0.34273287653923035,
+                            "gender_contribution": -0.2715620696544647
+                        },
+                        "total_sequence_attribution": 11.725115776062012,
+                        "total_demographic_attribution": 0.6142949461936951
+                    },
+                    "Social Affect": {
+                        "prediction": -0.08155002444982529,
+                        "baseline": -0.4065329432487488,
+                        "confidence": {
+                            "confidence_score": 96.64477359585227,
+                            "confidence_level": "High",
+                            "prediction_std": 0.5518279157447366,
+                            "prediction_mean": 16.44681607961144
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": 0.05508006364107132
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": 0.028558656573295593
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": 0.023227792233228683
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": 0.01965128257870674
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": 0.016231998801231384
+                                },
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": 0.015195218846201897
+                                },
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": 0.010718714445829391
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": 0.010020523332059383
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": 0.008001700043678284
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": 0.005767385940998793
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": 0.00463079335168004
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": 0.0033479714766144753
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.0030321800149977207
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": 0.00247585354372859
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": 0.0009751820471137762
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": -0.02891489490866661
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": -0.027916060760617256
+                                },
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": -0.022500615566968918
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": -0.008044188842177391
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": -0.007388820871710777
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": -0.002671552123501897
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": -0.002318271901458502
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": -0.001950039411894977
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": -0.001060790615156293
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.5432180166244507,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.13870297372341156
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.5432180166244507,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.13870297372341156
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": 0.0081620579585433,
+                            "gender_contribution": -0.09238815307617188
+                        },
+                        "total_sequence_attribution": 4.302664279937744,
+                        "total_demographic_attribution": 0.10055021196603775
+                    },
+                    "RRB": {
+                        "prediction": 0.062450625002384186,
+                        "baseline": -0.169235497713089,
+                        "confidence": {
+                            "confidence_score": 93.40453719726389,
+                            "confidence_level": "High",
+                            "prediction_std": 0.4065470853290316,
+                            "prediction_mean": 6.164041819178739
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": 0.05306234955787659
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": 0.011151596903800964
+                                },
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": 0.0056757633574306965
+                                },
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": 0.005519488826394081
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": 0.005438465159386396
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": 0.0032949293963611126
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": 0.001716512255370617
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": 0.0013721747091040015
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": 0.0010908835101872683
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": -0.010214695706963539
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": -0.01019354723393917
+                                },
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": -0.009279089979827404
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": -0.007555351126939058
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": -0.004150391090661287
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": -0.003672282909974456
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": -0.0032740230672061443
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": -0.0031044012866914272
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": -0.0027386622969061136
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": -0.002040502382442355
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": -0.001863547833636403
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": -0.0014410736039280891
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": -0.0010581209789961576
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": -0.0005162612651474774
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": -0.0001767945068422705
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.2826850116252899,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.024716056883335114
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 0.2826850116252899,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 0.024716056883335114
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": 0.07924358546733856,
+                            "gender_contribution": -0.08731403201818466
+                        },
+                        "total_sequence_attribution": 2.2811896800994873,
+                        "total_demographic_attribution": 0.16655761003494263
+                    },
+                    "Comparison Score": {
+                        "prediction": 9,
+                        "baseline": 7,
+                        "confidence": {
+                            "confidence_score": 100,
+                            "confidence_level": "High",
+                            "prediction_std": 0,
+                            "prediction_mean": 9
+                        },
+                        "joints": {
+                            "positive_contributors": [
+                                {
+                                    "joint": "right_ankle",
+                                    "contribution": 1.7131403684616089
+                                },
+                                {
+                                    "joint": "left_knee",
+                                    "contribution": 1.0942747592926025
+                                },
+                                {
+                                    "joint": "left_eye",
+                                    "contribution": 0.9738035202026367
+                                },
+                                {
+                                    "joint": "left_ankle",
+                                    "contribution": 0.8308979868888855
+                                },
+                                {
+                                    "joint": "left_big_toe",
+                                    "contribution": 0.8069061040878296
+                                },
+                                {
+                                    "joint": "left_ear",
+                                    "contribution": 0.626651406288147
+                                },
+                                {
+                                    "joint": "right_knee",
+                                    "contribution": 0.5789903402328491
+                                },
+                                {
+                                    "joint": "right_elbow",
+                                    "contribution": 0.5245933532714844
+                                },
+                                {
+                                    "joint": "left_wrist",
+                                    "contribution": 0.517129123210907
+                                },
+                                {
+                                    "joint": "left_elbow",
+                                    "contribution": 0.426735520362854
+                                },
+                                {
+                                    "joint": "right_shoulder",
+                                    "contribution": 0.38069674372673035
+                                },
+                                {
+                                    "joint": "right_eye",
+                                    "contribution": 0.3306873142719269
+                                },
+                                {
+                                    "joint": "head_top",
+                                    "contribution": 0.19908523559570312
+                                },
+                                {
+                                    "joint": "nose",
+                                    "contribution": 0.1900174617767334
+                                },
+                                {
+                                    "joint": "right_wrist",
+                                    "contribution": 0.13765864074230194
+                                },
+                                {
+                                    "joint": "pelvis",
+                                    "contribution": 0.07750903815031052
+                                },
+                                {
+                                    "joint": "neck",
+                                    "contribution": 0.0035035221371799707
+                                },
+                                {
+                                    "joint": "right_ear",
+                                    "contribution": 0.002157749142497778
+                                }
+                            ],
+                            "negative_contributors": [
+                                {
+                                    "joint": "right_big_toe",
+                                    "contribution": -1.2705692052841187
+                                },
+                                {
+                                    "joint": "upper_neck",
+                                    "contribution": -1.157407522201538
+                                },
+                                {
+                                    "joint": "right_hip",
+                                    "contribution": -0.9091529846191406
+                                },
+                                {
+                                    "joint": "left_hip",
+                                    "contribution": -0.6041886210441589
+                                },
+                                {
+                                    "joint": "left_shoulder",
+                                    "contribution": -0.4932544231414795
+                                },
+                                {
+                                    "joint": "thorax",
+                                    "contribution": -0.16562192142009735
+                                }
+                            ]
+                        },
+                        "temporal_segments": {
+                            "positive_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 21.973087310791016,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 2.9690968990325928
+                                }
+                            ],
+                            "negative_segments": [],
+                            "all_segments": [
+                                {
+                                    "start_time": 0,
+                                    "end_time": 0.6,
+                                    "start_frame": 0,
+                                    "end_frame": 18,
+                                    "contribution": 21.973087310791016,
+                                    "influence_direction": "positive",
+                                    "raw_attribution": 2.9690968990325928
+                                }
+                            ]
+                        },
+                        "demographic_contributions": {
+                            "age_contribution": -7.874606609344482,
+                            "gender_contribution": 6.0727458000183105
+                        },
+                        "total_sequence_attribution": 111.86773681640625,
+                        "total_demographic_attribution": 13.947352409362793
+                    }
+                },
+                "summary": "Multi-Task ADOS Assessment (Using Age \u0026 Gender as Inputs):\n\nPREDICTIONS:\n  Severity: 1.0\n  Social Affect: 16.5\n  RRB: 6.0\n  Comparison Score: 9.0\n\nINPUT DEMOGRAPHICS:\n  Age: 3.0 years\n  Gender: 1\n\nSeverity: Top joint=right_hip (+0.08), Demographic impact=0.61\nSocial Affect: Top joint=right_big_toe (+0.06), Demographic impact=0.10\nRRB: Top joint=right_big_toe (+0.05), Demographic impact=0.17\nComparison Score: Top joint=right_ankle (+1.71), Demographic impact=13.95\n"
+            }
+        },
+        "ensemble_prediction": {
+            "severity": 1,
+            "severity_confidence": 0.9999491572380066,
+            "social_affect": 17.99643250889308,
+            "rrb": 5.674096935272702,
+            "comparison_score": 9,
+            "comparison_confidence": 0.9926508665084839,
+            "method": "average"
+        },
+        "input_age": 3,
+        "input_gender": "M",
+        "status": "success",
+        "processing_info": {
+            "input_type": "video",
+            "video_duration_seconds": 0.6,
+            "original_fps": 30,
+            "frames_extracted": 18,
+            "poses_2d_extracted": 18,
+            "3d_processing_enabled": true,
+            "poses_3d_extracted": 18
+        }
+    }
+]

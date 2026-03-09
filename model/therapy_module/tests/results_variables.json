@@ -1,0 +1,380 @@
+{
+  "1_severity_only": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with limited functional communication, reduced social initiation, atypical social responses, behavioral rigidity, distress with transitions, and interference in multiple contexts?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.6",
+        "content_type": "treatment_and_support",
+        "snippet": "Introduction The core autism behaviours are typically present in early childhood, although some features may not manifest until a change of situation, for example, the start of nursery or school or, l..."
+      },
+      {
+        "rank": 2,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Adult services As individuals with autism progress into and through adulthood, the focus of management shifts from treating the core symptoms of autism to addressing associated symptoms or behaviours ..."
+      },
+      {
+        "rank": 3,
+        "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "APPROACH TO TREATMENT Just as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  ..."
+      },
+      {
+        "rank": 4,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.29",
+        "content_type": "treatment_and_support",
+        "snippet": "1.8 Transition to adult services - 1.8.1 Local autism teams should ensure that autistic young people who are receiving treatment and care from child and adolescent mental health services (CAMHS) or ch..."
+      },
+      {
+        "rank": 5,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 6,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 7,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Educational interventions and school placements at preschool ages (birth to 7 years old) Children  from  birth  to  7  years  old  who  have  been  assessed  with  developmental  needs, including  chi..."
+      },
+      {
+        "rank": 8,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      }
+    ]
+  },
+  "2_social_affect_only": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with severe and profound social communication deficits with minimal response to social overtures?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "APPROACH TO TREATMENT Just as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  ..."
+      },
+      {
+        "rank": 2,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.6",
+        "content_type": "treatment_and_support",
+        "snippet": "Introduction The core autism behaviours are typically present in early childhood, although some features may not manifest until a change of situation, for example, the start of nursery or school or, l..."
+      },
+      {
+        "rank": 3,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.18",
+        "content_type": "treatment_and_support",
+        "snippet": "Medications weak evidence base, it may be fruitful to explore therapies and treatments tested in other groups that may benefit those with autism. Formal service systems and social care can help fill i..."
+      },
+      {
+        "rank": 4,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 5,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 6,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      },
+      {
+        "rank": 7,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.15",
+        "content_type": "treatment_and_support",
+        "snippet": "SECTION 6: WHAT ARE COMPLEMENTARY AND ALTERNATIVE TREATMENTS FOR AUTISM? Children  and  adolescents  on  the  autism  spectrum  who  exhibit  symptoms  suggestive  of  a vitamin, mineral, amino acid o..."
+      },
+      {
+        "rank": 8,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Educational interventions and school placements at preschool ages (birth to 7 years old) Children  from  birth  to  7  years  old  who  have  been  assessed  with  developmental  needs, including  chi..."
+      }
+    ]
+  },
+  "3_rrb_only": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with noticeable behavioral rigidity, distress with change, and repetitive actions?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.18",
+        "content_type": "treatment_and_support",
+        "snippet": "Medications weak evidence base, it may be fruitful to explore therapies and treatments tested in other groups that may benefit those with autism. Formal service systems and social care can help fill i..."
+      },
+      {
+        "rank": 2,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.4",
+        "content_type": "treatment_and_support",
+        "snippet": "Atypical Antipsychotics There are two medications approved by the FDA for the treatment of irritability associated with ASD: risperidone, approved for children older than 5 years of age [40], and arip..."
+      },
+      {
+        "rank": 3,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 4,
+        "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "APPROACH TO TREATMENT Just as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  ..."
+      },
+      {
+        "rank": 5,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 6,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.27",
+        "content_type": "treatment_and_support",
+        "snippet": "Interventions for sleep problems - 1.7.4 If an autistic child or young person develops a sleep problem offer an assessment that identifies: -  what the sleep problem is (for example, delay in falling ..."
+      },
+      {
+        "rank": 7,
+        "source": "SIGN-145-2016-autism-assessment-diagnosis-interventions.pdf p.43",
+        "content_type": "treatment_and_support",
+        "snippet": "9.2 ANTIPSYCHOTICS Meta-analysis of two small open label RCTs on the use of risperidone in adults with ASD showed benefit in reducing behaviour that challenges. 13  One of the trials also reported imp..."
+      },
+      {
+        "rank": 8,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      }
+    ]
+  },
+  "4_comparison_score_only": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with a high level of autism-related symptoms requiring very substantial support?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Adult services As individuals with autism progress into and through adulthood, the focus of management shifts from treating the core symptoms of autism to addressing associated symptoms or behaviours ..."
+      },
+      {
+        "rank": 2,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.13",
+        "content_type": "treatment_and_support",
+        "snippet": "Diagnosis and screening in children Early developmental profiles.Understanding of onset patterns of autism has dramatically expanded over the past 10 years through work on infants with a first-degree ..."
+      },
+      {
+        "rank": 3,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.18",
+        "content_type": "treatment_and_support",
+        "snippet": "Medications weak evidence base, it may be fruitful to explore therapies and treatments tested in other groups that may benefit those with autism. Formal service systems and social care can help fill i..."
+      },
+      {
+        "rank": 4,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.15",
+        "content_type": "treatment_and_support",
+        "snippet": "SECTION 6: WHAT ARE COMPLEMENTARY AND ALTERNATIVE TREATMENTS FOR AUTISM? Children  and  adolescents  on  the  autism  spectrum  who  exhibit  symptoms  suggestive  of  a vitamin, mineral, amino acid o..."
+      },
+      {
+        "rank": 5,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Educational interventions and school placements at preschool ages (birth to 7 years old) Children  from  birth  to  7  years  old  who  have  been  assessed  with  developmental  needs, including  chi..."
+      },
+      {
+        "rank": 6,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 7,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 8,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      }
+    ]
+  },
+  "5_social_affect_and_rrb": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with severe and profound social communication deficits with minimal response to social overtures as well as noticeable behavioral rigidity, distress with change, and repetitive actions?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.4",
+        "content_type": "treatment_and_support",
+        "snippet": "Characteristics of autism Autism  affects a person's  social  communication  and  interaction  with  others,  and  is characterised by restricted and repetitive behaviours. These are known as the 'cor..."
+      },
+      {
+        "rank": 2,
+        "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "APPROACH TO TREATMENT Just as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  ..."
+      },
+      {
+        "rank": 3,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.18",
+        "content_type": "treatment_and_support",
+        "snippet": "Medications weak evidence base, it may be fruitful to explore therapies and treatments tested in other groups that may benefit those with autism. Formal service systems and social care can help fill i..."
+      },
+      {
+        "rank": 4,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 5,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      },
+      {
+        "rank": 6,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 7,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.15",
+        "content_type": "treatment_and_support",
+        "snippet": "SECTION 6: WHAT ARE COMPLEMENTARY AND ALTERNATIVE TREATMENTS FOR AUTISM? Children  and  adolescents  on  the  autism  spectrum  who  exhibit  symptoms  suggestive  of  a vitamin, mineral, amino acid o..."
+      },
+      {
+        "rank": 8,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "Introduction This guidance has been developed by the National Institute for Health and Care Excellence (NICE) in collaboration with the Social Care Institute for Excellence (SCIE). The term autism des..."
+      }
+    ]
+  },
+  "6_severity_and_comparison_score": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with limited functional communication, reduced social initiation, atypical social responses, behavioral rigidity, distress with transitions, and interference in multiple contexts, indicating a high level of autism-related symptoms requiring very substantial support?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Adult services As individuals with autism progress into and through adulthood, the focus of management shifts from treating the core symptoms of autism to addressing associated symptoms or behaviours ..."
+      },
+      {
+        "rank": 2,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.6",
+        "content_type": "treatment_and_support",
+        "snippet": "Introduction The core autism behaviours are typically present in early childhood, although some features may not manifest until a change of situation, for example, the start of nursery or school or, l..."
+      },
+      {
+        "rank": 3,
+        "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "APPROACH TO TREATMENT Just as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  ..."
+      },
+      {
+        "rank": 4,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.18",
+        "content_type": "treatment_and_support",
+        "snippet": "Medications weak evidence base, it may be fruitful to explore therapies and treatments tested in other groups that may benefit those with autism. Formal service systems and social care can help fill i..."
+      },
+      {
+        "rank": 5,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 6,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 7,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      },
+      {
+        "rank": 8,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "Signs of autism at any age, including adolescents: - Avoidance of or difficulty maintaining eye contact - Poor response to name being called - Loss of previously acquired speech, babbling, or social s..."
+      }
+    ]
+  },
+  "7_all_variables_combined": {
+    "query": "What are the recommended interventions, therapies, and treatments for an autistic 3-year-old boy presenting with limited functional communication, reduced social initiation, atypical social responses, behavioral rigidity, distress with transitions, and interference in multiple contexts. The child specifically shows severe and profound social communication deficits with minimal response to social overtures, alongside noticeable behavioral rigidity, distress with change, and repetitive actions, which reflects a high level of autism-related symptoms requiring very substantial support?",
+    "retrieved_count": 8,
+    "chunks": [
+      {
+        "rank": 1,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.6",
+        "content_type": "treatment_and_support",
+        "snippet": "Introduction The core autism behaviours are typically present in early childhood, although some features may not manifest until a change of situation, for example, the start of nursery or school or, l..."
+      },
+      {
+        "rank": 2,
+        "source": "Singapore-MOH-2023-CPG-autism-children-adolescents-lay.pdf p.4",
+        "content_type": "treatment_and_support",
+        "snippet": "Characteristics of autism Autism  affects a person's  social  communication  and  interaction  with  others,  and  is characterised by restricted and repetitive behaviours. These are known as the 'cor..."
+      },
+      {
+        "rank": 3,
+        "source": "Subramanyam-India-CPG-autism-spectrum-disorder.pdf p.5",
+        "content_type": "treatment_and_support",
+        "snippet": "APPROACH TO TREATMENT Just as the ideal assessment for autism is multi-disciplinary, so  too,  approach  to  treatment  involves  a  multi-sensory, multi-disciplinary  approach.  Early  intervention  ..."
+      },
+      {
+        "rank": 4,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.17",
+        "content_type": "treatment_and_support",
+        "snippet": "Adult services As individuals with autism progress into and through adulthood, the focus of management shifts from treating the core symptoms of autism to addressing associated symptoms or behaviours ..."
+      },
+      {
+        "rank": 5,
+        "source": "Lord-NatRevDisPrimers-2020-autism-spectrum-disorder-primer.pdf p.18",
+        "content_type": "treatment_and_support",
+        "snippet": "Medications weak evidence base, it may be fruitful to explore therapies and treatments tested in other groups that may benefit those with autism. Formal service systems and social care can help fill i..."
+      },
+      {
+        "rank": 6,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.8",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals -  Health and social care professionals working with autistic children and young people in any setting should receive training in autis..."
+      },
+      {
+        "rank": 7,
+        "source": "Aishworiya-2022-psychopharmacological-treatment-ASD.pdf p.11",
+        "content_type": "treatment_and_support",
+        "snippet": "References 21.  Hume K, Steinbrenner JR, Odom SL, Morin KL, Nowell SW, Tomaszewski B, et al. Evidence-based practices for children, youth, and young adults with autism: third generation review. Journa..."
+      },
+      {
+        "rank": 8,
+        "source": "NICE-CG170-2021-autism-support-management-under19s.pdf p.16",
+        "content_type": "treatment_and_support",
+        "snippet": "Knowledge and competence of health and social care professionals - 1.1.8 Health and social care professionals working with autistic children and young people in any setting should receive training in ..."
+      }
+    ]
+  }
+}

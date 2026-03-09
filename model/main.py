@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Header
+from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Header, Body, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional, Literal, Any
 from datetime import datetime
 import logging
 import json
@@ -17,7 +17,7 @@ sys.path.append(str(Path(__file__).resolve().parent))
 
 from config.settings import settings
 from security.rate_limiting import limiter
-from services import VideoProcessingService, PoseEstimationService, PredictionService
+from services import VideoProcessingService, PoseEstimationService, PredictionService, TherapyService
 
 # Configure logging
 logging.basicConfig(
@@ -59,6 +59,7 @@ app.add_middleware(
 video_service = VideoProcessingService()
 pose_service = PoseEstimationService()
 prediction_service = PredictionService(settings)
+therapy_service = TherapyService(settings.THERAPY_MODULE_DIR)
 
 # =====================
 # Pydantic Models
@@ -99,6 +100,7 @@ async def root():
             "health": "/health",
             "auth_info": "/auth/api-key-info",
             "predict": "/predict",
+            "therapy_recommend": "/therapy/recommend",
             "docs": "/docs"
         }
     }
@@ -400,11 +402,85 @@ async def get_models_info(current_user: dict = Depends(verify_api_key)):
     
     return models_info
 
+@app.post("/therapy/recommend", tags=["Therapy"])
+@limiter.limit(f"{settings.RATE_LIMIT_PER_MINUTE}/minute")
+async def therapy_recommend(
+    request: Request,
+    payload: Any = Body(
+        ...,
+        description="Model prediction output from /predict (single dict) or a list of such dicts for aggregated multi-output analysis",
+        example={
+            "ensemble_prediction": {"severity": 1},
+            "input_age": 6,
+            "input_gender": "M",
+        },
+    ),
+    top_k: int = Query(default=10, ge=1, le=20, description="Number of guideline chunks to retrieve"),
+    current_user: dict = Depends(verify_api_key),
+):
+    """
+    Generate evidence-based therapy recommendations via the RAG pipeline.
+
+    Accepts the JSON body returned by **POST /predict** and produces a
+    structured clinical report grounded in ASD intervention guidelines
+    (NICE, SIGN, DSM-5, AFIRM evidence-based practices).
+
+    The pipeline runs:
+    1. Query building from patient severity + age
+    2. Hybrid retrieval (ChromaDB dense + BM25 sparse) with W-RRF fusion
+    3. Cross-encoder reranking of top candidates
+    4. AFIRM evidence-based practice matching
+    5. Gemini LLM generation of a structured clinical report
+
+    Requires:
+    - ``x-api-key`` header (same key used for /predict)
+    - JSON body: the full response dict from /predict
+
+    Returns:
+    - ``metadata``: patient age, gender, DSM-5 severity level
+    - ``retrieved_chunks``: ranked guideline excerpts used as evidence
+    - ``clinical_report``: markdown-formatted clinical recommendation report
+    """
+    if not Path(settings.THERAPY_MODULE_DIR).exists():
+        raise HTTPException(
+            status_code=503,
+            detail="Therapy module is not available (directory not found).",
+        )
+
+    # Accept either one model response dict or a list of model response dicts.
+    if not isinstance(payload, (dict, list)):
+        raise HTTPException(
+            status_code=422,
+            detail="Request body must be a JSON object or an array of JSON objects.",
+        )
+    if isinstance(payload, list):
+        if not payload:
+            raise HTTPException(
+                status_code=422,
+                detail="Request body array cannot be empty.",
+            )
+        if any(not isinstance(item, dict) for item in payload):
+            raise HTTPException(
+                status_code=422,
+                detail="Each item in the request body array must be a JSON object.",
+            )
+
+    try:
+        result = await therapy_service.generate_recommendations(payload, top_k=top_k)
+        return result
+    except Exception as exc:
+        logger.error("Therapy recommendation error: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Therapy recommendation failed: {exc}",
+        )
+
+
 @app.on_event("startup")
 async def startup_event():
     """Validate models on startup"""
     logger.info("Starting ADOS Prediction API...")
-    
+
     try:
         # Check 2D model
         logger.info("Checking 2D model...")
@@ -412,22 +488,30 @@ async def startup_event():
             logger.info("✅ 2D model found")
         else:
             logger.warning(f"⚠️ 2D model not found at {settings.MODEL_2D_PATH}")
-        
+
         # Check 3D model
         logger.info("Checking 3D model...")
         if Path(settings.MODEL_3D_PATH).exists():
             logger.info("✅ 3D model found")
         else:
             logger.warning(f"⚠️ 3D model not found at {settings.MODEL_3D_PATH}")
-        
+
         # Check OpenPose
         if settings.OPENPOSE_DIR and Path(settings.OPENPOSE_DIR).exists():
             logger.info("✅ OpenPose directory found")
         else:
             logger.warning(f"⚠️ OpenPose not found at {settings.OPENPOSE_DIR}")
-        
+
+        # Check therapy module
+        if Path(settings.THERAPY_MODULE_DIR).exists():
+            logger.info("✅ Therapy module found at %s", settings.THERAPY_MODULE_DIR)
+        else:
+            logger.warning("⚠️ Therapy module not found at %s", settings.THERAPY_MODULE_DIR)
+        if not settings.GEMINI_API_KEY:
+            logger.warning("⚠️ GEMINI_API_KEY not set — /therapy/recommend generation unavailable")
+
         logger.info("🚀 API ready! Models will be loaded on first use.")
-    
+
     except Exception as e:
         logger.error(f"Startup check failed: {str(e)}")
 
