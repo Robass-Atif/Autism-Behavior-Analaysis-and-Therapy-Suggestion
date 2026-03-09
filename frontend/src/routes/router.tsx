@@ -32,6 +32,7 @@ import ReportGeneration from "../components/screens/therapist/ReportGeneration";
 import DataExportImportScreen from "../components/screens/therapist/DataExportImportScreen";
 import SettingsScreen from "../components/screens/therapist/SettingsScreen";
 import CaregiverInvitationScreen from "../components/screens/therapist/CaregiverInvitationScreen";
+import TherapistScheduleScreen from "../components/screens/therapist/TherapistScheduleScreen";
 
 // New: AI Review Workflow Screens
 import PendingReviewScreen from "../components/screens/therapist/PendingReviewScreen";
@@ -44,6 +45,7 @@ import GuidedVideoRecording from "../components/screens/caregiver/GuidedVideoRec
 import RecordingScheduleScreen from "../components/screens/caregiver/RecordingScheduleScreen";
 import CaregiverReportsScreen from "../components/screens/caregiver/CaregiverReportsScreen";
 import CaregiverVideoLibrary from "../components/screens/caregiver/CaregiverVideoLibrary";
+import CaregiverTaskListScreen from "../components/screens/caregiver/CaregiverTaskListScreen";
 
 // Admin Screens
 import AdminDashboard from "../components/screens/admin/AdminDashboard";
@@ -156,6 +158,7 @@ export const handleScreenNavigation = (screen: Screen, data?: any) => {
   // Handle dynamic routes
   let path = "";
   let params = {};
+  const search: Record<string, any> = {};
 
   if (screen === Screen.SESSION_REPORT && data?.sessionId) {
     path = "/sessions/$sessionId/report";
@@ -169,6 +172,11 @@ export const handleScreenNavigation = (screen: Screen, data?: any) => {
   } else if (screen === Screen.VIDEO_REVIEW && data?.videoId) {
     path = "/sessions/$sessionId/report";
     params = { sessionId: data.videoId };
+  } else if (screen === Screen.REPORT_GENERATION) {
+    path = routes[screen] || "";
+    if (data?.patientId) search.patientId = data.patientId;
+    if (data?.sessionId) search.sessionId = data.sessionId;
+    if (data?.reportType) search.reportType = data.reportType;
   } else {
     path = routes[screen] || "";
   }
@@ -178,6 +186,7 @@ export const handleScreenNavigation = (screen: Screen, data?: any) => {
     router.navigate({
       to: path as any,
       params: (Object.keys(params).length > 0 ? params : true) as any,
+      search: (Object.keys(search).length > 0 ? search : undefined) as any,
     });
   } else {
     console.warn("Navigation not implemented for screen:", screen);
@@ -256,6 +265,12 @@ export const caregiverInvitationsRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/invitations",
   component: CaregiverInvitationScreen,
+});
+
+export const therapistScheduleRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/schedule",
+  component: TherapistScheduleScreen,
 });
 
 export const videoLibraryRoute = createRoute({
@@ -358,9 +373,28 @@ export const caregiverDashboardRoute = createRoute({
 export const videoRecordingRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/caregiver/record",
-  component: () => (
-    <GuidedVideoRecording onClose={() => window.history.back()} patientId="" />
-  ),
+  validateSearch: (search: Record<string, unknown>) => ({
+    scheduleEntryId: search.scheduleEntryId as string | undefined,
+    actionType: search.actionType as string | undefined,
+    patientId: search.patientId as string | undefined,
+  }),
+  component: () => {
+    const search = (videoRecordingRoute as any).useSearch();
+    return (
+      <GuidedVideoRecording
+        onClose={() => window.history.back()}
+        patientId={search.patientId || ""}
+        scheduleEntryId={search.scheduleEntryId}
+        actionType={search.actionType}
+      />
+    );
+  },
+});
+
+export const caregiverTasksRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/caregiver/tasks",
+  component: CaregiverTaskListScreen,
 });
 
 export const recordingScheduleRoute = createRoute({
@@ -482,6 +516,7 @@ const routeTree = rootRoute.addChildren([
     therapyGoalsRoute,
     therapyGoalFormRoute,
     caregiverInvitationsRoute,
+    therapistScheduleRoute,
     videoLibraryRoute,
     videoReviewRoute,
     pendingReviewRoute,
@@ -493,6 +528,7 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     caregiverDashboardRoute,
     videoRecordingRoute,
+    caregiverTasksRoute,
     recordingScheduleRoute,
     caregiverReportsRoute,
     caregiverLibraryRoute,

@@ -20,7 +20,9 @@ import { PdfGeneratorService } from "./services/pdf-generator.service";
 import { AiAnalysisService } from "./services/ai-analysis.service";
 import { Role } from "../../common/enums/role.enum";
 import { EmailService } from "../email/email.service";
-
+import { CryptoService } from "../../common/services/crypto.service";
+import * as fs from "fs";
+import * as path from "path";
 @Injectable()
 export class ClinicalService {
   constructor(
@@ -32,6 +34,7 @@ export class ClinicalService {
     private pdfGeneratorService: PdfGeneratorService,
     private aiAnalysisService: AiAnalysisService,
     private emailService: EmailService,
+    private cryptoService: CryptoService,
   ) {}
 
   // ========== THERAPY GOALS ==========
@@ -181,10 +184,17 @@ export class ClinicalService {
     userRole: string,
     dto: CreateVideoSessionDto,
     videoUrl: string,
+    encryptionKeyPattern?: string,
+    encryptionIV?: string,
+    encryptionAuthTag?: string
   ) {
     const sessionData: any = {
       ...dto,
+      duration: parseFloat(dto.duration as any) || 0,
       videoUrl,
+      encryptionKeyPattern,
+      encryptionIV,
+      encryptionAuthTag,
       status: "pending_review", // Always starts as pending_review
       uploadedBy: userRole === "caregiver" ? "caregiver" : "therapist",
       reviewed: false,
@@ -217,6 +227,61 @@ export class ClinicalService {
         "Video session uploaded successfully. Awaiting therapist review.",
       session: this.formatVideoSession(session),
     };
+  }
+
+  // ========== STREAM DECRYPTED VIDEO ==========
+  async streamDecryptedVideo(videoUrl: string, res: any) {
+    // 1. Find the session by URL to get encryption bounds
+    const session = await this.videoSessionModel.findOne({ videoUrl });
+    if (!session || session.deleted) {
+      throw new NotFoundException("Video not found");
+    }
+
+    const baseDir = path.join(__dirname, "..", "..", "..");
+    // videoUrl is something like /uploads/videos/video-xxx.webm
+    // The relative path from project root is just the URL without leading slash
+    const filepath = path.join(baseDir, videoUrl.replace(/^\//, ""));
+
+    if (!fs.existsSync(filepath)) {
+      throw new NotFoundException("Physical video file not found on disk");
+    }
+
+    // 2. Determine if it's encrypted
+    if (session.encryptionKeyPattern && session.encryptionIV && session.encryptionAuthTag) {
+      // It is encrypted, decrypt on the fly
+      try {
+        const fileKey = this.cryptoService.decryptFileKey(session.encryptionKeyPattern);
+        const iv = Buffer.from(session.encryptionIV, "base64");
+        const authTag = Buffer.from(session.encryptionAuthTag, "base64");
+
+        const decryptStream = this.cryptoService.createDecryptStream(fileKey, iv, authTag);
+        const readStream = fs.createReadStream(filepath);
+
+        // Required headers for video streaming
+        res.setHeader("Content-Type", "video/webm"); // Or dynamically determined by ext
+
+        // Pipe: File Stream -> Decrypt Stream -> Response Stream
+        readStream.pipe(decryptStream).pipe(res);
+
+        readStream.on("error", (err) => {
+          console.error("Error reading encrypted video stream", err);
+          if (!res.headersSent) res.status(500).send("Error reading video stream");
+        });
+
+        decryptStream.on("error", (err) => {
+          console.error("Error decrypting video stream", err);
+          if (!res.headersSent) res.status(500).send("Error decrypting video stream");
+        });
+      } catch (err) {
+        console.error("Decryption key error:", err);
+        throw new BadRequestException("Failed to unlock video file");
+      }
+    } else {
+      // Fallback for older plaintext videos
+      res.setHeader("Content-Type", "video/webm");
+      const readStream = fs.createReadStream(filepath);
+      readStream.pipe(res);
+    }
   }
 
   // ========== NEW: APPROVE FOR AI ==========
@@ -374,7 +439,16 @@ export class ClinicalService {
           const pdfBuffer = await this.generatePatientPDF(
             session.patientId.toString(),
             therapistId,
-            { includeCharts: true, includeTables: true, watermark: true },
+            {
+              patientId: session.patientId.toString(),
+              sessionId: session._id.toString(),
+              includeCharts: true,
+              includeTables: false,
+              includeGoals: false,
+              includeNotes: true,
+              watermark: true,
+              reportType: "session",
+            },
             "therapist",
           );
 
@@ -383,6 +457,17 @@ export class ClinicalService {
             caregiverName,
             patient.fullName,
             pdfBuffer,
+            {
+              sessionId: session._id.toString(),
+              actionType: session.actionType || "Video Session",
+              recordedAt: session.recordedAt,
+              publishedAt: session.publishedAt,
+              severity:
+                session.therapistReview?.isOverridden &&
+                session.therapistReview?.overrideSeverity != null
+                  ? session.therapistReview.overrideSeverity
+                  : session.ensemblePrediction?.severity,
+            },
           );
         }
       }
@@ -874,6 +959,8 @@ export class ClinicalService {
     options: any,
     userRole: string = "therapist",
   ): Promise<Buffer> {
+    const sessionId = options?.sessionId as string | undefined;
+
     // Fetch patient data
     const patient = await this.patientsService.getPatientById(
       patientId,
@@ -889,12 +976,34 @@ export class ClinicalService {
       .exec();
 
     // Fetch sessions
+    const sessionQuery: any = { patientId, deleted: false };
+    if (sessionId) {
+      sessionQuery._id = sessionId;
+    }
+
+    const resolvedReportType =
+      options?.reportType || (sessionId ? "session" : "individual");
+    const sessionLimit =
+      sessionId || resolvedReportType === "session"
+        ? 1
+        : resolvedReportType === "progress"
+          ? 30
+          : resolvedReportType === "consolidated"
+            ? 100
+            : 20;
+
     const sessionsData = await this.videoSessionModel
-      .find({ patientId, deleted: false })
+      .find(sessionQuery)
       .sort({ recordedAt: -1 })
-      .limit(20)
+      .limit(sessionLimit)
       .lean()
       .exec();
+
+    if (sessionId && sessionsData.length === 0) {
+      throw new NotFoundException(
+        "Requested session was not found for this patient",
+      );
+    }
 
     // Convert patient to plain object
     const patientObj =
@@ -918,8 +1027,9 @@ export class ClinicalService {
       ));
 
     if (!therapistName || therapistName === "Unknown Therapist") {
-      const fallbackTherapistId = sessionsData.find((s: any) => s.therapistId)
-        ?.therapistId;
+      const fallbackTherapistId = sessionsData.find(
+        (s: any) => s.therapistId,
+      )?.therapistId;
       if (fallbackTherapistId) {
         therapistName = await this.patientsService.getTherapistName(
           fallbackTherapistId.toString(),
@@ -933,6 +1043,12 @@ export class ClinicalService {
       // We purposefully DO NOT concatenate all therapistNotes into one giant string
       // because they are already printed individually in the sessions section.
       notes: null,
+      reportSession: sessionId ? sessionsData[0] : null,
+    };
+
+    const resolvedOptions = {
+      ...options,
+      reportType: resolvedReportType,
     };
 
     // Generate PDF
@@ -940,7 +1056,8 @@ export class ClinicalService {
       patientData,
       goalsData,
       sessionsData,
-      options,
+      resolvedOptions,
     );
   }
 }
+

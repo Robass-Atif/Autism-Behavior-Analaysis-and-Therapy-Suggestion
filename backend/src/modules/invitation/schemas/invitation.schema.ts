@@ -49,7 +49,7 @@ export class Invitation {
   @Prop()
   revokedAt?: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: 'Caregiver' })
   acceptedBy?: Types.ObjectId;
 
   // Legacy fields for backward compatibility
@@ -65,7 +65,7 @@ export class Invitation {
   @Prop()
   usedAt?: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: 'Caregiver' })
   usedBy?: Types.ObjectId;
 
   createdAt: Date;

@@ -152,7 +152,7 @@ export default function PatientLongitudinalScreen({
 
       <div className="max-w-7xl mx-auto px-8 py-12">
         {trendData.length === 0 ? (
-          <div className="py-24 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 grayscale max-w-2xl mx-auto">
+          <div className="py-24 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 max-w-2xl mx-auto">
             <div className="text-zinc-200 mb-6 bg-zinc-50 p-6 border-2 border-zinc-200">
               <TrendingUp size={48} />
             </div>

@@ -26,6 +26,8 @@ export interface CaregiverDashboardStats {
   pendingReviews: number;
   completedReports: number;
   scheduledSessions: number;
+  avgProgress: number;
+  activePatients: number;
 }
 
 export interface AdminDashboardStats {

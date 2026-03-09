@@ -10,7 +10,8 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Serve static assets from uploads directory
+  // We restore static serving. It is safe because video files are encrypted at rest,
+  // meaning if someone downloads them statically, they are unreadable without the API decryption stream.
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });

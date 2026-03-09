@@ -3,7 +3,7 @@ import { UserPlus, Mail, User, CheckCircle2, Clock, XCircle, Copy, Send, Loader2
 import { InvitationStatus } from '../../../types';
 import { useInvitations, useCreateInvitation, useResendInvitation, useRevokeInvitation } from '../../../api/invitation';
 import { usePatients } from '../../../api/patient';
-import toast from 'react-hot-toast';
+import toast from '../../../lib/toast';
 
 export default function CaregiverInvitationScreen() {
   const [showModal, setShowModal] = useState(false);
@@ -108,21 +108,10 @@ export default function CaregiverInvitationScreen() {
     );
   };
 
-  // Show caregiver's email verification status for accepted invitations
+  // Show caregiver's active status for accepted invitations
   const getCaregiverStatus = (inv: any) => {
     if (inv.status !== InvitationStatus.ACCEPTED) return null;
 
-    // If caregiver hasn't verified email, show waiting badge
-    if (inv.caregiverAccountStatus === 'pending_verification' || !inv.isEmailVerified) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border bg-orange-50 text-orange-700 border-orange-200">
-          <Clock size={12} />
-          Awaiting Email Verification
-        </span>
-      );
-    }
-
-    // Email verified
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">
         <CheckCircle2 size={12} />

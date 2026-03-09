@@ -15,7 +15,7 @@ import {
   Res,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
+import { memoryStorage } from "multer";
 import { extname } from "path";
 import {
   ApiTags,
@@ -26,6 +26,8 @@ import {
   ApiConsumes,
 } from "@nestjs/swagger";
 import { ClinicalService } from "./clinical.service";
+import { CryptoService } from "../../common/services/crypto.service";
+import { BadRequestException } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -36,14 +38,7 @@ import { UpdateTherapyGoalDto } from "./dto/update-therapy-goal.dto";
 import { CreateVideoSessionDto } from "./dto/create-video-session.dto";
 
 // Multer configuration for video uploads
-const videoStorage = diskStorage({
-  destination: "./uploads/videos",
-  filename: (req, file, callback) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = extname(file.originalname);
-    callback(null, `video-${uniqueSuffix}${ext}`);
-  },
-});
+const videoStorage = memoryStorage();
 
 const videoFileFilter = (req: any, file: any, callback: any) => {
   // Accept video files only
@@ -59,7 +54,10 @@ const videoFileFilter = (req: any, file: any, callback: any) => {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class ClinicalController {
-  constructor(private readonly clinicalService: ClinicalService) {}
+  constructor(
+    private readonly clinicalService: ClinicalService,
+    private readonly cryptoService: CryptoService
+  ) {}
 
   // ========== THERAPY GOALS ==========
 
@@ -141,7 +139,7 @@ export class ClinicalController {
     FileInterceptor("video", {
       storage: videoStorage,
       fileFilter: videoFileFilter,
-      limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+      limits: { fileSize: 100 * 1024 * 1024 },
     }),
   )
   @ApiConsumes("multipart/form-data")
@@ -152,13 +150,63 @@ export class ClinicalController {
     @Body() dto: CreateVideoSessionDto,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const videoUrl = file ? `/uploads/videos/${file.filename}` : "";
+    if (!file) {
+      throw new BadRequestException("Video file is required");
+    }
+
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = extname(file.originalname) || ".webm";
+    const filename = `video-${uniqueSuffix}${ext}`;
+    const uploadDir = "./uploads/videos";
+    const fs = require('fs');
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filepath = `${uploadDir}/${filename}`;
+
+    const { key, iv } = this.cryptoService.generateFileCredentials();
+
+    const cryptoMod = require('crypto');
+    const cipher = cryptoMod.createCipheriv("aes-256-gcm", key, iv);
+    
+    const encryptedBuffer = Buffer.concat([
+      cipher.update(file.buffer),
+      cipher.final(),
+    ]);
+    const authTag = cipher.getAuthTag();
+
+    fs.writeFileSync(filepath, encryptedBuffer);
+
+    const encryptedKeyPattern = this.cryptoService.encryptFileKey(key);
+
+    const videoUrl = `/uploads/videos/${filename}`;
+    
     return this.clinicalService.createVideoSession(
       user.sub,
       user.role,
       dto,
       videoUrl,
+      encryptedKeyPattern,
+      iv.toString("base64"),
+      authTag.toString("base64")
     );
+  }
+
+  @Get("/uploads/videos/:filename")
+  @ApiOperation({ summary: "Stream a decrypted video file" })
+  @ApiResponse({ status: 200, description: "Streamed video" })
+  async streamVideo(@Param("filename") filename: string, @Res() res: any) {
+    const videoUrl = `/uploads/videos/${filename}`;
+    
+    // We need to fetch the session to get the encryption keys
+    // Since we don't have the user object here easily if it's a raw video tag request without Auth headers,
+    // we bypass AuthGuard for this specific streaming route or require signed URLs. 
+    // Given the current architecture, passing JWT in video tag is hard, so we handle it generically here
+    // but in production, we should use a signed short-lived token in the query string.
+    
+    await this.clinicalService.streamDecryptedVideo(videoUrl, res);
   }
 
   @Get("video-sessions")
@@ -409,6 +457,7 @@ export class ClinicalController {
     @Body()
     options: {
       patientId: string;
+      sessionId?: string;
       includeGoals?: boolean;
       includeCharts?: boolean;
       includeTables?: boolean;
@@ -427,9 +476,11 @@ export class ClinicalController {
     );
 
     res.setHeader("Content-Type", "application/pdf");
+    const fileRef = options.sessionId || options.patientId;
+    const prefix = options.sessionId ? "session-report" : "report";
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=report-${options.patientId}-${Date.now()}.pdf`,
+      `attachment; filename=${prefix}-${fileRef}-${Date.now()}.pdf`,
     );
     res.send(pdfBuffer);
   }
@@ -452,3 +503,6 @@ export class ClinicalController {
     };
   }
 }
+
+
+

@@ -6,21 +6,26 @@ import {
 } from 'lucide-react';
 import { useCaregiverPatients } from '../../../api/caregiver';
 import { useCaregiverDashboardStats } from '../../../api/dashboard';
+import { useCaregiverSchedule, ScheduleEntry } from '../../../api/schedule';
 import VideoProgressTracker from './VideoProgressTracker';
 import GuidedVideoRecording from './GuidedVideoRecording';
+import { useNavigate } from '@tanstack/react-router';
 
-const mockChildSessions = [
-  { id: 1, time: '09:00', type: 'Behavioral Therapy', status: 'completed', duration: '45m' },
-  { id: 2, time: '14:00', type: 'Speech Therapy', status: 'active', duration: '30m' },
-  { id: 3, time: '16:00', type: 'Occupational Therapy', status: 'pending', duration: '45m' },
-];
+function getMonthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
 
 export default function CaregiverDashboard() {
+  const navigate = useNavigate();
   const { data: patientsData, isLoading: patientsLoading, error: patientsError } = useCaregiverPatients();
   const { data: stats, isLoading: statsLoading } = useCaregiverDashboardStats();
 
+  const today = new Date();
+  const currentMonthKey = getMonthKey(today);
+  const { data: scheduleData, isLoading: scheduleLoading } = useCaregiverSchedule(currentMonthKey);
+
   const linkedPatients = patientsData?.patients || [];
-  const isLoading = patientsLoading || statsLoading;
+  const isLoading = patientsLoading || statsLoading || scheduleLoading;
   const error = patientsError;
 
   const [showLogModal, setShowLogModal] = useState(false);
@@ -30,6 +35,22 @@ export default function CaregiverDashboard() {
 
   const primaryPatient = linkedPatients.find(p => p.id === selectedPatientId) || (linkedPatients.length > 0 ? linkedPatients[0] : null);
   const patientId = primaryPatient?.id || primaryPatient?._id || '';
+
+  // Get today's actual schedule sessions
+  const todaysSessions = (() => {
+    if (!scheduleData || !Array.isArray(scheduleData)) return [];
+    return scheduleData.filter((e: ScheduleEntry) => {
+      const entryDate = new Date(e.scheduledDate);
+      return entryDate.toDateString() === today.toDateString();
+    });
+  })();
+
+  const getPatientId = (entry: ScheduleEntry): string => {
+    const patient = linkedPatients.find(
+      (p: any) => (p._id || p.id) === entry.patientId || p.fullName === entry.patientName,
+    );
+    return patient?.id || patient?._id || entry.patientId || "";
+  };
 
   if (showVideoRecording) {
     return <GuidedVideoRecording onClose={() => setShowVideoRecording(false)} patientId={patientId} />;
@@ -75,7 +96,7 @@ export default function CaregiverDashboard() {
               <div className="w-12 h-12 bg-zinc-900 flex items-center justify-center text-white font-bold text-xl border border-zinc-900">
                 {primaryPatient?.fullName?.split(' ').map((n: string) => n[0]).join('') || 'PT'}
               </div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver Terminal V1.0</p>
+              {/* <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Caregiver Terminal V1.0</p> */}
             </div>
             <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none">
               {primaryPatient?.fullName || 'Patient'} PORTAL
@@ -85,14 +106,14 @@ export default function CaregiverDashboard() {
             </p>
           </div>
 
-          <div className="flex gap-4">
+          {/* <div className="flex gap-4">
             <button className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors text-zinc-400 hover:text-zinc-900">
               <Settings size={18} />
             </button>
             <button className="w-10 h-10 border border-zinc-200 flex items-center justify-center hover:bg-zinc-50 transition-colors text-zinc-400 hover:text-zinc-900">
               <AlertCircle size={18} />
             </button>
-          </div>
+          </div> */}
         </header>
 
         {/* Global CTA */}
@@ -142,9 +163,9 @@ export default function CaregiverDashboard() {
               <div className="border border-zinc-200 p-8 flex flex-col justify-between bg-zinc-50/50">
                 <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-widest">Therapy Compliance Score</h4>
                 <div>
-                  <div className="text-6xl font-black tracking-tighter mb-2">{(primaryPatient as any)?.progressScore || 0}<span className="text-2xl text-zinc-300">%</span></div>
+                  <div className="text-6xl font-black tracking-tighter mb-2">{stats?.avgProgress || 0}<span className="text-2xl text-zinc-300">%</span></div>
                   <div className="w-full h-1 bg-zinc-200 mt-4 overflow-hidden">
-                    <div className="h-full bg-zinc-900" style={{ width: `${(primaryPatient as any)?.progressScore || 0}%` }}></div>
+                    <div className="h-full bg-zinc-900" style={{ width: `${stats?.avgProgress || 0}%` }}></div>
                   </div>
                 </div>
               </div>
@@ -153,16 +174,16 @@ export default function CaregiverDashboard() {
                 <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-2 tracking-widest">Active Metrics</h4>
                 <div className="space-y-4">
                   <div className="flex justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">Weekly Goal</span>
-                    <span className="text-xs font-black uppercase">08 Sessions</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Scheduled Sessions</span>
+                    <span className="text-xs font-black uppercase">{stats?.scheduledSessions || 0} Pending</span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">Next Event</span>
-                    <span className="text-xs font-black uppercase">Tomorrow 10:00</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Completed Reports</span>
+                    <span className="text-xs font-black uppercase">{stats?.completedReports || 0} Ready</span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-100 pb-2">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">This Cycle</span>
-                    <span className="text-xs font-black uppercase">07 Planned</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">Total Uploads</span>
+                    <span className="text-xs font-black uppercase">{stats?.uploadedVideos || 0} Videos</span>
                   </div>
                 </div>
               </div>
@@ -182,26 +203,40 @@ export default function CaregiverDashboard() {
               </div>
 
               <div className="space-y-4">
-                {mockChildSessions.map((session) => (
-                  <div key={session.id} className="border border-zinc-100 p-4 hover:border-zinc-300 transition-all group relative cursor-pointer">
-                    <div className="absolute top-0 right-0 p-1"><div className="w-1 h-1 bg-zinc-200 group-hover:bg-zinc-900 transition-colors"></div></div>
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-black uppercase tracking-tight">{session.time}</span>
-                      <div className={`text-[8px] font-bold px-2 py-0.5 border ${session.status === 'completed' ? 'bg-zinc-900 text-white border-zinc-900' :
-                        session.status === 'active' ? 'bg-zinc-50 text-zinc-900 border-zinc-200' :
-                          'text-zinc-300 border-zinc-100'
-                        }`}>
-                        {session.status.toUpperCase()}
-                      </div>
-                    </div>
-                    <p className="text-[10px] font-bold text-zinc-600 block mb-1 uppercase tracking-tight">{session.type.replace('_', ' ')}</p>
-                    <p className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">{session.duration} Expected Cycle</p>
+                {todaysSessions.length === 0 ? (
+                  <div className="text-center p-6 border border-zinc-100 text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
+                    No sessions scheduled for today
                   </div>
-                ))}
+                ) : (
+                  todaysSessions.map((session: ScheduleEntry) => (
+                    <div
+                      key={session._id}
+                      onClick={() => {
+                        if (session.status === 'pending') {
+                          navigate({ to: '/caregiver/record', search: { actionType: session.actionType, scheduleEntryId: session._id, patientId: getPatientId(session) } })
+                        }
+                      }}
+                      className="border border-zinc-100 p-4 hover:border-zinc-300 transition-all group relative cursor-pointer"
+                    >
+                      <div className="absolute top-0 right-0 p-1"><div className="w-1 h-1 bg-zinc-200 group-hover:bg-zinc-900 transition-colors"></div></div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-black uppercase tracking-tight">{session.timeSlot || 'Any Time'}</span>
+                        <div className={`text-[8px] font-bold px-2 py-0.5 border ${session.status === 'completed' ? 'bg-zinc-900 text-white border-zinc-900' :
+                          session.status === 'pending' ? 'bg-zinc-50 text-zinc-900 border-zinc-200' :
+                            'text-zinc-300 border-zinc-100'
+                          }`}>
+                          {session.status.toUpperCase()}
+                        </div>
+                      </div>
+                      <p className="text-[10px] font-bold text-zinc-600 block mb-1 uppercase tracking-tight">{session.actionType.replace('_', ' ')}</p>
+                      <p className="text-[8px] text-zinc-300 font-bold uppercase tracking-widest">Assigned to: {session.patientName}</p>
+                    </div>
+                  ))
+                )}
               </div>
 
-              <button onClick={() => setShowLogModal(true)} className="w-full mt-6 py-4 border border-zinc-200 hover:bg-zinc-50 text-[10px] font-black uppercase tracking-widest transition-all">
-                + New Behavior Entry
+              <button onClick={() => navigate({ to: '/caregiver/schedule' })} className="w-full mt-6 py-4 border border-zinc-200 hover:bg-zinc-50 text-[10px] font-black uppercase tracking-widest transition-all">
+                View Full Calendar
               </button>
             </section>
 
@@ -212,17 +247,21 @@ export default function CaregiverDashboard() {
                 QUICK SYBSYTEMS
               </h3>
               <div className="space-y-3">
+                <button onClick={() => navigate({ to: '/caregiver/tasks' })} className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
+                  <span className="text-[10px] font-bold uppercase">My Tasks</span>
+                  <CheckCircle size={14} className="opacity-40 group-hover:opacity-100" />
+                </button>
                 <button onClick={() => setShowVideoRecording(true)} className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
                   <span className="text-[10px] font-bold uppercase">Video Recorder</span>
                   <Video size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
-                <button className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
+                <button onClick={() => navigate({ to: '/caregiver/reports' })} className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
                   <span className="text-[10px] font-bold uppercase">Analytics Report</span>
                   <TrendingUp size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
-                <button className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
-                  <span className="text-[10px] font-bold uppercase">Clinical Notes</span>
-                  <Settings size={14} className="opacity-40 group-hover:opacity-100" />
+                <button onClick={() => navigate({ to: '/caregiver/schedule' })} className="w-full p-4 border border-zinc-200 bg-white hover:bg-zinc-900 hover:text-white transition-all flex items-center justify-between group">
+                  <span className="text-[10px] font-bold uppercase">Care Schedule</span>
+                  <Calendar size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
               </div>
             </section>

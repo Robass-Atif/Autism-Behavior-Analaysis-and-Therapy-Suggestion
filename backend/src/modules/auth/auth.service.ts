@@ -356,6 +356,8 @@ export class AuthService {
       termsAccepted: dto.termsAccepted,
       privacyPolicyAccepted: dto.privacyPolicyAccepted,
       videoRecordingConsentAccepted: dto.videoRecordingConsentAccepted,
+      isEmailVerified: true,
+      accountStatus: AccountStatus.ACTIVE,
     });
 
     const authUser = await this.usersService.findByEmail(caregiver.email);
@@ -377,32 +379,15 @@ export class AuthService {
       );
     }
 
-    // Generate and save email verification token
-    const verificationToken = this.generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await this.usersService.setEmailVerificationToken(
-      caregiverUserId,
-      verificationToken,
-      verificationExpires,
-    );
-
-    // Send verification email
-    await this.emailService.sendVerificationEmail(
-      caregiver.email,
-      caregiver.fullName,
-      verificationToken,
-    );
-
     return {
       success: true,
-      message: "Caregiver registration submitted. Please verify your email.",
+      message: "Caregiver registration successful.",
       data: {
         _id: caregiverUserId,
         fullName: caregiver.fullName,
         email: caregiver.email,
         role: caregiver.role,
-        accountStatus: authUser?.accountStatus || caregiver.accountStatus,
+        accountStatus: authUser?.accountStatus || AccountStatus.ACTIVE,
         linkedPatient: {
           id: linkedPatientId,
           name: linkedPatientName,

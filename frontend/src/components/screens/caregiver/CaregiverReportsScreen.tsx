@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   Loader2,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 import { useVideoSessions, useGenerateReport } from "../../../api/clinical";
 
 export default function CaregiverReportsScreen() {
@@ -26,9 +26,13 @@ export default function CaregiverReportsScreen() {
     try {
       const blob = await generateReport.mutateAsync({
         patientId: report.patientId,
-        includeGoals: true,
+        sessionId: report.id,
+        includeGoals: false,
+        includeCharts: true,
+        includeTables: false,
         includeNotes: true,
         watermark: true,
+        reportType: "session",
       });
 
       const url = window.URL.createObjectURL(blob);
@@ -37,7 +41,7 @@ export default function CaregiverReportsScreen() {
       const name = (report.patientName || "Patient").replace(/\s+/g, "_");
       link.setAttribute(
         "download",
-        `Report_${name}_${new Date().toISOString().split("T")[0]}.pdf`,
+        `Session_Report_${name}_${report.id}_${new Date().toISOString().split("T")[0]}.pdf`,
       );
       document.body.appendChild(link);
       link.click();
@@ -62,9 +66,13 @@ export default function CaregiverReportsScreen() {
     try {
       const blob = await generateReport.mutateAsync({
         patientId: report.patientId,
-        includeGoals: true,
+        sessionId: report.id,
+        includeGoals: false,
+        includeCharts: true,
+        includeTables: false,
         includeNotes: true,
         watermark: true,
+        reportType: "session",
       });
 
       const url = window.URL.createObjectURL(blob);
@@ -106,7 +114,7 @@ export default function CaregiverReportsScreen() {
         <div className="mb-12 border-l-4 border-zinc-900 bg-zinc-50 p-6 flex items-start gap-4">
           <ShieldCheck className="text-zinc-900 mt-0.5" size={20} />
           <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed text-zinc-600">
-            These diagnostic summaries has been shared by your primary
+            These diagnostic summaries have been shared by your primary
             therapist. Technical metrics are processed for caregiver
             readability. Contact support if document integrity is compromised.
           </p>

@@ -26,10 +26,11 @@ import {
   Activity,
   RotateCcw,
 } from "lucide-react";
-import toast from "react-hot-toast";
+import toast from "../../../lib/toast";
 
 export default function VideoLibraryScreen() {
   const { data: videos, isLoading } = useRecentSessions();
+  // console.log("📹 Videos:", videos);
   const { data: patientsData } = usePatients({ limit: 100 });
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +137,7 @@ export default function VideoLibraryScreen() {
       filterAction === "all" ||
       video.actionType === filterAction ||
       GUIDED_ACTIONS.find((a) => a.id === filterAction)?.name ===
-        video.actionType;
+      video.actionType;
 
     return matchesSearch && matchesStatus && matchesPatient && matchesAction;
   });
@@ -156,16 +157,16 @@ export default function VideoLibraryScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-mono">
+    <div className="bg-zinc-50 min-h-screen font-mono">
       {/* Header */}
-      <div className="bg-zinc-900 border-b-2 border-zinc-900">
-        <div className="max-w-[1800px] mx-auto px-8 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="bg-zinc-900 border-zinc-900 border-b-2">
+        <div className="mx-auto px-8 py-6 max-w-[1800px]">
+          <div className="flex lg:flex-row flex-col justify-between lg:items-center gap-6">
             <div>
-              <h1 className="text-3xl font-black text-white uppercase tracking-tighter mb-2">
+              <h1 className="mb-2 font-black text-white text-3xl uppercase tracking-tighter">
                 Video Library
               </h1>
-              <p className="text-zinc-400 text-xs uppercase tracking-widest font-bold">
+              <p className="font-bold text-zinc-400 text-xs uppercase tracking-widest">
                 Session Recordings & AI Analysis
               </p>
             </div>
@@ -173,21 +174,19 @@ export default function VideoLibraryScreen() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2.5 border-2 transition-all ${
-                  viewMode === "grid"
+                className={`p-2.5 border-2 transition-all ${viewMode === "grid"
                     ? "bg-white text-zinc-900 border-white"
                     : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                }`}
+                  }`}
               >
                 <Grid size={18} />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2.5 border-2 transition-all ${
-                  viewMode === "list"
+                className={`p-2.5 border-2 transition-all ${viewMode === "list"
                     ? "bg-white text-zinc-900 border-white"
                     : "bg-white/10 text-white border-white/20 hover:bg-white/20"
-                }`}
+                  }`}
               >
                 <List size={18} />
               </button>
@@ -196,93 +195,98 @@ export default function VideoLibraryScreen() {
         </div>
       </div>
 
-      <div className="max-w-[1800px] mx-auto px-8 py-8">
+      <div className="mx-auto px-8 py-8 max-w-[1800px]">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 border-2 border-zinc-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between mb-2">
+        <div className="gap-4 grid grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-2">
               <div className="bg-zinc-100 p-2 border border-zinc-200">
                 <Sparkles className="text-zinc-600" size={20} />
               </div>
-              <span className="text-3xl font-black text-zinc-900">
+              <span className="font-black text-zinc-900 text-3xl">
                 {stats.total}
               </span>
             </div>
-            <p className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
+            <p className="font-bold text-zinc-600 text-xs uppercase tracking-wider">
               Total Videos
             </p>
           </div>
 
-          <div className="bg-white p-6 border-2 border-zinc-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between mb-2">
+          <div className="bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-2">
               <div className="bg-zinc-100 p-2 border border-zinc-200">
                 <Brain className="text-zinc-600" size={20} />
               </div>
-              <span className="text-3xl font-black text-zinc-900">
+              <span className="font-black text-zinc-900 text-3xl">
                 {stats.analyzed}
               </span>
             </div>
-            <p className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
+            <p className="font-bold text-zinc-600 text-xs uppercase tracking-wider">
               AI Analyzed
             </p>
           </div>
 
-          <div className="bg-white p-6 border-2 border-zinc-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between mb-2">
+          <div className="bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-2">
               <div className="bg-zinc-100 p-2 border border-zinc-200">
                 <TrendingUp className="text-zinc-600" size={20} />
               </div>
-              <span className="text-3xl font-black text-zinc-900">
+              <span className="font-black text-zinc-900 text-3xl">
                 {stats.processing}
               </span>
             </div>
-            <p className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
+            <p className="font-bold text-zinc-600 text-xs uppercase tracking-wider">
               Processing
             </p>
           </div>
 
-          <div className="bg-white p-6 border-2 border-zinc-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between mb-2">
+          <div className="bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 border-2 border-zinc-200">
+            <div className="flex justify-between items-center mb-2">
               <div className="bg-zinc-100 p-2 border border-zinc-200">
                 <Award className="text-zinc-600" size={20} />
               </div>
-              <span className="text-3xl font-black text-zinc-900">
+              <span className="font-black text-zinc-900 text-3xl">
                 {stats.reviewed}
               </span>
             </div>
-            <p className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
+            <p className="font-bold text-zinc-600 text-xs uppercase tracking-wider">
               Reviewed
             </p>
           </div>
         </div>
 
         {/* Filters Panel */}
-        <div className="bg-white border-2 border-zinc-900 p-6 mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-8 p-6 border-2 border-zinc-900">
+          <div className="flex lg:flex-row flex-col gap-6">
             {/* Search */}
-            <div className="flex-[2] relative">
-              <Search
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="SEARCH ACTIONS OR PATIENTS..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-sm uppercase tracking-wider placeholder:text-zinc-400 font-bold transition-all"
-              />
+            <div className="flex-[2] space-y-2 w-full">
+              <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em] invisible select-none">
+                <Search size={12} /> Search
+              </label>
+              <div className="relative">
+                <Search
+                  className="top-1/2 left-4 absolute text-zinc-400 -translate-y-1/2 transform"
+                  size={18}
+                />
+                <input
+                  type="text"
+                  placeholder="SEARCH ACTIONS OR PATIENTS..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-zinc-50 py-2.5 pr-4 pl-12 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold placeholder:text-zinc-400 text-xs uppercase tracking-widest transition-all"
+                />
+              </div>
             </div>
 
             {/* Quick Filters */}
-            <div className="flex-1 space-y-2">
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="flex-1 space-y-2 w-full">
+              <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
                 <User size={12} /> Patient
               </label>
               <select
                 value={filterPatient}
                 onChange={(e) => setFilterPatient(e.target.value)}
-                className="w-full px-4 py-2.5 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-xs font-bold uppercase tracking-widest transition-all appearance-none cursor-pointer"
+                className="bg-zinc-50 px-4 py-2.5 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold text-xs uppercase tracking-widest transition-all appearance-none cursor-pointer"
               >
                 <option value="all">ALL PATIENTS</option>
                 {patientsData?.patients?.map((p) => (
@@ -293,14 +297,14 @@ export default function VideoLibraryScreen() {
               </select>
             </div>
 
-            <div className="flex-1 space-y-2">
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="flex-1 space-y-2 w-full">
+              <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
                 <Target size={12} /> Action Type
               </label>
               <select
                 value={filterAction}
                 onChange={(e) => setFilterAction(e.target.value)}
-                className="w-full px-4 py-2.5 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-xs font-bold uppercase tracking-widest transition-all appearance-none cursor-pointer"
+                className="bg-zinc-50 px-4 py-2.5 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold text-xs uppercase tracking-widest transition-all appearance-none cursor-pointer"
               >
                 <option value="all">ALL ACTIONS</option>
                 {GUIDED_ACTIONS.map((a) => (
@@ -311,14 +315,14 @@ export default function VideoLibraryScreen() {
               </select>
             </div>
 
-            <div className="flex-1 space-y-2">
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <div className="flex-1 space-y-2 w-full">
+              <label className="flex items-center gap-2 font-black text-[10px] text-zinc-500 uppercase tracking-[0.2em]">
                 <Activity size={12} /> Status
               </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full px-4 py-2.5 bg-zinc-50 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none text-xs font-bold uppercase tracking-widest transition-all appearance-none cursor-pointer"
+                className="bg-zinc-50 px-4 py-2.5 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold text-xs uppercase tracking-widest transition-all appearance-none cursor-pointer"
               >
                 <option value="all">ALL STATUS</option>
                 <option value="pending_review">PENDING REVIEW</option>
@@ -337,66 +341,66 @@ export default function VideoLibraryScreen() {
             filterAction !== "all" ||
             filterStatus !== "all" ||
             searchQuery) && (
-            <div className="mt-4 pt-4 border-t border-zinc-100 flex flex-wrap gap-2 items-center">
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                Active:
-              </span>
-              {searchQuery && (
-                <FilterBadge
-                  label={`Search: ${searchQuery}`}
-                  onClear={() => setSearchQuery("")}
-                />
-              )}
-              {filterPatient !== "all" && (
-                <FilterBadge
-                  label={`Patient: ${patientsData?.patients?.find((p) => p.id === filterPatient)?.fullName}`}
-                  onClear={() => setFilterPatient("all")}
-                />
-              )}
-              {filterAction !== "all" && (
-                <FilterBadge
-                  label={`Action: ${GUIDED_ACTIONS.find((a) => a.id === filterAction)?.name}`}
-                  onClear={() => setFilterAction("all")}
-                />
-              )}
-              {filterStatus !== "all" && (
-                <FilterBadge
-                  label={`Status: ${filterStatus.toUpperCase()}`}
-                  onClear={() => setFilterStatus("all")}
-                />
-              )}
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterPatient("all");
-                  setFilterAction("all");
-                  setFilterStatus("all");
-                }}
-                className="text-[10px] font-black text-zinc-900 hover:text-red-600 transition-colors uppercase tracking-widest ml-auto"
-              >
-                Clear All
-              </button>
-            </div>
-          )}
+              <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-zinc-100 border-t">
+                <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">
+                  Active:
+                </span>
+                {searchQuery && (
+                  <FilterBadge
+                    label={`Search: ${searchQuery}`}
+                    onClear={() => setSearchQuery("")}
+                  />
+                )}
+                {filterPatient !== "all" && (
+                  <FilterBadge
+                    label={`Patient: ${patientsData?.patients?.find((p) => p.id === filterPatient)?.fullName}`}
+                    onClear={() => setFilterPatient("all")}
+                  />
+                )}
+                {filterAction !== "all" && (
+                  <FilterBadge
+                    label={`Action: ${GUIDED_ACTIONS.find((a) => a.id === filterAction)?.name}`}
+                    onClear={() => setFilterAction("all")}
+                  />
+                )}
+                {filterStatus !== "all" && (
+                  <FilterBadge
+                    label={`Status: ${filterStatus.toUpperCase()}`}
+                    onClear={() => setFilterStatus("all")}
+                  />
+                )}
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilterPatient("all");
+                    setFilterAction("all");
+                    setFilterStatus("all");
+                  }}
+                  className="ml-auto font-black text-[10px] text-zinc-900 hover:text-red-600 uppercase tracking-widest transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
+            )}
         </div>
 
         {/* Content */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="animate-spin text-zinc-900 mb-4" size={48} />
-            <p className="text-sm font-bold text-zinc-900 uppercase tracking-wider">
+          <div className="flex flex-col justify-center items-center py-20">
+            <Loader2 className="mb-4 text-zinc-900 animate-spin" size={48} />
+            <p className="font-bold text-zinc-900 text-sm uppercase tracking-wider">
               Loading videos...
             </p>
           </div>
         ) : !filteredVideos || filteredVideos.length === 0 ? (
-          <div className="bg-white border-2 border-zinc-900 p-16 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div className="bg-zinc-100 p-8 border-2 border-zinc-300 inline-block mb-6">
+          <div className="bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-16 border-2 border-zinc-900 text-center">
+            <div className="inline-block bg-zinc-100 mb-6 p-8 border-2 border-zinc-300">
               <Play className="text-zinc-900" size={64} />
             </div>
-            <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tight mb-2">
+            <h3 className="mb-2 font-black text-zinc-900 text-2xl uppercase tracking-tight">
               No videos found
             </h3>
-            <p className="text-zinc-600 text-xs uppercase tracking-wider font-bold">
+            <p className="font-bold text-zinc-600 text-xs uppercase tracking-wider">
               {searchQuery || filterStatus !== "all"
                 ? "Adjust search or filter"
                 : "Upload sessions to begin"}
@@ -404,25 +408,25 @@ export default function VideoLibraryScreen() {
           </div>
         ) : viewMode === "grid" ? (
           /* Grid View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredVideos.map((video) => (
               <div
                 key={video.id}
-                className="group bg-white border-2 border-zinc-200 hover:border-zinc-900 transition-all cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                className="group bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-zinc-200 hover:border-zinc-900 transition-all cursor-pointer"
                 onClick={() => handleViewVideo(video.id)}
               >
                 {/* Thumbnail */}
-                <div className="aspect-video bg-zinc-900 relative border-b-2 border-zinc-200 group-hover:border-zinc-900 transition-colors overflow-hidden">
+                <div className="relative bg-zinc-900 border-zinc-200 group-hover:border-zinc-900 border-b-2 aspect-video overflow-hidden transition-colors">
                   {video.thumbnailUrl ? (
                     <img
                       src={getFileUrl(video.thumbnailUrl)}
                       alt={video.actionType}
-                      className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                      className="absolute inset-0 opacity-60 group-hover:opacity-80 w-full h-full object-cover transition-opacity"
                     />
                   ) : video.videoUrl ? (
                     <video
                       src={`${getFileUrl(video.videoUrl)}#t=0.001`}
-                      className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none"
+                      className="absolute inset-0 opacity-60 group-hover:opacity-80 w-full h-full object-cover transition-opacity pointer-events-none"
                       preload="metadata"
                       muted
                       playsInline
@@ -431,8 +435,8 @@ export default function VideoLibraryScreen() {
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
 
                   {/* Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/90 p-4 border-2 border-zinc-900 group-hover:bg-white transition-colors">
+                  <div className="absolute inset-0 flex justify-center items-center">
+                    <div className="bg-white/90 group-hover:bg-white p-4 border-2 border-zinc-900 transition-colors">
                       <Play
                         size={32}
                         className="text-zinc-900"
@@ -442,9 +446,9 @@ export default function VideoLibraryScreen() {
                   </div>
 
                   {/* Badges */}
-                  <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                  <div className="top-3 right-3 left-3 absolute flex justify-between items-start gap-2">
                     {video.aiConfidence && (
-                      <div className="bg-black/80 text-white px-2 py-1 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                      <div className="flex items-center gap-1 bg-black/80 px-2 py-1 font-black text-[10px] text-white uppercase tracking-wider">
                         <Brain size={12} />
                         {video.aiConfidence}%
                       </div>
@@ -457,13 +461,13 @@ export default function VideoLibraryScreen() {
                   </div>
 
                   {/* Duration */}
-                  <div className="absolute bottom-3 left-3 bg-black/80 text-white px-2 py-1 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                  <div className="bottom-3 left-3 absolute flex items-center gap-1 bg-black/80 px-2 py-1 font-black text-[10px] text-white uppercase tracking-wider">
                     <Clock size={10} />
                     {video.duration}s
                   </div>
 
                   {/* Date */}
-                  <div className="absolute bottom-3 right-3 bg-black/80 text-white px-2 py-1 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                  <div className="right-3 bottom-3 absolute flex items-center gap-1 bg-black/80 px-2 py-1 font-black text-[10px] text-white uppercase tracking-wider">
                     <Calendar size={10} />
                     {new Date(video.recordedAt).toLocaleDateString("en-US", {
                       month: "short",
@@ -474,14 +478,14 @@ export default function VideoLibraryScreen() {
 
                 {/* Content */}
                 <div className="p-4">
-                  <h3 className="font-black text-zinc-900 text-sm uppercase tracking-tight truncate mb-1">
+                  <h3 className="mb-1 font-black text-zinc-900 text-sm truncate uppercase tracking-tight">
                     {video.actionType?.replace(/_/g, " ") || "Untitled Session"}
                   </h3>
-                  <p className="text-xs text-zinc-600 mb-1 truncate uppercase tracking-wider font-bold">
+                  <p className="mb-1 font-bold text-zinc-600 text-xs truncate uppercase tracking-wider">
                     {video.patientName}
                   </p>
                   {video.caregiverName && (
-                    <p className="text-[10px] text-zinc-400 mb-3 truncate uppercase tracking-wider font-bold">
+                    <p className="mb-3 font-bold text-[10px] text-zinc-400 truncate uppercase tracking-wider">
                       Uploaded by: {video.caregiverName}
                     </p>
                   )}
@@ -500,16 +504,16 @@ export default function VideoLibraryScreen() {
                         e.stopPropagation();
                         handleViewVideo(video.id);
                       }}
-                      className="w-full py-2.5 bg-zinc-900 text-white border-2 border-zinc-900 hover:bg-zinc-800 transition-colors font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                      className="flex justify-center items-center gap-2 bg-zinc-900 hover:bg-zinc-800 py-2.5 border-2 border-zinc-900 w-full font-bold text-white text-xs uppercase tracking-widest transition-colors"
                     >
                       <Eye size={14} />
                       {video.status === "completed" ||
-                      video.status === "therapist_review" ||
-                      video.status === "published"
+                        video.status === "therapist_review" ||
+                        video.status === "published"
                         ? "View Report"
                         : video.status === "pending_review" ||
-                            video.status === "approved_for_ai" ||
-                            video.status === "processing"
+                          video.status === "approved_for_ai" ||
+                          video.status === "processing"
                           ? "Review"
                           : "View"}
                     </button>
@@ -517,7 +521,7 @@ export default function VideoLibraryScreen() {
                       <button
                         onClick={(e) => handleRetryFailed(e, video.id)}
                         disabled={retryingId === video.id}
-                        className="w-full py-2.5 bg-red-50 text-red-700 border-2 border-red-300 hover:border-red-600 transition-colors font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex justify-center items-center gap-2 bg-red-50 disabled:opacity-50 py-2.5 border-2 border-red-300 hover:border-red-600 w-full font-bold text-red-700 text-xs uppercase tracking-widest transition-colors"
                       >
                         {retryingId === video.id ? (
                           <Loader2 size={14} className="animate-spin" />
@@ -534,32 +538,32 @@ export default function VideoLibraryScreen() {
           </div>
         ) : (
           /* List View */
-          <div className="bg-white border-2 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-zinc-900">
             <table className="w-full">
               <thead>
-                <tr className="bg-zinc-900 text-white border-b-2 border-zinc-900">
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                <tr className="bg-zinc-900 border-zinc-900 border-b-2 text-white">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Video
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Patient
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Date
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Duration
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Quality
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Status
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     AI Score
                   </th>
-                  <th className="text-left p-4 text-xs font-black uppercase tracking-widest">
+                  <th className="p-4 font-black text-xs text-left uppercase tracking-widest">
                     Actions
                   </th>
                 </tr>
@@ -568,24 +572,23 @@ export default function VideoLibraryScreen() {
                 {filteredVideos.map((video, index) => (
                   <tr
                     key={video.id}
-                    className={`border-b-2 border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-zinc-50/50"
-                    }`}
+                    className={`border-b-2 border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors ${index % 2 === 0 ? "bg-white" : "bg-zinc-50/50"
+                      }`}
                     onClick={() => handleViewVideo(video.id)}
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-16 h-12 bg-zinc-900 flex items-center justify-center border-2 border-zinc-900 overflow-hidden relative">
+                        <div className="relative flex justify-center items-center bg-zinc-900 border-2 border-zinc-900 w-16 h-12 overflow-hidden">
                           {video.thumbnailUrl ? (
                             <img
                               src={getFileUrl(video.thumbnailUrl)}
                               alt={video.actionType}
-                              className="absolute inset-0 w-full h-full object-cover opacity-60"
+                              className="absolute inset-0 opacity-60 w-full h-full object-cover"
                             />
                           ) : video.videoUrl ? (
                             <video
                               src={`${getFileUrl(video.videoUrl)}#t=0.001`}
-                              className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
+                              className="absolute inset-0 opacity-60 w-full h-full object-cover pointer-events-none"
                               preload="metadata"
                               muted
                               playsInline
@@ -593,43 +596,43 @@ export default function VideoLibraryScreen() {
                           ) : (
                             <Play
                               size={16}
-                              className="text-white relative z-10"
+                              className="z-10 relative text-white"
                               fill="currentColor"
                             />
                           )}
                           {(video.thumbnailUrl || video.videoUrl) && (
                             <Play
                               size={16}
-                              className="text-white relative z-10 drop-shadow-md"
+                              className="z-10 relative drop-shadow-md text-white"
                               fill="currentColor"
                             />
                           )}
                         </div>
                         <div className="max-w-[200px]">
-                          <p className="font-black text-zinc-900 truncate text-sm uppercase tracking-tight">
+                          <p className="font-black text-zinc-900 text-sm truncate uppercase tracking-tight">
                             {video.actionType || "Untitled"}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider block">
+                      <span className="block font-bold text-zinc-700 text-xs uppercase tracking-wider">
                         {video.patientName}
                       </span>
                       {video.caregiverName && (
-                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">
+                        <span className="font-bold text-[10px] text-zinc-400 uppercase tracking-wider">
                           By: {video.caregiverName}
                         </span>
                       )}
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2 text-xs text-zinc-600 font-bold uppercase tracking-wider">
+                      <div className="flex items-center gap-2 font-bold text-zinc-600 text-xs uppercase tracking-wider">
                         <Calendar size={12} />
                         {new Date(video.recordedAt).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center gap-2 text-xs font-black text-zinc-900 uppercase tracking-wider">
+                      <div className="flex items-center gap-2 font-black text-zinc-900 text-xs uppercase tracking-wider">
                         <Clock size={12} />
                         {video.duration}s
                       </div>
@@ -650,14 +653,14 @@ export default function VideoLibraryScreen() {
                     </td>
                     <td className="p-4">
                       {video.aiConfidence ? (
-                        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider">
+                        <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
                           <Brain size={14} className="text-zinc-900" />
                           <span className="text-zinc-900">
                             {video.aiConfidence}%
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-zinc-400">—</span>
+                        <span className="text-zinc-400 text-xs">—</span>
                       )}
                     </td>
                     <td className="p-4">
@@ -665,7 +668,7 @@ export default function VideoLibraryScreen() {
                         <button
                           onClick={(e) => handleRetryFailed(e, video.id)}
                           disabled={retryingId === video.id}
-                          className="px-4 py-2 bg-red-50 text-red-700 border-2 border-red-300 hover:border-red-600 hover:bg-red-100 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2 disabled:opacity-50"
+                          className="flex items-center gap-2 bg-red-50 hover:bg-red-100 disabled:opacity-50 px-4 py-2 border-2 border-red-300 hover:border-red-600 font-black text-[10px] text-red-700 uppercase tracking-widest transition-colors"
                         >
                           {retryingId === video.id ? (
                             <Loader2 size={12} className="animate-spin" />
@@ -680,12 +683,12 @@ export default function VideoLibraryScreen() {
                             e.stopPropagation();
                             handleViewVideo(video.id);
                           }}
-                          className="px-4 py-2 bg-zinc-900 text-white border-2 border-zinc-900 hover:bg-zinc-800 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-2"
+                          className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 px-4 py-2 border-2 border-zinc-900 font-black text-[10px] text-white uppercase tracking-widest transition-colors"
                         >
                           <Eye size={12} />
                           {video.status === "completed" ||
-                          video.status === "published" ||
-                          video.status === "therapist_review"
+                            video.status === "published" ||
+                            video.status === "therapist_review"
                             ? "Review Report"
                             : "Review"}
                         </button>
@@ -710,14 +713,14 @@ function FilterBadge({
   onClear: () => void;
 }) {
   return (
-    <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest border border-zinc-900">
+    <div className="flex items-center gap-1.5 bg-zinc-900 px-2 py-1 border border-zinc-900 font-black text-[10px] text-white uppercase tracking-widest">
       <span>{label}</span>
       <button
         onClick={(e) => {
           e.stopPropagation();
           onClear();
         }}
-        className="hover:text-red-400 p-0.5"
+        className="p-0.5 hover:text-red-400"
       >
         <X size={10} />
       </button>
