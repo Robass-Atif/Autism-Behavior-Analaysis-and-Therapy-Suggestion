@@ -547,10 +547,21 @@ export class UsersService {
       throw new NotFoundException("Base user account not found");
     }
 
+    if (newPassword.length < 8) {
+      throw new ConflictException("Password must be at least 8 characters long");
+    }
+
     user.password = newPassword;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    await user.save();
+    try {
+      await user.save();
+    } catch (error: any) {
+      if (error.name === "ValidationError") {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
 
     // Also update in role-specific collections
     const email = user.email.toLowerCase();
@@ -591,8 +602,19 @@ export class UsersService {
       throw new ConflictException("Current password is incorrect");
     }
 
+    if (newPassword.length < 8) {
+      throw new ConflictException("Password must be at least 8 characters long");
+    }
+
     user.password = newPassword;
-    await user.save();
+    try {
+      await user.save();
+    } catch (error: any) {
+      if (error.name === "ValidationError") {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
 
     // Update password in role-specific collections
     const email = user.email.toLowerCase();

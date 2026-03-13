@@ -72,6 +72,10 @@ export default function ProfileScreen() {
       toast.error("New passwords do not match");
       return;
     }
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters long");
+      return;
+    }
     try {
       await changePassword.mutateAsync({
         oldPassword,
