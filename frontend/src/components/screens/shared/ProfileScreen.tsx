@@ -114,7 +114,7 @@ export default function ProfileScreen() {
             Access Token ID
           </p>
           <p className="text-xs font-bold font-mono">
-            {user?.id?.substring(0, 12)}...
+            {user?.id}
           </p>
         </div>
       </div>
