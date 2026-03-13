@@ -348,18 +348,18 @@ export class UsersService {
     user.accountStatus = AccountStatus.ACTIVE;
 
     if (user.role === Role.THERAPIST) {
-      await this.therapistModel.findByIdAndUpdate(userId, {
+      await this.therapistModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
         accountStatus: AccountStatus.ACTIVE,
         isAdminApproved: true,
         adminApprovalDate: new Date(),
         adminApprovalBy: approvedBy,
       });
     } else if (user.role === Role.CAREGIVER) {
-      await this.caregiverModel.findByIdAndUpdate(userId, {
+      await this.caregiverModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
         accountStatus: AccountStatus.ACTIVE,
       });
     } else if (user.role === Role.ADMIN) {
-      await this.adminModel.findByIdAndUpdate(userId, {
+      await this.adminModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
         accountStatus: AccountStatus.ACTIVE,
         isApproved: true,
         approvalDate: new Date(),
@@ -367,11 +367,16 @@ export class UsersService {
       });
     }
 
+    // Always update base user document
+    await this.userModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
+      accountStatus: AccountStatus.ACTIVE,
+    });
+
     return user;
   }
 
   async rejectUser(userId: string, reason: string): Promise<UserDocument> {
-    const user = await this.userModel.findById(userId);
+    const user = await this.findById(userId);
     if (!user) {
       throw new NotFoundException("User not found");
     }
@@ -379,19 +384,42 @@ export class UsersService {
     user.accountStatus = AccountStatus.SUSPENDED;
 
     if (user.role === Role.THERAPIST) {
-      await this.therapistModel.findByIdAndUpdate(userId, {
+      await this.therapistModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
         isAdminApproved: false,
         rejectionReason: reason,
+        accountStatus: AccountStatus.SUSPENDED,
+      });
+    } else if (user.role === Role.CAREGIVER) {
+      await this.caregiverModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
+        accountStatus: AccountStatus.SUSPENDED,
+      });
+    } else if (user.role === Role.ADMIN) {
+      await this.adminModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
+        accountStatus: AccountStatus.SUSPENDED,
       });
     }
+
+    // Keep base user document in sync
+    await this.userModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
+      accountStatus: AccountStatus.SUSPENDED,
+    });
 
     return user.save();
   }
 
   async updateLastLogin(userId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
+    const user = await this.findById(userId);
+    if (!user) return;
+
+    await this.userModel.findOneAndUpdate({ email: user.email.toLowerCase() }, {
       lastLogin: new Date(),
     });
+    
+    await Promise.all([
+      this.therapistModel.findOneAndUpdate({ email: user.email.toLowerCase() }, { lastLogin: new Date() }),
+      this.caregiverModel.findOneAndUpdate({ email: user.email.toLowerCase() }, { lastLogin: new Date() }),
+      this.adminModel.findOneAndUpdate({ email: user.email.toLowerCase() }, { lastLogin: new Date() }),
+    ]);
   }
 
   async updateUserStatus(
@@ -408,30 +436,33 @@ export class UsersService {
     let user: UserDocument | null = null;
 
     if (existingUser.role === Role.THERAPIST) {
-      user = (await this.therapistModel.findByIdAndUpdate(
-        userId,
+      user = (await this.therapistModel.findOneAndUpdate(
+        { email: existingUser.email.toLowerCase() },
         { accountStatus: status },
         { new: true },
       )) as unknown as UserDocument;
     } else if (existingUser.role === Role.CAREGIVER) {
-      user = (await this.caregiverModel.findByIdAndUpdate(
-        userId,
+      user = (await this.caregiverModel.findOneAndUpdate(
+        { email: existingUser.email.toLowerCase() },
         { accountStatus: status },
         { new: true },
       )) as unknown as UserDocument;
     } else if (existingUser.role === Role.ADMIN) {
-      user = (await this.adminModel.findByIdAndUpdate(
-        userId,
+      user = (await this.adminModel.findOneAndUpdate(
+        { email: existingUser.email.toLowerCase() },
         { accountStatus: status },
         { new: true },
       )) as unknown as UserDocument;
     } else {
-      user = await this.userModel.findByIdAndUpdate(
-        userId,
-        { accountStatus: status },
-        { new: true },
-      );
+      user = await this.userModel.findByIdAndUpdate(userId, { accountStatus: status }, {
+        new: true,
+      });
     }
+
+    // Always keep base user doc in sync
+    await this.userModel.findOneAndUpdate({ email: existingUser.email.toLowerCase() }, {
+      accountStatus: status,
+    });
 
     if (!user) {
       throw new NotFoundException("User not found");
@@ -441,10 +472,18 @@ export class UsersService {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    const result = await this.userModel.findByIdAndDelete(userId);
-    if (!result) {
+    const user = await this.findById(userId);
+    if (!user) {
       throw new NotFoundException("User not found");
     }
+
+    const email = user.email.toLowerCase();
+    await Promise.all([
+      this.userModel.deleteOne({ email }),
+      this.therapistModel.deleteOne({ email }),
+      this.caregiverModel.deleteOne({ email }),
+      this.adminModel.deleteOne({ email }),
+    ]);
   }
 
   async assignPatientToCaregiver(
@@ -493,27 +532,42 @@ export class UsersService {
   }
 
   async updatePassword(userId: string, newPassword: string): Promise<void> {
-    const user = await this.userModel.findById(userId).select("+password");
-    if (!user) {
+    // First, find the user in any collection to determine their role/location
+    const baseUser = await this.findById(userId);
+    if (!baseUser) {
       throw new NotFoundException("User not found");
+    }
+
+    // Now find the base User document which holds the master password
+    const user = await this.userModel
+      .findOne({ email: baseUser.email.toLowerCase() })
+      .select("+password");
+
+    if (!user) {
+      throw new NotFoundException("Base user account not found");
+    }
+
+    if (newPassword.length < 8) {
+      throw new ConflictException("Password must be at least 8 characters long");
     }
 
     user.password = newPassword;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    await user.save();
+    try {
+      await user.save();
+    } catch (error: any) {
+      if (error.name === "ValidationError") {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
 
-    // Also update in role-specific collection
-    const email = user.email;
+    // Also update in role-specific collections
+    const email = user.email.toLowerCase();
     await Promise.all([
-      this.therapistModel.findOneAndUpdate(
-        { email },
-        { password: user.password },
-      ),
-      this.caregiverModel.findOneAndUpdate(
-        { email },
-        { password: user.password },
-      ),
+      this.therapistModel.findOneAndUpdate({ email }, { password: user.password }),
+      this.caregiverModel.findOneAndUpdate({ email }, { password: user.password }),
       this.adminModel.findOneAndUpdate({ email }, { password: user.password }),
     ]);
   }
@@ -528,9 +582,19 @@ export class UsersService {
       throw new ConflictException("Passwords do not match");
     }
 
-    const user = await this.userModel.findById(userId).select("+password");
-    if (!user) {
+    // First, find the user in any collection to determine their role/location
+    const baseUser = await this.findById(userId);
+    if (!baseUser) {
       throw new NotFoundException("User not found");
+    }
+
+    // Now find the base User document which holds the master password
+    const user = await this.userModel
+      .findOne({ email: baseUser.email.toLowerCase() })
+      .select("+password");
+
+    if (!user) {
+      throw new NotFoundException("Base user account not found");
     }
 
     const isMatch = await user.comparePassword(oldPassword);
@@ -538,20 +602,25 @@ export class UsersService {
       throw new ConflictException("Current password is incorrect");
     }
 
-    user.password = newPassword;
-    await user.save();
+    if (newPassword.length < 8) {
+      throw new ConflictException("Password must be at least 8 characters long");
+    }
 
-    // Also update in role-specific collection
-    const email = user.email;
+    user.password = newPassword;
+    try {
+      await user.save();
+    } catch (error: any) {
+      if (error.name === "ValidationError") {
+        throw new ConflictException(error.message);
+      }
+      throw error;
+    }
+
+    // Update password in role-specific collections
+    const email = user.email.toLowerCase();
     await Promise.all([
-      this.therapistModel.findOneAndUpdate(
-        { email },
-        { password: user.password },
-      ),
-      this.caregiverModel.findOneAndUpdate(
-        { email },
-        { password: user.password },
-      ),
+      this.therapistModel.findOneAndUpdate({ email }, { password: user.password }),
+      this.caregiverModel.findOneAndUpdate({ email }, { password: user.password }),
       this.adminModel.findOneAndUpdate({ email }, { password: user.password }),
     ]);
   }
@@ -570,30 +639,40 @@ export class UsersService {
     let user: UserDocument | null = null;
 
     if (existingUser.role === Role.THERAPIST) {
-      user = (await this.therapistModel.findByIdAndUpdate(
-        userId,
+      user = (await this.therapistModel.findOneAndUpdate(
+        { email: existingUser.email.toLowerCase() },
         updateUserDto,
         {
           new: true,
         },
       )) as unknown as UserDocument;
     } else if (existingUser.role === Role.CAREGIVER) {
-      user = (await this.caregiverModel.findByIdAndUpdate(
-        userId,
+      user = (await this.caregiverModel.findOneAndUpdate(
+        { email: existingUser.email.toLowerCase() },
         updateUserDto,
         {
           new: true,
         },
       )) as unknown as UserDocument;
     } else if (existingUser.role === Role.ADMIN) {
-      user = (await this.adminModel.findByIdAndUpdate(userId, updateUserDto, {
-        new: true,
-      })) as unknown as UserDocument;
+      user = (await this.adminModel.findOneAndUpdate(
+        { email: existingUser.email.toLowerCase() },
+        updateUserDto,
+        {
+          new: true,
+        },
+      )) as unknown as UserDocument;
     } else {
       user = await this.userModel.findByIdAndUpdate(userId, updateUserDto, {
         new: true,
       });
     }
+
+    // Always update the base user document as well to keep data in sync
+    await this.userModel.findOneAndUpdate(
+      { email: existingUser.email.toLowerCase() },
+      updateUserDto,
+    );
 
     if (!user) {
       throw new NotFoundException("User not found");

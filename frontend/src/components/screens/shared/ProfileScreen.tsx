@@ -72,6 +72,10 @@ export default function ProfileScreen() {
       toast.error("New passwords do not match");
       return;
     }
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters long");
+      return;
+    }
     try {
       await changePassword.mutateAsync({
         oldPassword,
@@ -114,7 +118,7 @@ export default function ProfileScreen() {
             Access Token ID
           </p>
           <p className="text-xs font-bold font-mono">
-            {user?.id?.substring(0, 12)}...
+            {user?.id}
           </p>
         </div>
       </div>

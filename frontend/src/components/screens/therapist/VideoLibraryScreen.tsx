@@ -270,7 +270,7 @@ export default function VideoLibraryScreen() {
                 />
                 <input
                   type="text"
-                  placeholder="SEARCH ACTIONS OR PATIENTS..."
+                  placeholder="SEARCH ACTIONS OR PATIENTS"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="bg-zinc-50 py-2.5 pr-4 pl-12 border-2 border-zinc-200 focus:border-zinc-900 focus:outline-none w-full font-bold placeholder:text-zinc-400 text-xs uppercase tracking-widest transition-all"
