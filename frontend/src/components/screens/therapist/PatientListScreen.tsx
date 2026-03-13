@@ -69,7 +69,7 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
   const handleEditPatient = (patient: any) => {
     setOpenDropdown(null);
     localStorage.setItem('editPatientData', JSON.stringify(patient));
-    onNavigate?.(Screen.PATIENT_CREATE); 
+    onNavigate?.(Screen.PATIENT_CREATE);
   };
 
   const handleArchivePatient = async (patient: any) => {
@@ -131,8 +131,8 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-             <div className="w-8 h-8 border-4 border-zinc-900 border-t-transparent animate-spin"></div>
-             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Hydrating Clinical Data...</p>
+            <div className="w-8 h-8 border-4 border-zinc-900 border-t-transparent animate-spin"></div>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Hydrating Clinical Data...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -165,20 +165,19 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
                 {patients.map((patient: any) => (
                   <tr key={patient._id || patient.id} className="hover:bg-zinc-50 transition-colors group border-b border-zinc-100 last:border-0">
                     <td className="px-6 py-4">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-zinc-100 text-zinc-900 border border-zinc-200 flex items-center justify-center text-xs font-black group-hover:bg-zinc-900 group-hover:text-white transition-all">
-                             {patient.fullName.charAt(0)}
-                          </div>
-                          <span className="text-xs font-black text-zinc-900 uppercase tracking-tight">{patient.fullName}</span>
-                       </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-zinc-100 text-zinc-900 border border-zinc-200 flex items-center justify-center text-xs font-black group-hover:bg-zinc-900 group-hover:text-white transition-all">
+                          {patient.fullName.charAt(0)}
+                        </div>
+                        <span className="text-xs font-black text-zinc-900 uppercase tracking-tight">{patient.fullName}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-xs font-mono text-zinc-400 tracking-tighter">{patient.mrn || '—'}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-0.5 border-2 text-[9px] font-black uppercase tracking-widest ${
-                        patient.status === 'Active' || patient.status === 'active'
-                        ? 'bg-zinc-900 text-white border-zinc-900'
-                        : 'bg-white text-zinc-400 border-zinc-200'
-                      }`}>
+                      <span className={`inline-flex px-2 py-0.5 border-2 text-[9px] font-black uppercase tracking-widest ${patient.status === 'Active' || patient.status === 'active'
+                          ? 'bg-zinc-900 text-white border-zinc-900'
+                          : 'bg-white text-zinc-400 border-zinc-200'
+                        }`}>
                         {patient.status || 'Active'}
                       </span>
                     </td>
@@ -214,23 +213,23 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
 
       {/* Pagination View */}
       <div className="flex items-center justify-between px-2 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
-         <span>Page {page} of {totalPages}</span>
-         <div className="flex gap-2">
-            <button 
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="p-2 border-2 border-zinc-200 bg-white hover:border-zinc-900 disabled:opacity-30 transition-all overflow-hidden"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button 
-              disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
-              className="p-2 border-2 border-zinc-200 bg-white hover:border-zinc-900 disabled:opacity-30 transition-all overflow-hidden"
-            >
-              <ChevronRight size={16} />
-            </button>
-         </div>
+        <span>Page {page} of {totalPages}</span>
+        <div className="flex gap-2">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage(page - 1)}
+            className="p-2 border-2 border-zinc-200 bg-white hover:border-zinc-900 disabled:opacity-30 transition-all overflow-hidden"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            disabled={page >= totalPages}
+            onClick={() => setPage(page + 1)}
+            className="p-2 border-2 border-zinc-200 bg-white hover:border-zinc-900 disabled:opacity-30 transition-all overflow-hidden"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
 
       {/* View Patient Modal */}
@@ -246,8 +245,8 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
                 <div>
                   <h2 className="text-xl font-black text-white uppercase tracking-tighter leading-none mb-1">{selectedPatient.fullName}</h2>
                   <div className="flex items-center gap-3">
-                     <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest leading-none">ID: {selectedPatient.mrn}</span>
-                     <span className="text-blue-400 text-[10px] font-black uppercase tracking-widest">• {selectedPatient.status}</span>
+                    <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest leading-none">ID: {selectedPatient.mrn}</span>
+                    <span className="text-blue-400 text-[10px] font-black uppercase tracking-widest">• {selectedPatient.status}</span>
                   </div>
                 </div>
               </div>
@@ -261,83 +260,83 @@ export default function PatientListScreen({ onNavigate }: PatientListScreenProps
 
             {/* Modal Content */}
             <div className="p-8 overflow-y-auto flex-1 bg-white space-y-10">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-10">
-                    <section>
-                      <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2 border-b-2 border-zinc-50 pb-2">
-                         <User size={14} /> Profile Identity
-                      </h3>
-                      <div className="grid grid-cols-2 gap-6">
-                        <InfoField label="DOB" value={selectedPatient.dob ? new Date(selectedPatient.dob).toLocaleDateString() : 'N/A'} />
-                        <InfoField label="GENDER" value={selectedPatient.gender || 'N/A'} />
-                        <InfoField label="LANG" value={selectedPatient.preferredLanguage || 'English'} />
-                        <InfoField label="ASD LEVEL" value={selectedPatient.asdSeverity || 'N/A'} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-10">
+                  <section>
+                    <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2 border-b-2 border-zinc-50 pb-2">
+                      <User size={14} /> Profile Identity
+                    </h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      <InfoField label="DOB" value={selectedPatient.dob ? new Date(selectedPatient.dob).toLocaleDateString() : 'N/A'} />
+                      <InfoField label="GENDER" value={selectedPatient.gender || 'N/A'} />
+                      <InfoField label="LANG" value={selectedPatient.preferredLanguage || 'English'} />
+                      <InfoField label="ASD LEVEL" value={selectedPatient.asdSeverity || 'N/A'} />
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2 border-b-2 border-zinc-50 pb-2">
+                      <Phone size={14} /> Contact Links
+                    </h3>
+                    <div className="space-y-4">
+                      <InfoField label="EMAIL" value={selectedPatient.email || 'N/A'} />
+                      <InfoField label="PHONE" value={selectedPatient.phone || 'N/A'} />
+                    </div>
+                  </section>
+                </div>
+
+                <div className="space-y-10">
+                  <section className="bg-zinc-50 border-2 border-zinc-200 p-6">
+                    <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                      <Activity size={14} /> Diagnosis Logs
+                    </h3>
+                    <div className="space-y-4 text-xs font-bold text-zinc-700 uppercase leading-relaxed">
+                      {selectedPatient.diagnosisDetails ? (
+                        <p className="bg-white border-2 border-zinc-100 p-4 leading-relaxed font-mono">"{selectedPatient.diagnosisDetails}"</p>
+                      ) : <p className="text-zinc-300 italic">Historical data missing.</p>}
+
+                      <div className="pt-4 border-t border-zinc-100">
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-1">STAMP DATE</span>
+                        <span className="text-xs font-black text-zinc-900">{selectedPatient.diagnosisDate ? new Date(selectedPatient.diagnosisDate).toLocaleDateString() : '—'}</span>
                       </div>
-                    </section>
+                    </div>
+                  </section>
 
-                    <section>
-                      <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2 border-b-2 border-zinc-50 pb-2">
-                         <Phone size={14} /> Contact Links
-                      </h3>
-                      <div className="space-y-4">
-                        <InfoField label="EMAIL" value={selectedPatient.email || 'N/A'} />
-                        <InfoField label="PHONE" value={selectedPatient.phone || 'N/A'} />
-                      </div>
-                    </section>
-                  </div>
-
-                  <div className="space-y-10">
-                    <section className="bg-zinc-50 border-2 border-zinc-200 p-6">
-                       <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                         <Activity size={14} /> Diagnosis Logs
-                       </h3>
-                       <div className="space-y-4 text-xs font-bold text-zinc-700 uppercase leading-relaxed">
-                          {selectedPatient.diagnosisDetails ? (
-                            <p className="bg-white border-2 border-zinc-100 p-4 leading-relaxed font-mono">"{selectedPatient.diagnosisDetails}"</p>
-                          ) : <p className="text-zinc-300 italic">Historical data missing.</p>}
-                          
-                          <div className="pt-4 border-t border-zinc-100">
-                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block mb-1">STAMP DATE</span>
-                             <span className="text-xs font-black text-zinc-900">{selectedPatient.diagnosisDate ? new Date(selectedPatient.diagnosisDate).toLocaleDateString() : '—'}</span>
-                          </div>
-                       </div>
-                    </section>
-
-                    <section className="bg-zinc-900 border-2 border-zinc-800 p-6 text-white">
-                       <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                         <Shield size={14} /> Emergency Overrides
-                       </h3>
-                       <div className="flex flex-wrap gap-2">
-                          {selectedPatient.allergies?.length > 0 ? (
-                            selectedPatient.allergies.map((a: string) => (
-                              <span key={a} className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-red-400 text-[10px] font-black uppercase">{a}</span>
-                            ))
-                          ) : <span className="text-[10px] font-bold text-zinc-600">No active alerts recorded.</span>}
-                       </div>
-                    </section>
-                  </div>
-               </div>
+                  <section className="bg-zinc-900 border-2 border-zinc-800 p-6 text-white">
+                    <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                      <Shield size={14} /> Emergency Overrides
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPatient.allergies?.length > 0 ? (
+                        selectedPatient.allergies.map((a: string) => (
+                          <span key={a} className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-red-400 text-[10px] font-black uppercase">{a}</span>
+                        ))
+                      ) : <span className="text-[10px] font-bold text-zinc-600">No active alerts recorded.</span>}
+                    </div>
+                  </section>
+                </div>
+              </div>
             </div>
 
             {/* Modal Footer */}
             <div className="bg-zinc-50 px-8 py-5 border-t-4 border-zinc-200 flex items-center justify-between shrink-0">
-               <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                  <Shield size={14} /> System Secure Record
-               </div>
-               <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => { setShowViewModal(false); handleEditPatient(selectedPatient); }}
-                    className="px-6 py-2.5 bg-zinc-900 text-white border-2 border-zinc-900 font-black text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]"
-                  >
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={() => setShowViewModal(false)}
-                    className="px-6 py-2.5 bg-white text-zinc-900 border-2 border-zinc-200 font-black text-xs uppercase tracking-widest hover:border-zinc-900 transition-all"
-                  >
-                    Close
-                  </button>
-               </div>
+              <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                <Shield size={14} /> System Secure Record
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => { setShowViewModal(false); handleEditPatient(selectedPatient); }}
+                  className="px-6 py-2.5 bg-zinc-900 text-white border-2 border-zinc-900 font-black text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => setShowViewModal(false)}
+                  className="px-6 py-2.5 bg-white text-zinc-900 border-2 border-zinc-200 font-black text-xs uppercase tracking-widest hover:border-zinc-900 transition-all"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
