@@ -177,13 +177,13 @@ async def predict(
     
     # Determine input type
     filename = input_file.filename.lower()
-    is_video = filename.endswith(('.mp4', '.avi', '.mov'))
+    is_video = filename.endswith(('.mp4', '.avi', '.mov', '.webm'))
     is_zip = filename.endswith('.zip')
     
     if not is_video and not is_zip:
         raise HTTPException(
             status_code=400,
-            detail="Input must be video file (.mp4, .avi, .mov) or ZIP file (.zip)"
+            detail="Input must be video file (.mp4, .avi, .mov, .webm) or ZIP file (.zip)"
         )
     
     # Create temp directories

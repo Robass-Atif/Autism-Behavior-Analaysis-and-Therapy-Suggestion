@@ -368,12 +368,19 @@ export class AdminService {
           },
         };
       case Role.CAREGIVER:
+        const caregiverPatients = await this.patientsService.getCaregiverPatients(userId);
+        const therapist = userObj.invitedBy 
+          ? await this.usersService.findById(userObj.invitedBy.toString())
+          : null;
+        
         return {
           ...baseInfo,
           roleSpecific: {
-            linkedTherapistId: userObj.linkedTherapistId,
-            relationshipToPatient: userObj.relationshipToPatient,
-            patientIds: userObj.patientIds || [],
+            linkedTherapistId: userObj.invitedBy?.toString(),
+            linkedTherapistName: therapist?.fullName || "Not linked",
+            relationshipToPatient: userObj.relationshipType,
+            patientIds: (caregiverPatients as any).patients?.map((p: any) => p.id?.toString()) || [],
+            patientNames: (caregiverPatients as any).patients?.map((p: any) => p.fullName) || [],
           },
         };
       case Role.ADMIN:
@@ -382,6 +389,21 @@ export class AdminService {
           roleSpecific: {
             adminLevel: userObj.adminLevel || "admin",
             permissions: userObj.permissions || [],
+          },
+        };
+      case Role.PATIENT:
+        const patientData = await this.patientsService.findByUserId(userId);
+        return {
+          ...baseInfo,
+          roleSpecific: {
+            mrn: patientData?.mrn,
+            asdSeverity: patientData?.asdSeverity,
+            diagnosisDetails: patientData?.diagnosisDetails,
+            progressScore: patientData?.progressScore,
+            latestClinicalReport: patientData?.latestClinicalReport,
+            diagnosisDate: patientData?.diagnosisDate,
+            admissionDate: patientData?.admissionDate,
+            status: patientData?.status,
           },
         };
       default:

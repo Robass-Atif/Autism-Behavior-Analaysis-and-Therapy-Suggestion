@@ -187,6 +187,15 @@ export class Patient extends Document {
   @Prop()
   deletedAt?: Date;
 
+  @Prop({ type: Object })
+  latestClinicalReport?: Record<string, any>;
+
+  @Prop({ default: false })
+  isLatestClinicalReportPublished: boolean;
+
+  @Prop()
+  latestClinicalReportPublishedAt?: Date;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -237,6 +246,15 @@ PatientSchema.pre("save", function (next) {
       if (em.email && !em.email.startsWith("v1:")) em.email = cryptoService.encryptString(em.email);
     }
 
+    // Encrypt Clinical Report (Object to Encrypted String)
+    if (doc.isModified("latestClinicalReport") && doc.latestClinicalReport) {
+      const reportData = JSON.stringify(doc.latestClinicalReport);
+      // Skip if already encrypted (though isModified should handle this)
+      if (!reportData.startsWith("v1:")) {
+        doc.latestClinicalReport = cryptoService.encryptString(reportData) as any;
+      }
+    }
+
     next();
   } catch (error) {
     next(error as Error);
@@ -280,6 +298,16 @@ PatientSchema.post("init", function (doc: any) {
       if (em.alternatePhone && em.alternatePhone.startsWith("v1:")) em.alternatePhone = cryptoService.decryptString(em.alternatePhone);
       if (em.email && em.email.startsWith("v1:")) em.email = cryptoService.decryptString(em.email);
     }
+
+    // Decrypt Clinical Report (Encrypted String to Object)
+    if (doc.latestClinicalReport && typeof doc.latestClinicalReport === "string" && doc.latestClinicalReport.startsWith("v1:")) {
+      try {
+        const decrypted = cryptoService.decryptString(doc.latestClinicalReport);
+        doc.latestClinicalReport = JSON.parse(decrypted);
+      } catch (e) {
+        console.error("Failed to parse decrypted clinical report JSON", e);
+      }
+    }
   } catch (error) {
     console.error("Error decrypting patient doc details", error);
   }
@@ -321,6 +349,16 @@ PatientSchema.post("save", function (doc: any) {
       if (em.phone && em.phone.startsWith("v1:")) em.phone = cryptoService.decryptString(em.phone);
       if (em.alternatePhone && em.alternatePhone.startsWith("v1:")) em.alternatePhone = cryptoService.decryptString(em.alternatePhone);
       if (em.email && em.email.startsWith("v1:")) em.email = cryptoService.decryptString(em.email);
+    }
+
+    // Decrypt Clinical Report (Encrypted String to Object)
+    if (doc.latestClinicalReport && typeof doc.latestClinicalReport === "string" && doc.latestClinicalReport.startsWith("v1:")) {
+      try {
+        const decrypted = cryptoService.decryptString(doc.latestClinicalReport);
+        doc.latestClinicalReport = JSON.parse(decrypted);
+      } catch (e) {
+        console.error("Failed to parse decrypted clinical report JSON on save", e);
+      }
     }
   } catch (error) {
     console.error("Error decrypting patient doc details", error);

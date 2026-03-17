@@ -6,9 +6,9 @@ import { Transform } from "stream";
 export class CryptoService {
   // Using AES-256-GCM which provides authenticated encryption
   private readonly algorithm = "aes-256-gcm";
-  private readonly ivLength = 16;
-  private readonly saltLength = 32;
-  private readonly tagLength = 16;
+  private readonly ivLength = 16; // 128 bits IV (16 bytes)
+  private readonly saltLength = 32; // 256 bits salt (32 bytes)
+  private readonly tagLength = 16; // 128 bits tag (16 bytes)
 
   // For this demo, we use a fallback key if ENCRYPTION_KEY isn't found.
   // In production, ENCRYPTION_KEY must be exactly 32 bytes (256 bits).
@@ -67,8 +67,11 @@ export class CryptoService {
 
       return decrypted;
     } catch (error) {
-      console.error("Decryption failed for a field. Returning original.", error);
-      // In a strict environment, you might throw here. 
+      console.error(
+        "Decryption failed for a field. Returning original.",
+        error,
+      );
+      // In a strict environment, you might throw here.
       // For safety if key rotates/mismatches without rotation strategy, returning original or "" is safer.
       return encryptedText;
     }

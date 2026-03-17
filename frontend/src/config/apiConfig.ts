@@ -131,6 +131,12 @@ export const CLINICAL_ENDPOINTS = {
   PATIENT_LONGITUDINAL: (patientId: string) =>
     `/clinical/patients/${patientId}/longitudinal`,
 
+  GENERATE_THERAPY_RECOMMENDATION: (id: string) =>
+    `/clinical/video-sessions/${id}/therapy-recommend`,
+
+  GENERATE_PATIENT_THERAPY_RECOMMENDATION: (patientId: string) =>
+    `/clinical/patients/${patientId}/therapy-recommend`,
+
   // Reports
   GET_INDIVIDUAL_REPORT: (patientId: string) =>
     `/clinical/reports/individual/${patientId}`,

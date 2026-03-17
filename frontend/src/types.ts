@@ -42,6 +42,7 @@ export enum Screen {
   CONSENT_MANAGEMENT = "CONSENT_MANAGEMENT",
   CAREGIVER_INVITATIONS = "CAREGIVER_INVITATIONS",
   PATIENT_CREATE = "PATIENT_CREATE",
+  DIAGNOSTIC_REPORTS = "DIAGNOSTIC_REPORTS",
 
   // New: AI Review Workflow
   PENDING_REVIEW_QUEUE = "PENDING_REVIEW_QUEUE",
@@ -278,6 +279,9 @@ export interface Patient {
 
   createdAt?: string;
   updatedAt?: string;
+  latestClinicalReport?: AggregatedClinicalReport;
+  isLatestClinicalReportPublished?: boolean;
+  latestClinicalReportPublishedAt?: string;
 }
 
 export interface TherapyGoal {
@@ -392,27 +396,16 @@ export interface RawPredictionResponse {
 
 export interface TherapyRecommendation {
   therapy_name: string;
-  nice_category: string;
-  all_categories: string;
-  evidence_basis: string;
-  intervention_targets: string;
   summary: string;
-  source_link: string;
-  organization: string;
+  evidence_basis: string;
   relevance_score: number;
+  intervention_targets: string;
 }
 
 export interface DSM5Classification {
-  severity_level: string;
-  label: string;
-  social_communication: {
-    verbatim: string;
-    derived_support_characteristics: string[];
-  };
-  restricted_repetitive_behaviors: {
-    verbatim: string;
-    derived_support_characteristics: string[];
-  };
+  level: string;
+  social_communication: string;
+  restricted_behaviors: string;
 }
 
 export interface NICEGuidelines {
@@ -469,8 +462,29 @@ export interface ClinicalReportData {
   };
   clinical_report: string; // markdown narrative
   therapies_recommended: TherapyRecommendation[];
+  recommended_interventions?: any[];
   dsm5_classification: DSM5Classification;
   nice_guidelines: NICEGuidelines;
+  retrieved_chunks?: any[];
+}
+
+export interface AggregatedClinicalReport {
+  clinical_report: string;
+  retrieved_chunks: any[];
+  therapy_metadata: any;
+  therapies_recommended: Array<{
+    therapy_name: string;
+    summary: string;
+    evidence_basis: string;
+    relevance_score: number;
+    intervention_targets: string;
+  }>;
+  sessions_included: Array<{
+    sessionId: string;
+    recordedAt: string;
+    actionType: string;
+  }>;
+  generated_at: string;
 }
 
 // ========== THERAPIST REVIEW ==========
@@ -490,6 +504,7 @@ export interface TherapistReview {
 
 export interface VideoSession {
   id: string;
+  _id?: string; // MongoDB compatibility
   patientId: string;
   patientName: string;
   recordedAt: string;

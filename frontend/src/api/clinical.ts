@@ -121,7 +121,12 @@ export const useVideoSessions = (patientId?: string) => {
         endpoint,
       );
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 1000,
+    refetchInterval: (query: any) => {
+      const data = query.state.data as any;
+      const hasProcessing = data?.sessions?.some((s: any) => s.status === 'processing');
+      return hasProcessing ? 3000 : false;
+    }
   });
 };
 
@@ -159,6 +164,11 @@ export const usePendingReviewSessions = () => {
       );
     },
     staleTime: 60 * 1000,
+    refetchInterval: (query: any) => {
+      const data = query.state.data as any;
+      const hasProcessing = data?.sessions?.some((s: any) => s.status === 'processing');
+      return hasProcessing ? 3000 : false;
+    },
     select: (data) => ({
       sessions: data.sessions.filter(
         (s) =>
@@ -421,6 +431,163 @@ export const usePublishReport = () => {
       queryClient.invalidateQueries({ queryKey: ["video-session", sessionId] });
       queryClient.invalidateQueries({ queryKey: ["video-sessions"] });
       queryClient.invalidateQueries({ queryKey: ["recent-sessions"] });
+    },
+  });
+};
+
+// ============ THERAPY RECOMMENDATION (ON-DEMAND) ============
+
+export const useGenerateTherapyRecommendation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      id: string,
+    ): Promise<{
+      success: boolean;
+      message: string;
+      sessionId: string;
+      clinicalReport: Record<string, any>;
+    }> => {
+      return apiClient.post<{
+        success: boolean;
+        message: string;
+        sessionId: string;
+        clinicalReport: Record<string, any>;
+      }>(CLINICAL_ENDPOINTS.GENERATE_THERAPY_RECOMMENDATION(id), {});
+    },
+    onSuccess: (_, sessionId) => {
+      queryClient.invalidateQueries({ queryKey: ["video-session", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["video-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-review-sessions"] });
+    },
+  });
+};
+
+export const useGeneratePatientTherapyRecommendation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      patientId: string,
+    ): Promise<{
+      success: boolean;
+      message: string;
+      patientId: string;
+      clinicalReport: Record<string, any>;
+    }> => {
+      return apiClient.post<{
+        success: boolean;
+        message: string;
+        patientId: string;
+        clinicalReport: Record<string, any>;
+      }>(CLINICAL_ENDPOINTS.GENERATE_PATIENT_THERAPY_RECOMMENDATION(patientId), {});
+    },
+    onSuccess: (_, patientId) => {
+      queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["video-sessions", patientId] });
+    },
+  });
+};
+
+export const useUnpublishPatientClinicalReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      patientId: string,
+    ): Promise<{
+      success: boolean;
+      message: string;
+    }> => {
+      return apiClient.delete<{
+        success: boolean;
+        message: string;
+      }>(`/clinical/patients/${patientId}/clinical-report`);
+    },
+    onSuccess: (_, patientId) => {
+      queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+};
+
+export const usePublishPatientClinicalReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      patientId: string,
+    ): Promise<{
+      success: boolean;
+      message: string;
+      patientId: string;
+      publishedAt: string;
+    }> => {
+      return apiClient.post<{
+        success: boolean;
+        message: string;
+        patientId: string;
+        publishedAt: string;
+      }>(`/clinical/patients/${patientId}/publish-report`, {});
+    },
+    onSuccess: (_, patientId) => {
+      queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+};
+
+export const useResendPatientClinicalReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      patientId: string,
+    ): Promise<{
+      success: boolean;
+      message: string;
+      patientId: string;
+      resentAt: string;
+    }> => {
+      return apiClient.post<{
+        success: boolean;
+        message: string;
+        patientId: string;
+        resentAt: string;
+      }>(`/clinical/patients/${patientId}/resend-report`, {});
+    },
+    onSuccess: (_, patientId) => {
+      queryClient.invalidateQueries({ queryKey: ["patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+};
+
+export const useUpdatePatientClinicalReport = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      patientId,
+      clinicalReport,
+    }: {
+      patientId: string;
+      clinicalReport: any;
+    }): Promise<{ success: boolean; message: string; patientId: string }> => {
+      return apiClient.put<{
+        success: boolean;
+        message: string;
+        patientId: string;
+      }>(`/clinical/patients/${patientId}/clinical-report`, clinicalReport);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["patient", variables.patientId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
     },
   });
 };

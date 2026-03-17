@@ -113,7 +113,11 @@ export class PdfGeneratorService {
             ? "PROGRESS REPORT (QUARTERLY)"
             : options.reportType === "consolidated"
               ? "CONSOLIDATED ANALYSIS REPORT"
-              : "CLINICAL SUMMARY REPORT";
+              : options.reportType === "aggregated_outcome"
+                ? "AGGREGATED OUTCOME REPORT"
+                : options.reportType === "therapy_plan"
+                  ? "INTEGRATED THERAPY PLAN"
+                  : "CLINICAL SUMMARY REPORT";
         doc
           .fontSize(14)
           .font("Helvetica-Bold")
@@ -211,11 +215,30 @@ export class PdfGeneratorService {
           300,
           infoY + 54,
         );
-
         doc.y = infoY + 75;
         doc.moveDown(1);
 
+        // ── CLINICAL SUMMARY (Aggregated) ──
+        if (
+          (options.reportType === "clinical_summary" ||
+           options.reportType === "aggregated_outcome" ||
+           options.reportType === "therapy_plan") &&
+          patientData.latestClinicalReport
+        ) {
+          this.renderClinicalSummary(
+            doc,
+            patientData.latestClinicalReport,
+            LEFT,
+            W,
+            options.reportType
+          );
+        }
+
         // ── SESSION STATISTICS ──
+        const isSpecializedReport =
+          options.reportType === "clinical_summary" ||
+          options.reportType === "therapy_plan";
+
         const analyzedSessions = sessionsData.filter(
           (s) =>
             s.status === "analyzed" ||
@@ -228,52 +251,54 @@ export class PdfGeneratorService {
             s.status === "pending_review" || s.status === "approved_for_ai",
         );
 
-        this.sectionHeader(doc, "SESSION OVERVIEW", LEFT, W);
+        if (!isSpecializedReport) {
+          this.sectionHeader(doc, "SESSION OVERVIEW", LEFT, W);
 
-        const statsY = doc.y;
-        const statW = W / 4 - 6;
-        this.statBox(
-          doc,
-          sessionsData.length.toString(),
-          "Total Sessions",
-          LEFT,
-          statsY,
-          statW,
-          C.black,
-        );
-        this.statBox(
-          doc,
-          analyzedSessions.length.toString(),
-          "Analyzed",
-          LEFT + statW + 8,
-          statsY,
-          statW,
-          C.green,
-        );
-        this.statBox(
-          doc,
-          pendingSessions.length.toString(),
-          "Pending",
-          LEFT + (statW + 8) * 2,
-          statsY,
-          statW,
-          C.amber,
-        );
-        const publishedCount = sessionsData.filter(
-          (s) => s.status === "published",
-        ).length;
-        this.statBox(
-          doc,
-          publishedCount.toString(),
-          "Published",
-          LEFT + (statW + 8) * 3,
-          statsY,
-          statW,
-          C.blue,
-        );
+          const statsY = doc.y;
+          const statW = W / 4 - 6;
+          this.statBox(
+            doc,
+            sessionsData.length.toString(),
+            "Total Sessions",
+            LEFT,
+            statsY,
+            statW,
+            C.black,
+          );
+          this.statBox(
+            doc,
+            analyzedSessions.length.toString(),
+            "Analyzed",
+            LEFT + statW + 8,
+            statsY,
+            statW,
+            C.green,
+          );
+          this.statBox(
+            doc,
+            pendingSessions.length.toString(),
+            "Pending",
+            LEFT + (statW + 8) * 2,
+            statsY,
+            statW,
+            C.amber,
+          );
+          const publishedCount = sessionsData.filter(
+            (s) => s.status === "published",
+          ).length;
+          this.statBox(
+            doc,
+            publishedCount.toString(),
+            "Published",
+            LEFT + (statW + 8) * 3,
+            statsY,
+            statW,
+            C.blue,
+          );
 
-        doc.y = statsY + 55;
-        doc.moveDown(1);
+          doc.y = statsY + 55;
+          doc.moveDown(1);
+        }
 
         if (isSessionReport && sessionsData.length > 0) {
           const session = sessionsData[0];
@@ -361,7 +386,9 @@ export class PdfGeneratorService {
               ? sessionsWithAI.slice(0, 1)
               : reportMode === "progress"
                 ? sessionsWithAI.slice(0, 6)
-                : sessionsWithAI;
+                : (reportMode === "clinical_summary" || reportMode === "therapy_plan")
+                  ? [] // Don't render detailed session analysis for specialized reports
+                  : sessionsWithAI;
 
         if (options.includeCharts !== false && sessionsToRender.length > 0) {
           sessionsToRender.forEach((session, idx) => {
@@ -371,6 +398,7 @@ export class PdfGeneratorService {
 
         const shouldIncludeGoals =
           reportMode === "consolidated" ||
+          reportMode === "therapy_plan" ||
           (reportMode === "individual" && options.includeGoals);
         if (shouldIncludeGoals && goalsData.length > 0) {
           this.checkPage(doc, 100);
@@ -614,11 +642,13 @@ export class PdfGeneratorService {
           doc.moveDown(0.5);
         }
 
-        // We removed the duplicate concatenated notes block from here
-        // as notes are already appropriately printed inside their respective Session Blocks.
-
         // ── FOOTER on all pages ──
         this.addFooter(doc, patientData.therapistName);
+
+        // Ensure buffered pages are flushed so footer edits persist
+        if (typeof (doc as any).flushPages === "function") {
+          (doc as any).flushPages();
+        }
 
         doc.end();
       } catch (error) {
@@ -628,6 +658,123 @@ export class PdfGeneratorService {
   }
 
   // ── Helper methods ──
+
+  // Render the full aggregated Clinical Report: narrative + therapy cards
+  private renderClinicalSummary(
+    doc: any,
+    report: any,
+    x: number,
+    w: number,
+    reportMode: string = "aggregated_outcome"
+  ) {
+    // ── Narrative ──
+    if (report?.clinical_report && (reportMode === "clinical_summary" || reportMode === "aggregated_outcome" || reportMode === "therapy_plan")) {
+      this.checkPage(doc, 100);
+      this.sectionHeader(doc, "AGGREGATED CLINICAL NARRATIVE", x, w);
+      doc.fontSize(9).font("Helvetica").fillColor(C.dark);
+
+      const lines = String(report.clinical_report).split("\n");
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) { doc.moveDown(0.4); continue; }
+        
+        // Ensure we have enough space for at least 2 lines before starting a new block
+        this.checkPage(doc, 30);
+        
+        if (t.startsWith("###") || t.startsWith("##") || t.startsWith("#")) {
+          const level = t.startsWith("###") ? 11 : t.startsWith("##") ? 13 : 15;
+          const heading = t.replace(/^#+/, "").trim();
+          doc.moveDown(0.5);
+          doc.fontSize(level).font("Helvetica-Bold").fillColor(C.black).text(heading, x);
+          doc.moveDown(0.2);
+          doc.fontSize(9).font("Helvetica").fillColor(C.dark);
+        } else if (t.startsWith("*") || t.startsWith("-")) {
+          const content = t.replace(/^[\*\-]\s*/, "").replace(/\*\*/g, "");
+          const sqY = doc.y + 3;
+          doc.rect(x + 8, sqY, 5, 5).fillColor(C.black).fill();
+          doc.fontSize(9).font("Helvetica").fillColor(C.dark)
+            .text(content, x + 18, doc.y, { width: w - 22 });
+          doc.moveDown(0.2);
+        } else {
+          const cleaned = t.replace(/\*\*/g, ""); // Simplified to avoid regex nested mapping hangs
+          doc.fontSize(9).font("Helvetica").fillColor(C.dark)
+            .text(cleaned, x, doc.y, { width: w, align: "left" });
+          doc.moveDown(0.25);
+        }
+      }
+      doc.moveDown(0.5);
+    }
+
+    // ── Therapy Recommendations ──
+    const therapies = report?.therapies_recommended;
+    if (Array.isArray(therapies) && therapies.length > 0 && (reportMode === "therapy_plan" || reportMode === "aggregated_outcome")) {
+      this.checkPage(doc, 80);
+      this.sectionHeader(doc, "EVIDENCE-BASED THERAPY RECOMMENDATIONS", x, w);
+      therapies.forEach((therapy: any, i: number) => {
+        this.checkPage(doc, 55);
+        const cardY = doc.y;
+        doc.rect(x, cardY, w, 14).fillColor(C.black).fill();
+        doc.fontSize(8).font("Helvetica-Bold").fillColor(C.white)
+          .text(`${i + 1}. ${therapy.therapy_name || "Therapy"}`, x + 6, cardY + 3, { width: w - 80 });
+        if (therapy.relevance_score != null) {
+          doc.fontSize(7).font("Helvetica").fillColor(C.amberLight)
+            .text(`${(therapy.relevance_score * 100).toFixed(0)}% relevance`, x + w - 90, cardY + 3, { width: 84, align: "right" });
+        }
+        doc.y = cardY + 16;
+
+        if (therapy.summary) {
+          this.checkPage(doc, 28);
+          const summaryLines = String(therapy.summary).split("\n");
+          summaryLines.forEach((sl: string) => {
+            const st = sl.trim();
+            if (!st) return;
+            this.checkPage(doc, 15);
+            if (st.startsWith("*") || st.startsWith("-")) {
+              const content = st.replace(/^[\*\-]\s*/, "").replace(/\*\*/g, "");
+              const sqY2 = doc.y + 3;
+              doc.rect(x + 8, sqY2, 4, 4).fillColor(C.mid).fill();
+              doc.fontSize(8).font("Helvetica").fillColor(C.dark)
+                .text(content, x + 16, doc.y, { width: w - 20 });
+            } else {
+              const cleaned = st.replace(/\*\*/g, "");
+              doc.fontSize(8).font("Helvetica").fillColor(C.dark)
+                .text(cleaned, x + 4, doc.y, { width: w - 8 });
+            }
+            doc.moveDown(0.15);
+          });
+        }
+
+        const meta = [
+          therapy.intervention_targets && `Target: ${therapy.intervention_targets}`,
+          therapy.evidence_basis && `Evidence: ${therapy.evidence_basis}`,
+        ].filter(Boolean).join("   |   ");
+        if (meta) {
+          this.checkPage(doc, 14);
+          doc.fontSize(7).font("Helvetica").fillColor(C.light).text(meta, x + 4, doc.y, { width: w - 8 });
+          doc.moveDown(0.2);
+        }
+        doc.moveDown(0.4);
+      });
+    }
+
+    // ── RAG Evidence Chunks ──
+    const chunks = report?.retrieved_chunks;
+    if (Array.isArray(chunks) && chunks.length > 0 && (reportMode === "clinical_summary" || reportMode === "aggregated_outcome" || reportMode === "therapy_plan")) {
+      this.checkPage(doc, 60);
+      this.sectionHeader(doc, "EVIDENCE-BASED MEDICINE REFERENCES (TOP 5)", x, w);
+      chunks.slice(0, 5).forEach((chunk: any, ci: number) => {
+        this.checkPage(doc, 35);
+        const source = chunk?.metadata?.source || chunk?.source || "Reference Library";
+        doc.fontSize(7).font("Helvetica-Bold").fillColor(C.mid)
+          .text(`[${ci + 1}] ${source}`, x + 4);
+        if (chunk?.text) {
+          doc.fontSize(8).font("Helvetica-Oblique").fillColor(C.dark)
+            .text(`"${String(chunk.text).substring(0, 300)}..."`, x + 12, doc.y, { width: w - 16 });
+        }
+        doc.moveDown(0.4);
+      });
+    }
+  }
 
   private sectionHeader(doc: any, title: string, x: number, w: number) {
     doc.moveDown(0.3);
@@ -642,13 +789,7 @@ export class PdfGeneratorService {
     doc.moveDown(0.5);
   }
 
-  private infoRow(
-    doc: any,
-    label: string,
-    value: string,
-    x: number,
-    y: number,
-  ) {
+  private infoRow(doc: any, label: string, value: string, x: number, y: number) {
     doc.fontSize(8).font("Helvetica-Bold").fillColor(C.light).text(label, x, y);
     doc
       .fontSize(9)
@@ -873,7 +1014,8 @@ export class PdfGeneratorService {
       });
 
       const adosTotal =
-        typeof ensemble.social_affect === "number" && typeof ensemble.rrb === "number"
+        typeof ensemble.social_affect === "number" &&
+        typeof ensemble.rrb === "number"
           ? ensemble.social_affect + ensemble.rrb
           : null;
       if (adosTotal != null) {
@@ -887,7 +1029,14 @@ export class PdfGeneratorService {
     }
 
     if (pred2d && pred3d) {
-      this.renderModelComparisonTable(doc, pred2d, pred3d, ensemble, left, width);
+      this.renderModelComparisonTable(
+        doc,
+        pred2d,
+        pred3d,
+        ensemble,
+        left,
+        width,
+      );
     }
 
     if (pred2d?.explainability) {
@@ -930,7 +1079,9 @@ export class PdfGeneratorService {
           .fontSize(7)
           .font("Helvetica-Bold")
           .fillColor(C.dark)
-          .text(`[${Math.floor(b.timestamp || 0)}s]`, left + 4, y + 3, { width: 40 });
+          .text(`[${Math.floor(b.timestamp || 0)}s]`, left + 4, y + 3, {
+            width: 40,
+          });
         doc
           .fontSize(7)
           .font("Helvetica")
@@ -1124,14 +1275,21 @@ export class PdfGeneratorService {
 
     rows.forEach((row, i) => {
       const y = tableY + 16 + i * 16;
-      doc.rect(left, y, width, 16).fillColor(i % 2 === 0 ? C.bg : C.white).fill();
+      doc
+        .rect(left, y, width, 16)
+        .fillColor(i % 2 === 0 ? C.bg : C.white)
+        .fill();
       doc.fontSize(7).font("Helvetica").fillColor(C.dark);
       doc.text(String(row[0] ?? "N/A"), left + 4, y + 4, { width: colW });
       doc.text(String(row[1] ?? "N/A"), left + colW + 4, y + 4, { width: colW });
-      doc.text(String(row[2] ?? "N/A"), left + colW * 2 + 4, y + 4, { width: colW });
+      doc.text(String(row[2] ?? "N/A"), left + colW * 2 + 4, y + 4, {
+        width: colW,
+      });
       doc
         .font("Helvetica-Bold")
-        .text(String(row[3] ?? "N/A"), left + colW * 3 + 4, y + 4, { width: colW });
+        .text(String(row[3] ?? "N/A"), left + colW * 3 + 4, y + 4, {
+          width: colW,
+        });
     });
 
     doc
@@ -1432,7 +1590,6 @@ export class PdfGeneratorService {
     const required = Math.min(Math.max(needed, 0), maxBlock);
 
     if (doc.y + required > bottomY) {
-      if (doc.y <= topY + 2) return;
       doc.addPage();
       doc.y = topY;
     }

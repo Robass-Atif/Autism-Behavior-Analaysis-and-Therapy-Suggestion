@@ -28,11 +28,13 @@ import AddPatientScreen from "../components/screens/therapist/AddPatientScreen";
 import IndividualAnalysisReport from "../components/screens/therapist/IndividualAnalysisReport";
 import ConsolidatedReport from "../components/screens/therapist/ConsolidatedReport"; // Fix possible typo in path if needed, keeping original import
 import TherapyRecommendations from "../components/screens/therapist/TherapyRecommendations";
+import OutcomeReports from "../components/screens/therapist/OutcomeReports";
 import ReportGeneration from "../components/screens/therapist/ReportGeneration";
 import DataExportImportScreen from "../components/screens/therapist/DataExportImportScreen";
 import SettingsScreen from "../components/screens/therapist/SettingsScreen";
 import CaregiverInvitationScreen from "../components/screens/therapist/CaregiverInvitationScreen";
 import TherapistScheduleScreen from "../components/screens/therapist/TherapistScheduleScreen";
+import DiagnosticReports from "../components/screens/therapist/DiagnosticReports";
 
 // New: AI Review Workflow Screens
 import PendingReviewScreen from "../components/screens/therapist/PendingReviewScreen";
@@ -153,6 +155,8 @@ export const handleScreenNavigation = (screen: Screen, data?: any) => {
     [Screen.REPORT_GENERATION]: "/reports",
     [Screen.SETTINGS]: "/settings",
     [Screen.PENDING_REVIEW_QUEUE]: "/pending-review",
+    [Screen.RECOMMENDATIONS]: "/recommendations",
+    [Screen.PATIENT_LONGITUDINAL]: "/longitudinal", // Default to standalone longitudinal
   };
 
   // Handle dynamic routes
@@ -195,8 +199,6 @@ export const handleScreenNavigation = (screen: Screen, data?: any) => {
 
 // Patient Screens
 import PatientDashboard from "../components/screens/patient/PatientDashboard";
-
-// ... existing imports ...
 
 // Role-aware Dashboard component
 const RoleBasedDashboard = () => {
@@ -328,6 +330,17 @@ export const patientLongitudinalRoute = createRoute({
   },
 });
 
+export const longitudinalRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/longitudinal",
+  component: () => (
+    <PatientLongitudinalScreen
+      patientId=""
+      onNavigate={handleScreenNavigation}
+    />
+  ),
+});
+
 export const recommendationsRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/recommendations",
@@ -339,7 +352,13 @@ export const recommendationsRoute = createRoute({
 export const reportsRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/reports",
-  component: ReportGeneration,
+  component: OutcomeReports,
+});
+
+export const diagnosticReportsRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/diagnostic-results",
+  component: DiagnosticReports,
 });
 
 export const individualReportRoute = createRoute({
@@ -513,6 +532,7 @@ const routeTree = rootRoute.addChildren([
     patientCreateRoute,
     patientProfileRoute,
     patientLongitudinalRoute,
+    longitudinalRoute,
     therapyGoalsRoute,
     therapyGoalFormRoute,
     caregiverInvitationsRoute,
@@ -522,6 +542,7 @@ const routeTree = rootRoute.addChildren([
     pendingReviewRoute,
     sessionReportRoute,
     recommendationsRoute,
+    diagnosticReportsRoute,
     reportsRoute,
     individualReportRoute,
     dataExportRoute,

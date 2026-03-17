@@ -6,43 +6,57 @@ import {
   Lock,
   ShieldCheck,
   Loader2,
+  FileCheck2,
 } from "lucide-react";
 import toast from "../../../lib/toast";
-import { useVideoSessions, useGenerateReport } from "../../../api/clinical";
+import { useVideoSessions, useGenerateReport, useDeleteVideoSession, useUnpublishPatientClinicalReport } from "../../../api/clinical";
+import { useCaregiverPatients } from "../../../api/patient";
+import { Trash2 } from "lucide-react";
 
 export default function CaregiverReportsScreen() {
-  const { data: sessionsData, isLoading } = useVideoSessions();
+  const { data: sessionsData, isLoading: sessionsLoading } = useVideoSessions();
+  const { data: patientsData, isLoading: patientsLoading } = useCaregiverPatients();
   const generateReport = useGenerateReport();
+  const deleteSession = useDeleteVideoSession();
+  const unpublishReport = useUnpublishPatientClinicalReport();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const sessions = sessionsData?.sessions || [];
   const publishedSessions = sessions.filter(
     (s: any) => s.status === "published",
   );
 
-  const handleDownload = async (report: any) => {
-    setDownloadingId(report.id);
-    const toastId = toast.loading("Generating PDF report...");
+  const patients = Array.isArray(patientsData) ? patientsData : (patientsData as any)?.patients || [];
+  const patient = patients[0]; // Assuming one patient for now
+  const hasPublishedAggregatedReport = patient?.isLatestClinicalReportPublished && patient?.latestClinicalReport;
+
+  const handleDownload = async (report: any, isAggregated = false) => {
+    const reportId = isAggregated ? `agg_${patient?.id}` : report.id;
+    setDownloadingId(reportId);
+    const toastId = toast.loading(isAggregated ? "Generating Aggregated Clinical Report..." : "Generating PDF report...");
 
     try {
       const blob = await generateReport.mutateAsync({
-        patientId: report.patientId,
-        sessionId: report.id,
-        includeGoals: false,
+        patientId: isAggregated ? patient?.id : report.patientId,
+        sessionId: isAggregated ? undefined : report.id,
+        includeGoals: isAggregated,
         includeCharts: true,
-        includeTables: false,
+        includeTables: isAggregated,
         includeNotes: true,
         watermark: true,
-        reportType: "session",
+        reportType: isAggregated ? "clinical_summary" : "session",
       });
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      const name = (report.patientName || "Patient").replace(/\s+/g, "_");
-      link.setAttribute(
-        "download",
-        `Session_Report_${name}_${report.id}_${new Date().toISOString().split("T")[0]}.pdf`,
-      );
+      const name = (patient?.fullName || "Patient").replace(/\s+/g, "_");
+      const filename = isAggregated 
+        ? `Aggregated_Clinical_Report_${name}_${new Date().toISOString().split("T")[0]}.pdf`
+        : `Session_Report_${name}_${report.id}_${new Date().toISOString().split("T")[0]}.pdf`;
+      
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -59,20 +73,21 @@ export default function CaregiverReportsScreen() {
     }
   };
 
-  const handlePreview = async (report: any) => {
-    setDownloadingId(report.id);
+  const handlePreview = async (report: any, isAggregated = false) => {
+    const reportId = isAggregated ? `agg_${patient?.id}` : report.id;
+    setDownloadingId(reportId);
     const toastId = toast.loading("Generating preview...");
 
     try {
       const blob = await generateReport.mutateAsync({
-        patientId: report.patientId,
-        sessionId: report.id,
-        includeGoals: false,
+        patientId: isAggregated ? patient?.id : report.patientId,
+        sessionId: isAggregated ? undefined : report.id,
+        includeGoals: isAggregated,
         includeCharts: true,
-        includeTables: false,
+        includeTables: isAggregated,
         includeNotes: true,
         watermark: true,
-        reportType: "session",
+        reportType: isAggregated ? "clinical_summary" : "session",
       });
 
       const url = window.URL.createObjectURL(blob);
@@ -88,6 +103,47 @@ export default function CaregiverReportsScreen() {
       setDownloadingId(null);
     }
   };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    if (!window.confirm("Are you sure you want to delete this report? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingId(sessionId);
+    const toastId = toast.loading("Deleting session report...");
+
+    try {
+      await deleteSession.mutateAsync(sessionId);
+      toast.success("Report deleted successfully", { id: toastId });
+    } catch (error) {
+      console.error("Failed to delete session", error);
+      toast.error("Failed to delete report. Please try again.", { id: toastId });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteAggregatedReport = async () => {
+    if (!patient?.id) return;
+    if (!window.confirm("Are you sure you want to hide the comprehensive clinical summary? You will need to contact your therapist to restore it.")) {
+      return;
+    }
+
+    setDeletingId(`agg_${patient?.id}`);
+    const toastId = toast.loading("Hiding clinical summary...");
+
+    try {
+      await unpublishReport.mutateAsync(patient.id);
+      toast.success("Clinical summary hidden successfully", { id: toastId });
+    } catch (error) {
+      console.error("Failed to hide clinical summary", error);
+      toast.error("Failed to hide summary. Please try again.", { id: toastId });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const isLoading = sessionsLoading || patientsLoading;
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-mono selection:bg-zinc-100 p-8 md:p-12 animate-in fade-in duration-500">
@@ -120,10 +176,83 @@ export default function CaregiverReportsScreen() {
           </p>
         </div>
 
+        {/* Aggregated Report Section */}
+        {hasPublishedAggregatedReport && (
+          <div className="mb-12">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-6 flex items-center gap-2">
+              CONSOLIDATED TREATMENT OVERVIEW
+            </h3>
+            <div className="border border-zinc-900 p-8 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-zinc-900 text-white relative group">
+              <div className="absolute top-0 right-0 p-1">
+                <FileCheck2 size={16} className="text-zinc-700" />
+              </div>
+
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 bg-white flex items-center justify-center text-zinc-900">
+                  <ShieldCheck size={28} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black uppercase tracking-tight mb-2">
+                    Comprehensive Clinical Summary
+                  </h3>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-[9px] font-bold text-zinc-400 uppercase tracking-widest">
+                    <span>
+                      LAST UPDATED:{" "}
+                      {patient.latestClinicalReportPublishedAt
+                        ? new Date(patient.latestClinicalReportPublishedAt).toLocaleDateString()
+                        : "RECENT"}
+                    </span>
+                    <span className="text-white">STATUS: APPROVED FOR CAREGIVER</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handlePreview(null, true)}
+                  disabled={!!downloadingId}
+                  className="flex items-center gap-3 border border-white text-white px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-zinc-900 transition-all disabled:opacity-50"
+                >
+                  {downloadingId === `agg_${patient?.id}` ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Eye size={14} />
+                  )}{" "}
+                  View Report
+                </button>
+                <button
+                  onClick={() => handleDownload(null, true)}
+                  disabled={!!downloadingId}
+                  className="flex items-center gap-3 bg-white text-zinc-900 px-8 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-100 transition-all disabled:opacity-50"
+                >
+                  {downloadingId === `agg_${patient?.id}` ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Download size={14} />
+                  )}{" "}
+                  Get PDF
+                </button>
+                <button
+                  onClick={handleDeleteAggregatedReport}
+                  disabled={!!deletingId}
+                  className="flex items-center justify-center w-12 h-12 border border-zinc-700 text-zinc-400 hover:text-red-500 hover:border-red-500 transition-all disabled:opacity-50"
+                  title="Hide Report"
+                >
+                  {deletingId === `agg_${patient?.id}` ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Reports Registry */}
         <div className="space-y-4">
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-6 flex items-center gap-2">
-            REGISTRY ENTRIES
+            INDIVIDUAL SESSION REGISTRY
           </h3>
 
           {isLoading ? (
@@ -132,7 +261,7 @@ export default function CaregiverReportsScreen() {
                 Retrieving Secure Documents...
               </span>
             </div>
-          ) : publishedSessions.length === 0 ? (
+          ) : publishedSessions.length === 0 && !hasPublishedAggregatedReport ? (
             <div className="border border-zinc-100 p-12 text-center bg-zinc-50">
               <FileText size={32} className="mx-auto text-zinc-300 mb-4" />
               <h3 className="text-sm font-black uppercase tracking-widest text-zinc-500">
@@ -183,7 +312,7 @@ export default function CaregiverReportsScreen() {
                         e.stopPropagation();
                         handlePreview(report);
                       }}
-                      disabled={isProcessing}
+                      disabled={!!downloadingId}
                       className="flex items-center gap-3 border border-zinc-900 text-zinc-900 px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-100 transition-all disabled:opacity-50"
                     >
                       {isProcessing ? (
@@ -198,7 +327,7 @@ export default function CaregiverReportsScreen() {
                         e.stopPropagation();
                         handleDownload(report);
                       }}
-                      disabled={isProcessing}
+                      disabled={!!downloadingId}
                       className="flex items-center gap-3 bg-zinc-900 text-white px-8 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition-all disabled:opacity-50 shadow-lg shadow-zinc-900/10"
                     >
                       {isProcessing ? (
@@ -207,6 +336,21 @@ export default function CaregiverReportsScreen() {
                         <Download size={14} />
                       )}{" "}
                       Download
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSession(report.id);
+                      }}
+                      disabled={!!deletingId}
+                      className="flex items-center justify-center w-12 h-12 border border-zinc-100 text-zinc-300 hover:text-red-600 hover:border-red-600 transition-all disabled:opacity-50"
+                      title="Delete Report"
+                    >
+                      {deletingId === report.id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
                     </button>
                   </div>
                 </div>

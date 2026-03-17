@@ -264,11 +264,10 @@ export default function PendingReviewScreen({
         {/* Filters */}
         <div className="bg-white border-2 border-zinc-900 p-6 mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-[2] relative">
-              <Search
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-400"
-                size={18}
-              />
+            <div className="flex-[2] relative space-y-1">
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Search size={12} /> Search
+              </label>
               <input
                 type="text"
                 placeholder="SEARCH BY PATIENT, ACTION, OR CAREGIVER..."

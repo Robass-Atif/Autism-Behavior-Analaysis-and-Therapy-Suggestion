@@ -1,15 +1,15 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 @Schema({ timestamps: true })
 export class VideoSession extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'Patient', required: true })
+  @Prop({ type: Types.ObjectId, ref: "Patient", required: true })
   patientId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   therapistId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   caregiverId: Types.ObjectId;
 
   @Prop({ required: true })
@@ -37,14 +37,22 @@ export class VideoSession extends Document {
   @Prop({ type: String })
   actionType: string;
 
-  @Prop({ enum: ['high', 'medium', 'low'], default: 'medium' })
+  @Prop({ enum: ["high", "medium", "low"], default: "medium" })
   qualityScore: string;
 
   // ========== STATUS LIFECYCLE ==========
   // pending_review → approved_for_ai → processing → completed → therapist_review → published
   @Prop({
-    enum: ['pending_review', 'approved_for_ai', 'processing', 'completed', 'therapist_review', 'published', 'failed'],
-    default: 'pending_review',
+    enum: [
+      "pending_review",
+      "approved_for_ai",
+      "processing",
+      "completed",
+      "therapist_review",
+      "published",
+      "failed",
+    ],
+    default: "pending_review",
   })
   status: string;
 
@@ -62,11 +70,15 @@ export class VideoSession extends Document {
   @Prop({ type: Date })
   cancelledAt: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   cancelledBy: Types.ObjectId;
 
   // Who uploaded: 'therapist' | 'caregiver'
-  @Prop({ type: String, enum: ['therapist', 'caregiver'], default: 'therapist' })
+  @Prop({
+    type: String,
+    enum: ["therapist", "caregiver"],
+    default: "therapist",
+  })
   uploadedBy: string;
 
   // ========== AI ANALYSIS RESULTS ==========
@@ -137,7 +149,7 @@ export class VideoSession extends Document {
   @Prop({ type: Date })
   publishedAt: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: "User" })
   publishedBy: Types.ObjectId;
 
   // ========== SOFT DELETE ==========

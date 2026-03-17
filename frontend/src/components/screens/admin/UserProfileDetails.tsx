@@ -2,23 +2,99 @@ import React, { useState } from "react";
 import {
   X,
   Mail,
-  Phone,
   Calendar,
   Clock,
   Shield,
   FileText,
   Building2,
-  MapPin,
-  Activity,
-  Download,
-  Loader2,
   User,
+  Activity,
+  MapPin,
+  Phone,
+  Briefcase,
   Hash,
+  Award,
+  TrendingUp,
+  Target,
+  Loader2,
   AlertCircle,
   CheckCircle,
-  Award,
+  Download,
 } from "lucide-react";
 import { useAdminUserDetails } from "../../../api/admin";
+
+// ─── Inline Markdown to JSX Renderer ────────────────────────────────────────
+function renderMarkdown(text: string): React.ReactNode {
+  if (!text) return null;
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+
+    const h3Match = line.match(/^#{2,4}\s+(.+)/);
+    if (h3Match) {
+      elements.push(
+        <h3 key={i} className="text-base font-bold text-zinc-900 tracking-tight mt-6 mb-2 flex items-center gap-2">
+          <span className="w-1 h-5 bg-amber-400 rounded-full shrink-0 inline-block"></span>
+          {renderInline(h3Match[1])}
+        </h3>
+      );
+      i++;
+      continue;
+    }
+
+    const h2Match = line.match(/^#{1,2}\s+(.+)/);
+    if (h2Match) {
+      elements.push(
+        <h2 key={i} className="text-lg font-bold text-zinc-900 tracking-tight mt-8 mb-3 border-b border-zinc-200 pb-2">
+          {renderInline(h2Match[1])}
+        </h2>
+      );
+      i++;
+      continue;
+    }
+
+    if (line.match(/^\s*[\*\-]\s+/)) {
+      const bulletItems: React.ReactNode[] = [];
+      while (i < lines.length && lines[i].match(/^\s*[\*\-]\s+/)) {
+        bulletItems.push(
+          <li key={i} className="flex gap-2.5 text-sm text-zinc-700 leading-relaxed">
+            <span className="mt-1.5 w-2 h-2 bg-zinc-900 shrink-0 inline-block"></span>
+            <span>{renderInline(lines[i].replace(/^\s*[\*\-]\s+/, ""))}</span>
+          </li>
+        );
+        i++;
+      }
+      elements.push(<ul key={`ul-${i}`} className="space-y-2 mb-3">{bulletItems}</ul>);
+      continue;
+    }
+
+    elements.push(
+      <p key={i} className="text-sm text-zinc-700 leading-relaxed mb-3">
+        {renderInline(line)}
+      </p>
+    );
+    i++;
+  }
+  return <>{elements}</>;
+}
+
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={i} className="font-semibold text-zinc-900">{part.slice(2, -2)}</strong>;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
 
 interface UserProfileDetailsProps {
   userId: string;
@@ -403,7 +479,17 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2">
                       <DetailRow
                         label="Linked Therapist"
-                        value={user.roleSpecific?.linkedTherapistId}
+                        value={
+                          <div>
+                            <label className="block text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 opacity-50">Linked Therapist</label>
+                            <div className="text-sm font-black text-zinc-900 flex items-center gap-2 group">
+                              <div className="w-5 h-5 bg-zinc-100 border border-zinc-200 flex items-center justify-center font-black text-[10px] group-hover:bg-rose-500 group-hover:text-white transition-all italic">
+                                {user.roleSpecific?.linkedTherapistName?.[0] || 'T'}
+                              </div>
+                              {user.roleSpecific?.linkedTherapistName || user.roleSpecific?.linkedTherapistId || 'Not Linked'}
+                            </div>
+                          </div>
+                        }
                         icon={User}
                       />
                       <DetailRow
@@ -414,30 +500,104 @@ const UserProfileDetails: React.FC<UserProfileDetailsProps> = ({
                     </div>
                     <SectionHeader title="Patients Managed" icon={User} />
                     <div className="p-4">
-                      {user.roleSpecific?.patientIds &&
-                      user.roleSpecific.patientIds.length > 0 ? (
+                      <div className="md:col-span-2 space-y-3 pt-4 border-t border-zinc-100">
+                        <label className="block text-[10px] font-black text-amber-500 uppercase tracking-widest opacity-50">Patients Managed</label>
                         <div className="flex flex-wrap gap-2">
-                          {user.roleSpecific.patientIds.map((pid) => (
-                            <span
-                              key={pid}
-                              className="px-3 py-1.5 bg-zinc-100 border border-zinc-200 text-xs font-mono text-zinc-600"
-                            >
-                              {pid}
-                            </span>
-                          ))}
+                          {user.roleSpecific?.patientNames && user.roleSpecific.patientNames.length > 0 ? (
+                            user.roleSpecific.patientNames.map((name: string, i: number) => (
+                              <div key={i} className="px-3 py-1.5 bg-zinc-900 text-amber-400 text-[10px] font-black uppercase tracking-widest border border-zinc-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-default">
+                                {name}
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm font-bold text-zinc-400 uppercase italic">No patients linked to this caregiver</p>
+                          )}
                         </div>
-                      ) : (
-                        <span className="text-zinc-400 text-sm font-mono">
-                          No patients linked
-                        </span>
-                      )}
+                      </div>
                     </div>
                   </>
                 )}
                 {user.role === "patient" && (
-                  <div className="p-12 text-center text-zinc-400 italic">
-                    Patient clinical details are restricted.
-                  </div>
+                  <>
+                    <SectionHeader title="Clinical Profile" icon={Activity} />
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      <DetailRow
+                        label="Patient MRN"
+                        value={user.roleSpecific?.mrn}
+                        icon={Hash}
+                      />
+                      <DetailRow
+                        label="ASD Severity Level"
+                        value={user.roleSpecific?.asdSeverity}
+                        icon={Award}
+                      />
+                      <DetailRow
+                        label="Diagnosis Date"
+                        value={
+                          user.roleSpecific?.diagnosisDate
+                            ? new Date(user.roleSpecific.diagnosisDate).toLocaleDateString()
+                            : null
+                        }
+                        icon={Calendar}
+                      />
+                      <DetailRow
+                        label="Admission Date"
+                        value={
+                          user.roleSpecific?.admissionDate
+                            ? new Date(user.roleSpecific.admissionDate).toLocaleDateString()
+                            : null
+                        }
+                        icon={Clock}
+                      />
+                    </div>
+
+                    <SectionHeader title="Progress Overview" icon={TrendingUp} />
+                    <div className="p-6 border-b border-zinc-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-bold text-zinc-700 uppercase tracking-wider">Overall Progress Score</span>
+                        <span className="text-2xl font-mono font-bold text-black">{user.roleSpecific?.progressScore || 0}%</span>
+                      </div>
+                      <div className="w-full h-4 bg-zinc-100 border border-zinc-200 overflow-hidden">
+                        <div 
+                          className="h-full bg-black transition-all duration-1000" 
+                          style={{ width: `${user.roleSpecific?.progressScore || 0}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <SectionHeader title="Latest Clinical Narrative" icon={FileText} />
+                    <div className="p-6 bg-zinc-50/50 min-h-[300px]">
+                      {user.roleSpecific?.latestClinicalReport?.summary ? (
+                        <div className="prose prose-zinc prose-sm max-w-none">
+                          {renderMarkdown(user.roleSpecific.latestClinicalReport.summary)}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12 text-zinc-400 font-mono text-sm italic border-2 border-dashed border-zinc-200">
+                          No clinical summary generated yet.
+                        </div>
+                      )}
+                    </div>
+
+                    {user.roleSpecific?.latestClinicalReport?.therapies && (
+                      <>
+                        <SectionHeader title="Active Therapy Recommendations" icon={Target} />
+                        <div className="p-4 space-y-4">
+                          {user.roleSpecific.latestClinicalReport.therapies.map((therapy: any, idx: number) => (
+                            <div key={idx} className="p-4 border border-zinc-200 bg-white shadow-sm hover:border-black transition-colors">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="w-2 h-2 bg-amber-400 rounded-full" />
+                                <h4 className="font-bold text-zinc-900">{therapy.name}</h4>
+                                <span className="text-[10px] bg-zinc-100 px-2 py-0.5 font-bold uppercase ml-auto">{therapy.relevance}</span>
+                              </div>
+                              <p className="text-xs text-zinc-600 leading-relaxed font-mono">
+                                {therapy.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             </div>

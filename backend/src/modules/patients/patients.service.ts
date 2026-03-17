@@ -223,6 +223,11 @@ export class PatientsService {
     return this.patientModel.findById(patientId).exec();
   }
 
+  // Find patient record by userId
+  async findByUserId(userId: string) {
+    return this.patientModel.findOne({ userId }).exec();
+  }
+
   // Get caregivers linked to therapist (for cascade operations)
   async getCaregiversLinkedToTherapist(therapistId: string) {
     // Find all patients belonging to this therapist
@@ -417,6 +422,11 @@ export class PatientsService {
                 email: "",
                 phone: "",
               },
+          latestClinicalReport: patient?.isLatestClinicalReportPublished 
+            ? patient?.latestClinicalReport 
+            : undefined,
+          isLatestClinicalReportPublished: patient?.isLatestClinicalReportPublished,
+          latestClinicalReportPublishedAt: patient?.latestClinicalReportPublishedAt,
         };
       });
 
@@ -428,7 +438,7 @@ export class PatientsService {
     patientId: string,
     userId: string,
     userRole: string,
-    updateData: Partial<CreatePatientDto>,
+    updateData: any,
   ) {
     const patient = await this.patientModel.findById(patientId);
 
@@ -533,6 +543,7 @@ export class PatientsService {
       return 0;
     }
   }
+
   // Count all patients (for admin dashboard)
   async countTotalPatients(): Promise<number> {
     return this.patientModel.countDocuments({ deleted: false });

@@ -15,12 +15,15 @@ import { VideoSession } from "./schemas/video-session.schema";
 import { CreateTherapyGoalDto } from "./dto/create-therapy-goal.dto";
 import { UpdateTherapyGoalDto } from "./dto/update-therapy-goal.dto";
 import { CreateVideoSessionDto } from "./dto/create-video-session.dto";
+import { Patient } from "../patients/schemas/patient.schema";
+import { PatientCaregiver } from "../patients/schemas/patient-caregiver.schema";
 import { PatientsService } from "../patients/patients.service";
 import { PdfGeneratorService } from "./services/pdf-generator.service";
 import { AiAnalysisService } from "./services/ai-analysis.service";
 import { Role } from "../../common/enums/role.enum";
 import { EmailService } from "../email/email.service";
 import { CryptoService } from "../../common/services/crypto.service";
+import { User, UserDocument } from "../users/schemas/user.schema";
 import * as fs from "fs";
 import * as path from "path";
 @Injectable()
@@ -35,6 +38,9 @@ export class ClinicalService {
     private aiAnalysisService: AiAnalysisService,
     private emailService: EmailService,
     private cryptoService: CryptoService,
+    @InjectModel(Patient.name) private patientModel: Model<Patient>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(PatientCaregiver.name) private patientCaregiverModel: Model<PatientCaregiver>,
   ) {}
 
   // ========== THERAPY GOALS ==========
@@ -674,6 +680,20 @@ export class ClinicalService {
       );
     }
 
+    if (userRole === "caregiver") {
+      const result = await this.patientsService.getCaregiverPatients(userId);
+      const patientIds = (result.patients || []).map((p: any) =>
+        p.id?.toString(),
+      );
+      const sessionPatientId =
+        session.patientId?._id?.toString() || session.patientId?.toString();
+      if (!patientIds.includes(sessionPatientId)) {
+        throw new ForbiddenException(
+          "You can only delete sessions for your linked patients",
+        );
+      }
+    }
+
     session.deleted = true;
     session.updatedAt = new Date();
 
@@ -682,6 +702,36 @@ export class ClinicalService {
     return {
       success: true,
       message: "Video session deleted successfully",
+    };
+  }
+
+  async unpublishPatientClinicalReport(patientId: string, userId: string, userRole: string) {
+    const patient = await this.patientModel.findById(patientId);
+
+    if (!patient || patient.deleted) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    // Access control: Only linked caregivers or their therapist can unpublish
+    if (userRole === "caregiver") {
+      const result = await this.patientsService.getCaregiverPatients(userId);
+      const patientIds = (result.patients || []).map((p: any) => p.id?.toString());
+      if (!patientIds.includes(patientId)) {
+        throw new ForbiddenException("You can only unpublish reports for your linked patients");
+      }
+    } else if (userRole === "therapist") {
+      if (patient.therapistId.toString() !== userId) {
+        throw new ForbiddenException("You can only unpublish reports for your own patients");
+      }
+    }
+
+    patient.isLatestClinicalReportPublished = false;
+    patient.updatedAt = new Date();
+    await patient.save();
+
+    return {
+      success: true,
+      message: "Clinical report unpublished successfully",
     };
   }
 
@@ -799,6 +849,388 @@ export class ClinicalService {
       message:
         "Session reset for retry. You can now trigger AI analysis again.",
       session: this.formatVideoSession(session),
+    };
+  }
+
+  // ========== THERAPY RECOMMENDATION (ON-DEMAND) ==========
+
+  async generateTherapyRecommendation(sessionId: string, therapistId: string) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException("Video session not found");
+    }
+
+    if (session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException(
+        "You can only generate recommendations for your own sessions",
+      );
+    }
+
+    if (!session.ensemblePrediction) {
+      throw new BadRequestException(
+        "No AI prediction data available for this session. Please perform AI analysis first.",
+      );
+    }
+
+    // Call the dedicated AI Analysis service to generate RAG-based therapy recommendations
+    const clinicalReport = await this.aiAnalysisService.generateTherapyRecommendation(
+      sessionId,
+    );
+
+    session.clinicalReport = clinicalReport;
+    session.updatedAt = new Date();
+    await session.save();
+
+    return {
+      success: true,
+      message: "Therapy recommendations generated successfully.",
+      sessionId: session._id,
+      clinicalReport,
+    };
+  }
+
+  async generatePatientTherapyRecommendation(
+    patientId: string,
+    therapistId: string,
+  ) {
+    const patient = await this.patientModel.findById(patientId);
+    if (!patient || patient.deleted) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    if (patient.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException(
+        "You can only generate recommendations for your own patients",
+      );
+    }
+
+    // Call the dedicated AI Analysis service to generate RAG-based therapy recommendations
+    const clinicalReport = await this.aiAnalysisService.fetchAggregatedTherapyRecommendation(
+      patientId,
+    );
+
+    patient.latestClinicalReport = clinicalReport;
+    patient.updatedAt = new Date();
+    await patient.save();
+
+    return {
+      success: true,
+      message: "Aggregated therapy recommendations generated successfully.",
+      patientId: patient._id,
+      clinicalReport,
+    };
+  }
+
+  async updatePatientClinicalReport(
+    patientId: string,
+    therapistId: string,
+    clinicalReport: any,
+  ) {
+    const patient = await this.patientModel.findById(patientId);
+    if (!patient || patient.deleted) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    if (patient.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException(
+        "You can only update reports for your own patients",
+      );
+    }
+
+    patient.latestClinicalReport = clinicalReport;
+    patient.updatedAt = new Date();
+    await patient.save();
+
+    return {
+      success: true,
+      message: "Clinical report updated successfully.",
+      patientId: patient._id,
+    };
+  }
+
+  async publishPatientClinicalReport(patientId: string, therapistId: string) {
+    const patient = await this.patientModel.findById(patientId);
+    if (!patient || patient.deleted) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    if (patient.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException(
+        "You can only publish reports for your own patients",
+      );
+    }
+
+    if (!patient.latestClinicalReport) {
+      throw new BadRequestException(
+        "No clinical report found to publish. Please generate a recommendation first.",
+      );
+    }
+
+    patient.isLatestClinicalReportPublished = true;
+    patient.latestClinicalReportPublishedAt = new Date();
+    await patient.save();
+
+    // Send email to caregiver with Aggregated PDF report
+    try {
+      console.log(`[PublishReport] Looking for caregiver for patient ${patientId}`);
+      let caregiverId = (patient as any)?.caregiverId;
+      let caregiverEmail = (patient as any)?.caregiverEmail;
+      let caregiverName = "Caregiver";
+
+      console.log(`[PublishReport] Initial: caregiverId=${caregiverId}, caregiverEmail=${caregiverEmail}`);
+
+      // 1. Try PatientCaregiver links
+      if (!caregiverId || !caregiverEmail) {
+        console.log(`[PublishReport] Checking PatientCaregiver links for ${patientId}`);
+        const link = await this.patientCaregiverModel.findOne({
+          $or: [
+            { patientId: patient._id },
+            { patientId: patient._id.toString() }
+          ],
+          status: "active"
+        }).exec();
+        
+        if (link) {
+          caregiverId = link.caregiverId;
+          console.log(`[PublishReport] Link found! link.caregiverId=${caregiverId} (Type: ${typeof caregiverId})`);
+        } else {
+          console.log(`[PublishReport] No PatientCaregiver link found.`);
+        }
+      }
+
+      // 2. Try Caregiver model assignedPatients (Fallback)
+      if (!caregiverId || !caregiverEmail) {
+        console.log(`[PublishReport] Checking Caregiver model assignedPatients for ${patientId}`);
+        try {
+          const CaregiverModel = this.patientModel.db.model("Caregiver");
+          const caregiverObj: any = await CaregiverModel.findOne({
+            $or: [
+              { assignedPatients: patient._id },
+              { assignedPatients: patient._id.toString() }
+            ],
+            accountStatus: 'active'
+          }).lean().exec();
+
+          if (caregiverObj) {
+            caregiverId = caregiverObj._id || caregiverObj.id;
+            caregiverEmail = caregiverObj.email;
+            caregiverName = caregiverObj.fullName || "Caregiver";
+            console.log(`[PublishReport] Caregiver found via assignedPatients! email=${caregiverEmail}`);
+          } else {
+            console.log(`[PublishReport] No Caregiver found via assignedPatients.`);
+          }
+        } catch (modelErr) {
+          console.warn(`[PublishReport] Caregiver model lookup failed: ${modelErr.message}`);
+        }
+      }
+
+      // 3. Resolve Email if we have ID but no Email
+      if (!caregiverEmail && caregiverId) {
+        console.log(`[PublishReport] Resolving email for caregiverId=${caregiverId}`);
+        let caregiverUser = await this.userModel.findById(caregiverId).lean();
+        
+        if (!caregiverUser) {
+           // Try Caregiver model explicitly
+           try {
+              const CaregiverModel = this.patientModel.db.model("Caregiver");
+              caregiverUser = await CaregiverModel.findById(caregiverId).lean().exec() as any;
+           } catch (e) {}
+        }
+
+        if (caregiverUser) {
+          caregiverEmail = (caregiverUser as any).email;
+          caregiverName = (caregiverUser as any).fullName || "Caregiver";
+          console.log(`[PublishReport] Resolved Email: ${caregiverEmail}`);
+        } else {
+          console.log(`[PublishReport] Could not resolve caregiver user for ID: ${caregiverId}`);
+        }
+      }
+
+      if (caregiverEmail) {
+        const pdfBuffer = await this.generatePatientPDF(
+          patientId,
+          therapistId,
+          {
+            patientId,
+            includeCharts: true,
+            includeTables: true,
+            includeGoals: true,
+            includeNotes: true,
+            watermark: true,
+            reportType: "aggregated_outcome",
+          },
+          "therapist",
+        );
+
+        await this.emailService.sendPublishedReportEmail(
+          caregiverEmail,
+          caregiverName,
+          patient.fullName,
+          pdfBuffer,
+          {
+            actionType: "Aggregated Clinical Report",
+            recordedAt: new Date(),
+            publishedAt: patient.latestClinicalReportPublishedAt,
+            severity: patient.latestClinicalReport?.therapy_metadata?.severity_level || 1,
+          },
+        );
+      } else {
+        console.log(`[PublishReport] CRITICAL: No caregiver email found. Notification skipped.`);
+      }
+    } catch (e) {
+      console.error("[PublishReport] Failed to notify caregiver:", e);
+    }
+
+    return {
+      success: true,
+      message: "Clinical report published successfully for caregiver access.",
+      patientId: patient._id,
+      publishedAt: patient.latestClinicalReportPublishedAt,
+    };
+  }
+
+  async resendPatientClinicalReport(patientId: string, therapistId: string) {
+    const patient = await this.patientModel.findById(patientId);
+    if (!patient || patient.deleted) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    if (patient.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException(
+        "You can only resend reports for your own patients",
+      );
+    }
+
+    if (!patient.latestClinicalReport) {
+      throw new BadRequestException(
+        "No clinical report found to resend. Please generate a recommendation first.",
+      );
+    }
+
+    if (!patient.isLatestClinicalReportPublished) {
+      throw new BadRequestException(
+        "Report must be published before it can be resent. Use the Send to Caregiver option first.",
+      );
+    }
+
+    // Send email to caregiver with Aggregated PDF report
+    try {
+      console.log(`[ResendReport] Looking for caregiver for patient ${patientId}`);
+      let caregiverId = (patient as any)?.caregiverId;
+      let caregiverEmail = (patient as any)?.caregiverEmail;
+      let caregiverName = "Caregiver";
+
+      console.log(`[ResendReport] Initial: caregiverId=${caregiverId}, caregiverEmail=${caregiverEmail}`);
+
+      // 1. Try PatientCaregiver links
+      if (!caregiverId || !caregiverEmail) {
+        console.log(`[ResendReport] Checking PatientCaregiver links for ${patientId}`);
+        const link = await this.patientCaregiverModel.findOne({
+          $or: [
+            { patientId: patient._id },
+            { patientId: patient._id.toString() }
+          ],
+          status: "active"
+        }).exec();
+        
+        if (link) {
+          caregiverId = link.caregiverId;
+          console.log(`[ResendReport] Link found! link.caregiverId=${caregiverId} (Type: ${typeof caregiverId})`);
+        } else {
+          console.log(`[ResendReport] No PatientCaregiver link found.`);
+        }
+      }
+
+      // 2. Try Caregiver model assignedPatients (Fallback)
+      if (!caregiverId || !caregiverEmail) {
+        console.log(`[ResendReport] Checking Caregiver model assignedPatients for ${patientId}`);
+        try {
+          const CaregiverModel = this.patientModel.db.model("Caregiver");
+          const caregiverObj: any = await CaregiverModel.findOne({
+            $or: [
+              { assignedPatients: patient._id },
+              { assignedPatients: patient._id.toString() }
+            ],
+            accountStatus: 'active'
+          }).lean().exec();
+
+          if (caregiverObj) {
+            caregiverId = caregiverObj._id || caregiverObj.id;
+            caregiverEmail = caregiverObj.email;
+            caregiverName = caregiverObj.fullName || "Caregiver";
+            console.log(`[ResendReport] Caregiver found via assignedPatients! email=${caregiverEmail}`);
+          } else {
+            console.log(`[ResendReport] No Caregiver found via assignedPatients.`);
+          }
+        } catch (modelErr) {
+          console.warn(`[ResendReport] Caregiver model lookup failed: ${modelErr.message}`);
+        }
+      }
+
+      // 3. Resolve Email if we have ID but no Email
+      if (!caregiverEmail && caregiverId) {
+        console.log(`[ResendReport] Resolving email for caregiverId=${caregiverId}`);
+        let caregiverUser = await this.userModel.findById(caregiverId).lean();
+        
+        if (!caregiverUser) {
+           // Try Caregiver model explicitly
+           try {
+              const CaregiverModel = this.patientModel.db.model("Caregiver");
+              caregiverUser = await CaregiverModel.findById(caregiverId).lean().exec() as any;
+           } catch (e) {}
+        }
+
+        if (caregiverUser) {
+          caregiverEmail = (caregiverUser as any).email;
+          caregiverName = (caregiverUser as any).fullName || "Caregiver";
+          console.log(`[ResendReport] Resolved Email: ${caregiverEmail}`);
+        } else {
+          console.log(`[ResendReport] Could not resolve caregiver user for ID: ${caregiverId}`);
+        }
+      }
+
+      if (caregiverEmail) {
+        const pdfBuffer = await this.generatePatientPDF(
+          patientId,
+          therapistId,
+          {
+            patientId,
+            includeCharts: true,
+            includeTables: true,
+            includeGoals: true,
+            includeNotes: true,
+            watermark: true,
+            reportType: "aggregated_outcome",
+          },
+          "therapist",
+        );
+
+        await this.emailService.sendPublishedReportEmail(
+          caregiverEmail,
+          caregiverName,
+          patient.fullName,
+          pdfBuffer,
+          {
+            actionType: "Aggregated Clinical Report (Resend)",
+            recordedAt: new Date(),
+            publishedAt: patient.latestClinicalReportPublishedAt,
+            severity: patient.latestClinicalReport?.therapy_metadata?.severity_level || 1,
+          },
+        );
+      } else {
+        throw new BadRequestException("No caregiver email found for this patient.");
+      }
+    } catch (e) {
+      console.error("[ResendReport] Failed to resend email to caregiver:", e);
+      throw new BadRequestException(`Failed to resend report: ${e.message}`);
+    }
+
+    return {
+      success: true,
+      message: "Clinical report resent successfully to caregiver.",
+      patientId: patient._id,
+      resentAt: new Date(),
     };
   }
 

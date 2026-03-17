@@ -110,11 +110,21 @@ export interface UserDetails extends User {
     hipaaAccepted?: boolean;
     // Caregiver specific
     linkedTherapistId?: string;
+    linkedTherapistName?: string;
     relationshipToPatient?: string;
     patientIds?: string[];
+    patientNames?: string[];
     // Admin specific
     adminLevel?: string;
     permissions?: string[];
+    // Patient specific
+    mrn?: string;
+    asdSeverity?: string;
+    diagnosisDetails?: string;
+    progressScore?: number;
+    latestClinicalReport?: any;
+    diagnosisDate?: string;
+    admissionDate?: string;
   };
 }
 

@@ -37,7 +37,6 @@ export default function MainLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
 
-  // Helper to get role (in a real app, use a proper AuthContext)
   const getUserRole = () => {
     try {
       const userStr = localStorage.getItem("userRole");
@@ -131,13 +130,22 @@ export default function MainLayout() {
                 label="Video Library"
               />
               <NavItem
+                to="/longitudinal"
+                icon={<TrendingUp size={16} />}
+                label="Progress Trends"
+                forceActive={pathname.includes("/longitudinal")}
+              />
+              <NavItem
                 to="/recommendations"
                 icon={<Brain size={16} />}
-                label="AI Insights"
-                forceActive={
-                  pathname.includes("/longitudinal") ||
-                  pathname.includes("/recommendations")
-                }
+                label="Therapy Planner"
+                forceActive={pathname.includes("/recommendations")}
+              />
+              <NavItem
+                to="/diagnostic-results"
+                icon={<FileText size={16} />}
+                label="Diagnostic Results"
+                forceActive={pathname.includes("/diagnostic-results")}
               />
 
               <NavSection title="Clinical" />
@@ -284,11 +292,7 @@ const NavItem = ({
   badge?: number | string;
   forceActive?: boolean;
 }) => (
-  <Link
-    to={to}
-    activeOptions={{ exact: true }}
-    className="w-full block"
-  >
+  <Link to={to} activeOptions={{ exact: true }} className="w-full block">
     {({ isActive }) => {
       const isReallyActive = forceActive ?? isActive;
       return (

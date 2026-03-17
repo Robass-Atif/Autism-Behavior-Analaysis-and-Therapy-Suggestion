@@ -365,6 +365,99 @@ export class ClinicalController {
     return this.clinicalService.cancelAIAnalysis(id, user.sub);
   }
 
+  // ========== THERAPY RECOMMENDATION (ON-DEMAND) ==========
+
+  @Post("video-sessions/:id/therapy-recommend")
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Generate therapy recommendations via RAG pipeline",
+    description:
+      "Triggers the RAG-based therapy recommendation pipeline for a completed session. " +
+      "Requires prediction data to be available (AI analysis must have completed). " +
+      "Returns a structured clinical report with evidence-based therapy suggestions.",
+  })
+  @ApiResponse({ status: 200, description: "Therapy recommendations generated" })
+  @ApiResponse({ status: 400, description: "No prediction data available" })
+  @ApiResponse({ status: 404, description: "Session not found" })
+  async generateTherapyRecommendation(
+    @Param("id") id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.generateTherapyRecommendation(id, user.sub);
+  }
+
+  @Post("patients/:patientId/therapy-recommend")
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @ApiOperation({
+    summary: "Generate aggregated therapy recommendations for patient",
+    description: "Collects all completed AI analysis for a patient and generates combined therapy insights."
+  })
+  @ApiResponse({ status: 200, description: "Aggregated therapy recommendations generated" })
+  @ApiResponse({ status: 404, description: "Patient not found" })
+  async generatePatientTherapyRecommendation(
+    @Param("patientId") patientId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.generatePatientTherapyRecommendation(patientId, user.sub);
+  }
+
+  @Post("patients/:patientId/publish-report")
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @ApiOperation({
+    summary: "Publish aggregated therapy report for patient",
+    description: "Makes the latest clinical report visible to caregivers."
+  })
+  @ApiResponse({ status: 200, description: "Report published" })
+  async publishPatientClinicalReport(
+    @Param("patientId") patientId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.publishPatientClinicalReport(patientId, user.sub);
+  }
+  @Post("patients/:patientId/resend-report")
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @ApiOperation({
+    summary: "Resend published aggregated therapy report to caregiver",
+    description: "Re-triggers email notification for an already published report."
+  })
+  @ApiResponse({ status: 200, description: "Report resent" })
+  async resendPatientClinicalReport(
+    @Param("patientId") patientId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.resendPatientClinicalReport(patientId, user.sub);
+  }
+
+  @Put("patients/:patientId/clinical-report")
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @ApiOperation({
+    summary: "Update patient clinical report",
+    description: "Saves manual edits to the clinical report."
+  })
+  @ApiResponse({ status: 200, description: "Report updated" })
+  async updatePatientClinicalReport(
+    @Param("patientId") patientId: string,
+    @CurrentUser() user: any,
+    @Body() clinicalReport: any,
+  ) {
+    return this.clinicalService.updatePatientClinicalReport(patientId, user.sub, clinicalReport);
+  }
+
+  @Delete("patients/:patientId/clinical-report")
+  @Roles(Role.THERAPIST, Role.ADMIN, Role.CAREGIVER)
+  @ApiOperation({
+    summary: "Unpublish/Hide patient clinical report",
+    description: "Hides the latest clinical report from the caregiver's view."
+  })
+  @ApiResponse({ status: 200, description: "Report unpublished" })
+  async deletePatientClinicalReport(
+    @Param("patientId") patientId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.clinicalService.unpublishPatientClinicalReport(patientId, user.sub, user.role);
+  }
+
   // ========== RETRY AI ANALYSIS ==========
 
   @Post("video-sessions/:id/retry")
