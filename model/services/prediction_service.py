@@ -28,8 +28,8 @@ class PredictionService:
             settings: Application settings object
         """
         self.settings = settings
-        self.validator_2d = SkeletalInputValidator(settings)
-        self.validator_3d = SkeletalInputValidator(settings)
+        self.validator_2d = SkeletalInputValidator(settings, coord_space="pixel_2d")
+        self.validator_3d = SkeletalInputValidator(settings, coord_space="metric_3d")
     
     def predict_dual(
         self,

@@ -45,10 +45,22 @@ class Settings(BaseSettings):
     MAX_VIDEO_DURATION_SEC: int = 300  # Maximum video duration in seconds (5 minutes)
     
     # Input Validation Thresholds
-    MAX_BONE_LENGTH_VARIATION: float = 0.3  # 30%
-    MAX_MOVEMENT_VELOCITY: float = 50.0  # Increased for MediaPipe pixel coordinates
-    MIN_KEYPOINT_CONFIDENCE: float = 0.3
-    MAX_JOINT_ANGLE: float = 180.0
+    # Bone length — coefficient of variation per bone across frames
+    MAX_BONE_LENGTH_VARIATION_2D: float = 0.8   # MediaPipe normalized (foreshortening on rotation)
+    MAX_BONE_LENGTH_VARIATION_3D: float = 0.8   # ROMP metric (more stable but occlusion adds variance)
+    
+    # Velocity — max joint displacement per frame
+    MAX_MOVEMENT_VELOCITY_2D: float = 200       # MediaPipe: full frame ~1.0, fast motion ~0.10–0.25
+    MAX_MOVEMENT_VELOCITY_3D: float = 200       # ROMP: meters/frame at 25–30fps, fast arm ~0.5–0.7
+    
+    # Confidence — MediaPipe visibility score
+    MIN_KEYPOINT_CONFIDENCE_MEAN: float = 0.20   # Mean across all joints
+    MIN_KEYPOINT_CONFIDENCE_PER_JOINT: float = 0.10  # Floor per joint (for masking, not rejection)
+    MIN_VISIBLE_JOINT_RATIO: float = 0.60        # At least 60% of joints must exceed per-joint floor
+    
+    # Joint angles (degrees) — arccos output is [0°, 180°]
+    MAX_JOINT_ANGLE: float = 181.0               # Genuine hyperextension tops out ~170°
+    MIN_JOINT_ANGLE: float = 0.0                 # Near-zero guard (replaces "< 0" which is impossible)
     
     # Confidence Thresholds
     MIN_PREDICTION_CONFIDENCE: float = 0.6
