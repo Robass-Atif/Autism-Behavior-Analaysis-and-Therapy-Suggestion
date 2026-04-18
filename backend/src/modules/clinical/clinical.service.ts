@@ -748,6 +748,18 @@ export class ClinicalService {
       throw new ForbiddenException("You can only analyze your own sessions");
     }
 
+    // Enforce: Patient must have granted AI consent
+    const patient = await this.patientModel.findById(session.patientId);
+    if (!patient) {
+      throw new NotFoundException("Patient not found");
+    }
+    
+    if (!patient.aiConsent || !patient.aiConsent.isGranted) {
+      throw new BadRequestException(
+        "Patient AI consent is not granted or has been revoked. AI analysis cannot be performed."
+      );
+    }
+
     // Enforce: can only trigger AI on approved or failed sessions
     if (session.status !== "approved_for_ai" && session.status !== "failed") {
       throw new BadRequestException(

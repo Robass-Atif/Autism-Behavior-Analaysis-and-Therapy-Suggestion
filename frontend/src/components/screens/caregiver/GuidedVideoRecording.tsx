@@ -228,6 +228,11 @@ export default function GuidedVideoRecording({
     useCaregiverPatients();
   const patients = patientsData?.patients || [];
 
+  const selectedPatientObj = patients.find(
+    (p: any) => p.id === selectedPatient || p._id === selectedPatient
+  );
+  const hasConsent = selectedPatientObj?.aiConsent?.isGranted === true;
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -342,37 +347,45 @@ export default function GuidedVideoRecording({
               </section>
 
               {/* Initialize BTNs */}
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setStep("INSTRUCTIONS")}
-                  disabled={!selectedPatient}
-                  className="flex-1 py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-20 group relative overflow-hidden"
-                >
-                  <Camera size={18} className="relative z-10" />
-                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">
-                    CAPTURE VIDEO
-                  </span>
-                  <ChevronRight
-                    size={18}
-                    className="relative z-10 transition-transform group-hover:translate-x-2"
-                  />
-                  <div className="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={!selectedPatient}
-                  className="flex-1 py-6 border-2 border-zinc-900 text-zinc-900 text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-900 hover:text-white transition-all disabled:opacity-20 group relative overflow-hidden"
-                >
-                  <Upload size={18} className="relative z-10" />
-                  <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">
-                    UPLOAD VIDEO
-                  </span>
-                  <ChevronRight
-                    size={18}
-                    className="relative z-10 transition-transform group-hover:translate-x-2"
-                  />
-                  <div className="absolute inset-0 bg-zinc-900/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
-                </button>
+              <div className="flex gap-4 flex-col">
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setStep("INSTRUCTIONS")}
+                    disabled={!selectedPatient || !hasConsent}
+                    className="flex-1 py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-800 transition-all disabled:opacity-20 group relative overflow-hidden"
+                  >
+                    <Camera size={18} className="relative z-10" />
+                    <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">
+                      CAPTURE VIDEO
+                    </span>
+                    <ChevronRight
+                      size={18}
+                      className="relative z-10 transition-transform group-hover:translate-x-2"
+                    />
+                    <div className="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!selectedPatient || !hasConsent}
+                    className="flex-1 py-6 border-2 border-zinc-900 text-zinc-900 text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-zinc-900 hover:text-white transition-all disabled:opacity-20 group relative overflow-hidden"
+                  >
+                    <Upload size={18} className="relative z-10" />
+                    <span className="relative z-10 transition-transform group-hover:translate-x-[-4px]">
+                      UPLOAD VIDEO
+                    </span>
+                    <ChevronRight
+                      size={18}
+                      className="relative z-10 transition-transform group-hover:translate-x-2"
+                    />
+                    <div className="absolute inset-0 bg-zinc-900/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700"></div>
+                  </button>
+                </div>
+                {selectedPatient && !hasConsent && (
+                  <div className="bg-red-50 text-red-900 p-4 border-l-4 border-red-500 text-xs font-bold uppercase tracking-widest flex items-center gap-3">
+                    <ShieldCheck size={18} />
+                    <span>AI Consent is required to capture or upload videos. Please grant consent in your dashboard first.</span>
+                  </div>
+                )}
               </div>
               <input
                 ref={fileInputRef}

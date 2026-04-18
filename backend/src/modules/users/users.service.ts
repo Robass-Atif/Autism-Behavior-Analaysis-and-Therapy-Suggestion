@@ -516,19 +516,39 @@ export class UsersService {
     token: string,
     expires: Date,
   ): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
+    const user = await this.findById(userId);
+    if (!user) return;
+    const email = user.email.toLowerCase();
+
+    const update = {
       passwordResetToken: token,
       passwordResetExpires: expires,
-    });
+    };
+
+    await Promise.all([
+      this.userModel.findOneAndUpdate({ email }, update),
+      this.therapistModel.findOneAndUpdate({ email }, update),
+      this.caregiverModel.findOneAndUpdate({ email }, update),
+      this.adminModel.findOneAndUpdate({ email }, update),
+    ]);
   }
 
   async findByPasswordResetToken(token: string): Promise<UserDocument | null> {
-    return this.userModel
-      .findOne({
-        passwordResetToken: token,
-        passwordResetExpires: { $gt: new Date() },
-      })
-      .select("+password");
+    const query = {
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: new Date() },
+    };
+
+    let user = await this.therapistModel.findOne(query).select("+password");
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.caregiverModel.findOne(query).select("+password");
+    if (user) return user as unknown as UserDocument;
+
+    user = await this.adminModel.findOne(query).select("+password");
+    if (user) return user as unknown as UserDocument;
+
+    return this.userModel.findOne(query).select("+password");
   }
 
   async updatePassword(userId: string, newPassword: string): Promise<void> {
@@ -565,10 +585,15 @@ export class UsersService {
 
     // Also update in role-specific collections
     const email = user.email.toLowerCase();
+    const update = { 
+      password: user.password,
+      passwordResetToken: undefined,
+      passwordResetExpires: undefined
+    };
     await Promise.all([
-      this.therapistModel.findOneAndUpdate({ email }, { password: user.password }),
-      this.caregiverModel.findOneAndUpdate({ email }, { password: user.password }),
-      this.adminModel.findOneAndUpdate({ email }, { password: user.password }),
+      this.therapistModel.findOneAndUpdate({ email }, update),
+      this.caregiverModel.findOneAndUpdate({ email }, update),
+      this.adminModel.findOneAndUpdate({ email }, update),
     ]);
   }
 

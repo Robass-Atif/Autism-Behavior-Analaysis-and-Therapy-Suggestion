@@ -76,6 +76,36 @@ export class CommunicationPreferences {
   callReminders: boolean;
 }
 
+@Schema({ _id: false })
+export class ConsentRecord {
+  @Prop({ required: true })
+  granted: boolean;
+
+  @Prop({ required: true })
+  version: string;
+
+  @Prop({ required: true })
+  timestamp: Date;
+
+  @Prop({ required: true })
+  decidedBy: string;
+}
+
+@Schema({ _id: false })
+export class AiConsent {
+  @Prop({ default: false })
+  isGranted: boolean;
+
+  @Prop()
+  lastUpdated?: Date;
+
+  @Prop()
+  versionAccepted?: string;
+
+  @Prop({ type: [ConsentRecord], default: [] })
+  history: ConsentRecord[];
+}
+
 @Schema({ timestamps: true })
 export class Patient extends Document {
   // ===== BASIC INFORMATION =====
@@ -195,6 +225,9 @@ export class Patient extends Document {
 
   @Prop()
   latestClinicalReportPublishedAt?: Date;
+
+  @Prop({ type: AiConsent, default: () => ({ isGranted: false, history: [] }) })
+  aiConsent?: AiConsent;
 
   createdAt: Date;
   updatedAt: Date;

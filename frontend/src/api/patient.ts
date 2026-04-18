@@ -225,3 +225,29 @@ export const useRecentPatients = () => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+// Update Patient Consent
+export const useUpdatePatientConsent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      isGranted,
+      version = "1.0",
+    }: {
+      id: string;
+      isGranted: boolean;
+      version?: string;
+    }): Promise<{ success: boolean; message: string }> => {
+      const endpoint = `/patients/${id}/consent`;
+      return apiClient.put(endpoint, { isGranted, version });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["patient", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["caregiver-patients"] });
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+  });
+};
