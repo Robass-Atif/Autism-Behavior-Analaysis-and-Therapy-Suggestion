@@ -232,6 +232,7 @@ export default function GuidedVideoRecording({
     (p: any) => p.id === selectedPatient || p._id === selectedPatient
   );
   const hasConsent = selectedPatientObj?.aiConsent?.isGranted === true;
+  console.log(selectedPatientObj)
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
