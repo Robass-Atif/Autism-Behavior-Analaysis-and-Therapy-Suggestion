@@ -17,6 +17,7 @@ import { RegisterCaregiverDto } from "./dto/register-caregiver.dto";
 import { RegisterAdminDto } from "./dto/register-admin.dto";
 import { LoginDto } from "./dto/login.dto";
 import { Role, AccountStatus } from "../../common/enums/role.enum";
+import type { ConsentDecisionRecord } from "../users/schemas/caregiver.schema";
 
 @Injectable()
 export class AuthService {
@@ -331,6 +332,19 @@ export class AuthService {
     }
 
     // Create caregiver
+    const consentDecisionHistory: ConsentDecisionRecord[] =
+      dto.consentDecisionHistory && dto.consentDecisionHistory.length > 0
+        ? dto.consentDecisionHistory.map((item) => ({
+            decision: item.decision === "REVOKED" ? "REVOKED" : "GRANTED",
+            timestamp: new Date(item.timestamp),
+          } as ConsentDecisionRecord))
+        : [
+            {
+              decision: "GRANTED",
+              timestamp: new Date(),
+          } as ConsentDecisionRecord,
+          ];
+
     const caregiver = await this.usersService.createCaregiver({
       fullName: dto.fullName,
       email: dto.email,
@@ -356,6 +370,7 @@ export class AuthService {
       termsAccepted: dto.termsAccepted,
       privacyPolicyAccepted: dto.privacyPolicyAccepted,
       videoRecordingConsentAccepted: dto.videoRecordingConsentAccepted,
+      consentDecisionHistory,
       isEmailVerified: true,
       accountStatus: AccountStatus.ACTIVE,
     });

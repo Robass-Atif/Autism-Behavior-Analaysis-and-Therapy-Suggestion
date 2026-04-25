@@ -501,6 +501,75 @@ export class PatientsService {
     };
   }
 
+  async updatePatientConsent(
+    patientId: string,
+    userId: string,
+    userRole: string,
+    payload: { isGranted: boolean; version?: string },
+  ) {
+    const patient = await this.patientModel.findById(patientId);
+
+    if (!patient || patient.deleted) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    const normalizedRole = (userRole || "").toLowerCase();
+
+    if (normalizedRole === "therapist") {
+      if (patient.therapistId.toString() !== userId) {
+        throw new ForbiddenException("You can only update your own patients");
+      }
+    }
+
+    if (normalizedRole === "caregiver") {
+      const caregiverData = await this.getCaregiverPatients(userId);
+      const isLinked = caregiverData.patients.some(
+        (p: any) => p.id && p.id.toString() === patientId.toString(),
+      );
+
+      if (!isLinked) {
+        throw new ForbiddenException("You do not have access to this patient");
+      }
+    }
+
+    const version = payload.version || "1.0";
+    const now = new Date();
+
+    // Atomic update guarantees AI consent state reflects grant/revoke action.
+    const updatedPatient = await this.patientModel.findByIdAndUpdate(
+      patientId,
+      {
+        $set: {
+          "aiConsent.isGranted": payload.isGranted,
+          "aiConsent.lastUpdated": now,
+          "aiConsent.versionAccepted": version,
+          updatedAt: now,
+        },
+        $push: {
+          "aiConsent.history": {
+            granted: payload.isGranted,
+            version,
+            timestamp: now,
+            decidedBy: userId,
+          },
+        },
+      },
+      { new: true },
+    );
+
+    if (!updatedPatient) {
+      throw new NotFoundException("Patient not found");
+    }
+
+    return {
+      success: true,
+      message: payload.isGranted
+        ? "Consent granted successfully"
+        : "Consent revoked successfully",
+      aiConsent: updatedPatient.aiConsent,
+    };
+  }
+
   /**
    * Calculate and update patient progress based on therapy goals
    * Progress = (Achieved Goals / Total Active Goals) * 100

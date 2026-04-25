@@ -164,4 +164,28 @@ export class PatientsController {
   async getMyProfile(@CurrentUser() user: any) {
     return this.patientsService.getPatientProfile(user.sub);
   }
+
+  // 8️⃣ PUT /patients/:id/consent - Grant/revoke AI consent
+  @Put(':id/consent')
+  @Roles(Role.THERAPIST, Role.CAREGIVER, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Update patient AI consent',
+    description:
+      'Allow authorized therapist/caregiver/admin to grant or revoke patient AI consent with timestamped history.',
+  })
+  @ApiResponse({ status: 200, description: 'Patient consent updated' })
+  @ApiResponse({ status: 404, description: 'Patient not found' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  async updatePatientConsent(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+    @Body() body: { isGranted: boolean; version?: string },
+  ) {
+    return this.patientsService.updatePatientConsent(
+      id,
+      user.sub,
+      user.role,
+      body,
+    );
+  }
 }

@@ -225,8 +225,18 @@ export interface CommunicationPreferences {
   callReminders: boolean;
 }
 
+export interface AIConsentHistoryRecord {
+  granted: boolean;
+  version: string;
+  timestamp: string;
+  decidedBy: string;
+}
+
 export interface AIConsent {
-    isGranted: boolean
+  isGranted: boolean;
+  lastUpdated?: string;
+  versionAccepted?: string;
+  history?: AIConsentHistoryRecord[];
 }
 
 export interface Patient {

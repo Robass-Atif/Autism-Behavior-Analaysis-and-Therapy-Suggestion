@@ -23,6 +23,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRegisterCaregiver } from "../../../api/auth";
+import InformedConsentModal, {
+  type ConsentDecision,
+} from "../../common/InformedConsentModal";
 import toast from "../../../lib/toast";
 
 // ─── Shared validators ──────────────────────────────────────────────────────
@@ -179,6 +182,8 @@ export default function CaregiverRegistrationScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [invitationVerified, setInvitationVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
+  const [consentHistory, setConsentHistory] = useState<ConsentDecision[]>([]);
 
   const {
     register,
@@ -202,6 +207,7 @@ export default function CaregiverRegistrationScreen() {
 
   const watchedPassword = watch("password");
   const watchedInvitationCode = watch("invitationCode");
+  const watchedVideoRecordingConsent = watch("videoRecordingConsent");
   const registerMutation = useRegisterCaregiver();
 
   const totalSteps = 4;
@@ -252,7 +258,42 @@ export default function CaregiverRegistrationScreen() {
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
+  const addConsentDecision = (decision: ConsentDecision["decision"]) => {
+    setConsentHistory((prev) => [
+      ...prev,
+      {
+        decision,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
+
+  const handleGrantConsent = () => {
+    setValue("videoRecordingConsent", true, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    addConsentDecision("GRANTED");
+    setIsConsentModalOpen(false);
+    toast.success("Informed consent granted");
+  };
+
+  const handleRevokeConsent = () => {
+    setValue("videoRecordingConsent", false, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    addConsentDecision("REVOKED");
+    setIsConsentModalOpen(false);
+    toast.success("Informed consent revoked");
+  };
+
   const onSubmit = async (data: CaregiverFormInputs) => {
+    if (!data.videoRecordingConsent) {
+      toast.error("Please review and grant informed video consent before continuing");
+      return;
+    }
+
     try {
       await registerMutation.mutateAsync({
         fullName: data.fullName,
@@ -267,6 +308,7 @@ export default function CaregiverRegistrationScreen() {
         termsAccepted: data.agreeToTerms,
         privacyPolicyAccepted: data.agreeToPrivacy,
         videoRecordingConsentAccepted: data.videoRecordingConsent,
+        consentDecisionHistory: consentHistory,
         notificationPreferences: {
           emailNotifications: data.emailNotifications,
           smsNotifications: data.smsNotifications,
@@ -625,15 +667,65 @@ export default function CaregiverRegistrationScreen() {
                           </span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            {...register("videoRecordingConsent")}
-                            className="appearance-none w-4 h-4 border-2 border-zinc-300 checked:bg-zinc-900 checked:border-zinc-900 transition-all cursor-pointer"
+                          <input type="hidden" {...register("videoRecordingConsent")} />
+                          <button
+                            type="button"
+                            onClick={() => setIsConsentModalOpen(true)}
+                            className="appearance-none w-4 h-4 border-2 border-zinc-300 bg-white data-[state=checked]:bg-zinc-900 data-[state=checked]:border-zinc-900 transition-all cursor-pointer"
+                            data-state={watchedVideoRecordingConsent ? "checked" : "unchecked"}
+                            aria-label="Open informed consent modal"
                           />
-                          <span className="text-[10px] font-bold uppercase text-zinc-600 group-hover:text-zinc-900 transition-colors">
-                            Video Recording Consent (Optional)
-                          </span>
+                          <div className="flex-1">
+                            <span className="text-[10px] font-bold uppercase text-zinc-600 group-hover:text-zinc-900 transition-colors block">
+                              Video Recording Informed Consent *
+                            </span>
+                            <p className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">
+                              {watchedVideoRecordingConsent
+                                ? "Status: Granted"
+                                : "Status: Not Granted"}
+                            </p>
+                          </div>
                         </label>
+
+                        <div className="flex items-center gap-3 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsConsentModalOpen(true)}
+                            className="px-3 py-2 border border-zinc-300 text-[10px] font-bold uppercase tracking-wider text-zinc-700 hover:bg-zinc-100 transition-colors"
+                          >
+                            Review Consent Details
+                          </button>
+                          {watchedVideoRecordingConsent && (
+                            <button
+                              type="button"
+                              onClick={handleRevokeConsent}
+                              className="px-3 py-2 border border-red-200 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              Revoke Now
+                            </button>
+                          )}
+                        </div>
+
+                        {consentHistory.length > 0 && (
+                          <div className="pt-2">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+                              Consent History
+                            </p>
+                            <div className="max-h-24 overflow-y-auto space-y-1">
+                              {consentHistory
+                                .slice()
+                                .reverse()
+                                .map((entry, index) => (
+                                  <p
+                                    key={`${entry.timestamp}-${index}`}
+                                    className="text-[10px] uppercase tracking-wider text-zinc-500"
+                                  >
+                                    {entry.decision} • {new Date(entry.timestamp).toLocaleString()}
+                                  </p>
+                                ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -676,6 +768,15 @@ export default function CaregiverRegistrationScreen() {
                 </div>
               </form>
             </div>
+
+            <InformedConsentModal
+              isOpen={isConsentModalOpen}
+              isGranted={watchedVideoRecordingConsent}
+              consentHistory={consentHistory}
+              onClose={() => setIsConsentModalOpen(false)}
+              onGrant={handleGrantConsent}
+              onRevoke={handleRevokeConsent}
+            />
 
             <div className="mt-8 text-center text-[10px] text-zinc-300 font-mono tracking-tighter uppercase">
               Encrypted Auth Node (ABA-TS System V1.0)

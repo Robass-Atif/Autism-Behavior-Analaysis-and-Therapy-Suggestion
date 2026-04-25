@@ -10,6 +10,7 @@ import {
   IsBoolean,
   ValidateNested,
   Matches,
+  IsArray,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
@@ -47,6 +48,17 @@ class NotificationPreferencesDto {
   @IsBoolean()
   @IsOptional()
   recordingReminders?: boolean;
+}
+
+class ConsentDecisionDto {
+  @ApiProperty({ enum: ["GRANTED", "REVOKED"], description: "Consent decision" })
+  @IsString()
+  @IsNotEmpty()
+  decision: "GRANTED" | "REVOKED";
+
+  @ApiProperty({ description: "ISO timestamp for consent decision" })
+  @IsDateString()
+  timestamp: string;
 }
 
 export class RegisterCaregiverDto {
@@ -146,6 +158,13 @@ export class RegisterCaregiverDto {
   @ApiProperty({ description: "Video recording guidelines consent" })
   @IsBoolean()
   videoRecordingConsentAccepted: boolean;
+
+  @ApiPropertyOptional({ type: [ConsentDecisionDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ConsentDecisionDto)
+  @IsOptional()
+  consentDecisionHistory?: ConsentDecisionDto[];
 
   // Notification Preferences
   @ApiPropertyOptional({ type: NotificationPreferencesDto })

@@ -30,6 +30,15 @@ export class NotificationPreferences {
   recordingReminders: boolean;
 }
 
+@Schema({ _id: false })
+export class ConsentDecisionRecord {
+  @Prop({ type: String, enum: ["GRANTED", "REVOKED"], required: true })
+  decision: "GRANTED" | "REVOKED";
+
+  @Prop({ required: true })
+  timestamp: Date;
+}
+
 @Schema({ timestamps: true })
 export class Caregiver extends User {
   @Prop({ type: String, enum: Language, default: Language.ENGLISH })
@@ -67,6 +76,9 @@ export class Caregiver extends User {
 
   @Prop({ default: false })
   videoRecordingConsentAccepted: boolean;
+
+  @Prop({ type: [ConsentDecisionRecord], default: [] })
+  consentDecisionHistory: ConsentDecisionRecord[];
 }
 
 export const CaregiverSchema = SchemaFactory.createForClass(Caregiver);

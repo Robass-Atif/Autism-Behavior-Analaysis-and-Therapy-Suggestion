@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   User,
   Mail,
@@ -17,6 +17,9 @@ import {
   useUpdateProfile,
   useChangePassword,
 } from "../../../api/auth";
+import { useCaregiverPatients } from "../../../api/caregiver";
+import { useUpdatePatientConsent } from "../../../api/patient";
+import InformedConsentModal from "../../common/InformedConsentModal";
 import toast from "../../../lib/toast";
 import { formatPhoneNumber } from "../../../lib/formatters";
 
@@ -24,9 +27,16 @@ export default function ProfileScreen() {
   const { data: user, isLoading: userLoading } = useCurrentUser();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
+  const isCaregiver = (user?.role || "").toUpperCase() === "CAREGIVER";
+  const { data: caregiverPatientsData, isLoading: caregiverPatientsLoading } =
+    useCaregiverPatients(isCaregiver);
+  const updatePatientConsent = useUpdatePatientConsent();
 
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedConsentPatientId, setSelectedConsentPatientId] =
+    useState<string | null>(null);
+  const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -42,6 +52,39 @@ export default function ProfileScreen() {
       setPhoneNumber((user as any).phoneNumber || "");
     }
   }, [user]);
+
+  useEffect(() => {
+    const patients = caregiverPatientsData?.patients || [];
+    if (!patients.length) return;
+    if (selectedConsentPatientId) return;
+
+    setSelectedConsentPatientId(patients[0].id || patients[0]._id || null);
+  }, [caregiverPatientsData, selectedConsentPatientId]);
+
+  const linkedPatients = caregiverPatientsData?.patients || [];
+
+  const selectedConsentPatient = useMemo(() => {
+    if (!linkedPatients.length) return null;
+    if (!selectedConsentPatientId) return linkedPatients[0];
+
+    return (
+      linkedPatients.find(
+        (patient) => (patient.id || patient._id) === selectedConsentPatientId,
+      ) || linkedPatients[0]
+    );
+  }, [linkedPatients, selectedConsentPatientId]);
+
+  const selectedConsentPatientKey =
+    selectedConsentPatient?.id || selectedConsentPatient?._id || "";
+
+  const consentHistoryForModal = useMemo(() => {
+    const rawHistory = selectedConsentPatient?.aiConsent?.history || [];
+
+    return rawHistory.map((entry) => ({
+      decision: entry.granted ? "GRANTED" : "REVOKED",
+      timestamp: String(entry.timestamp),
+    }));
+  }, [selectedConsentPatient]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +133,60 @@ export default function ProfileScreen() {
     } catch (error: any) {
       toast.error(error.message || "Failed to change password");
     }
+  };
+
+  const handleGrantConsent = async (patientId: string) => {
+    if (!patientId) {
+      toast.error("Please select a patient first");
+      return;
+    }
+
+    try {
+      await updatePatientConsent.mutateAsync({
+        id: patientId,
+        isGranted: true,
+        version: "2.4",
+      });
+      toast.success("Consent granted successfully");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to grant consent");
+    }
+  };
+
+  const handleRevokeConsent = async (patientId: string) => {
+    if (!patientId) {
+      toast.error("Please select a patient first");
+      return;
+    }
+
+    try {
+      await updatePatientConsent.mutateAsync({
+        id: patientId,
+        isGranted: false,
+        version: "2.4",
+      });
+      toast.success("Consent revoked successfully");
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to revoke consent");
+    }
+  };
+
+  const handleGrantFromModal = async () => {
+    if (!selectedConsentPatientKey) {
+      toast.error("Please select a patient first");
+      return;
+    }
+
+    await handleGrantConsent(selectedConsentPatientKey);
+  };
+
+  const handleRevokeFromModal = async () => {
+    if (!selectedConsentPatientKey) {
+      toast.error("Please select a patient first");
+      return;
+    }
+
+    await handleRevokeConsent(selectedConsentPatientKey);
   };
 
   if (userLoading) {
@@ -406,6 +503,107 @@ export default function ProfileScreen() {
               </form>
             )}
           </section>
+
+          {isCaregiver && (
+            <section className="border-t-2 border-zinc-100 pt-12">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 bg-zinc-100 border border-zinc-200">
+                  <Shield size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black uppercase tracking-tight">
+                    Informed Consent Management
+                  </h3>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                    Grant or revoke consent for linked patients at any time
+                  </p>
+                </div>
+              </div>
+
+              {caregiverPatientsLoading ? (
+                <div className="h-36 border border-zinc-200 bg-zinc-50 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+                </div>
+              ) : (caregiverPatientsData?.patients || []).length === 0 ? (
+                <div className="border border-zinc-200 bg-zinc-50 p-6 text-sm text-zinc-600">
+                  No linked patients available yet. Consent actions will appear once a patient is linked.
+                </div>
+              ) : (
+                <>
+                  <div
+                    className="border-2 border-zinc-200 bg-zinc-50 p-6 cursor-pointer hover:border-zinc-900 hover:bg-white transition-all"
+                    onClick={() => setIsConsentModalOpen(true)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setIsConsentModalOpen(true);
+                      }
+                    }}
+                    aria-label="Open informed consent management"
+                  >
+                    {linkedPatients.length > 1 && (
+                      <div className="mb-4" onClick={(event) => event.stopPropagation()}>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 block mb-2">
+                          Patient
+                        </label>
+                        <select
+                          value={selectedConsentPatientKey}
+                          onChange={(event) =>
+                            setSelectedConsentPatientId(event.target.value)
+                          }
+                          className="w-full bg-white border border-zinc-300 px-3 py-2 text-xs font-bold focus:outline-none focus:border-zinc-900"
+                        >
+                          {linkedPatients.map((patient) => {
+                            const patientId = patient.id || patient._id || "";
+                            return (
+                              <option key={patientId} value={patientId}>
+                                {patient.fullName}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                          Consent Module
+                        </p>
+                        <h4 className="text-sm font-black uppercase tracking-tight mt-1">
+                          Open Informed Consent Details
+                        </h4>
+                        <p className="text-[10px] font-bold uppercase tracking-wider mt-2 text-zinc-500">
+                          Status: {selectedConsentPatient?.aiConsent?.isGranted ? "Granted" : "Not Granted"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-zinc-900 text-white text-[10px] font-black uppercase tracking-widest"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setIsConsentModalOpen(true);
+                        }}
+                      >
+                        Open Module
+                      </button>
+                    </div>
+                  </div>
+
+                  <InformedConsentModal
+                    isOpen={isConsentModalOpen}
+                    isGranted={selectedConsentPatient?.aiConsent?.isGranted === true}
+                    consentHistory={consentHistoryForModal}
+                    onClose={() => setIsConsentModalOpen(false)}
+                    onGrant={handleGrantFromModal}
+                    onRevoke={handleRevokeFromModal}
+                  />
+                </>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </div>

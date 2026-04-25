@@ -1,12 +1,50 @@
-import React, { useState } from 'react';
-import { Camera, BrainCircuit, Lock, Scale, FileText, Download, CheckCircle, AlertTriangle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Camera, BrainCircuit, Lock, Scale, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import type { Patient } from '../../../types';
 
-export default function ConsentManagement() {
+type ConsentManagementProps = {
+  patients: Patient[];
+  selectedPatientId: string | null;
+  onSelectPatient: (patientId: string) => void;
+  onGrantConsent: (patientId: string) => Promise<void>;
+  onRevokeConsent: (patientId: string) => Promise<void>;
+  isUpdating: boolean;
+};
+
+const formatTimestamp = (value?: string) => {
+  if (!value) return 'N/A';
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+};
+
+export default function ConsentManagement({
+  patients,
+  selectedPatientId,
+  onSelectPatient,
+  onGrantConsent,
+  onRevokeConsent,
+  isUpdating,
+}: ConsentManagementProps) {
   const [agreed, setAgreed] = useState<string[]>([]);
 
   const toggleAgreement = (id: string) => {
-    setAgreed(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    setAgreed((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
+
+  const selectedPatient = useMemo(() => {
+    if (!patients.length) return null;
+    if (!selectedPatientId) return patients[0];
+    return patients.find((p) => (p.id || p._id) === selectedPatientId) || patients[0];
+  }, [patients, selectedPatientId]);
+
+  const selectedPatientKey = selectedPatient?.id || selectedPatient?._id || '';
+  const consentGranted = selectedPatient?.aiConsent?.isGranted === true;
+  const consentHistory = selectedPatient?.aiConsent?.history || [];
+
+  const canSubmitDecision = selectedPatientKey.length > 0 && agreed.length >= 3 && !isUpdating;
 
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-50 overflow-hidden">
@@ -55,16 +93,48 @@ export default function ConsentManagement() {
       <div className="w-full md:w-1/3 bg-gray-50 p-6 flex flex-col h-full overflow-y-auto">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
           <h3 className="font-bold text-gray-900 mb-4">Patient Information</h3>
+
+          {patients.length > 1 && (
+            <div className="mb-4">
+              <label className="text-xs font-bold uppercase text-gray-500 block mb-2">
+                Select Patient
+              </label>
+              <select
+                value={selectedPatientKey}
+                onChange={(e) => onSelectPatient(e.target.value)}
+                className="w-full border border-gray-300 bg-white px-3 py-2 text-sm rounded-lg"
+              >
+                {patients.map((patient) => {
+                  const patientId = patient.id || patient._id || '';
+                  return (
+                    <option key={patientId} value={patientId}>
+                      {patient.fullName}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">JD</div>
+            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">
+              {selectedPatient?.fullName?.charAt(0)?.toUpperCase() || 'P'}
+            </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900">John Doe</p>
-              <p className="text-xs text-gray-500">MRN: 2023-001</p>
+              <p className="text-sm font-semibold text-gray-900">{selectedPatient?.fullName || 'No patient linked'}</p>
+              <p className="text-xs text-gray-500">Consent Status: {consentGranted ? 'Granted' : 'Not Granted'}</p>
             </div>
           </div>
-          <div className="text-xs text-gray-500 grid grid-cols-2 gap-2">
-            <div><span className="font-medium">Guardian:</span> Jane Doe</div>
-            <div><span className="font-medium">DOB:</span> 12/05/2018</div>
+
+          <div className="text-xs text-gray-500 grid grid-cols-1 gap-2">
+            <div>
+              <span className="font-medium">Last Updated:</span>{' '}
+              {formatTimestamp(selectedPatient?.aiConsent?.lastUpdated)}
+            </div>
+            <div>
+              <span className="font-medium">Version:</span>{' '}
+              {selectedPatient?.aiConsent?.versionAccepted || 'N/A'}
+            </div>
           </div>
         </div>
 
@@ -92,19 +162,33 @@ export default function ConsentManagement() {
             />
           </div>
 
-          <div className="border-2 border-dashed border-gray-300 rounded-lg h-32 bg-gray-50 mb-4 flex items-center justify-center relative">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg h-24 bg-gray-50 mb-4 flex items-center justify-center relative">
             <span className="text-gray-400 text-sm pointer-events-none">Guardian Digital Signature</span>
-            {/* Simulation of signature area */}
           </div>
 
           <div className="mt-auto space-y-3">
-            <button className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2">
-              <CheckCircle size={20} /> Grant Consent
+            <button
+              onClick={() => onGrantConsent(selectedPatientKey)}
+              disabled={!canSubmitDecision}
+              className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={20} />} Grant Consent
             </button>
-             <button className="w-full py-3 bg-white border border-red-200 text-red-600 font-bold rounded-lg hover:bg-red-50 transition-all">
+
+             <button
+              onClick={() => onRevokeConsent(selectedPatientKey)}
+              disabled={!selectedPatientKey || isUpdating}
+              className="w-full py-3 bg-white border border-red-200 text-red-600 font-bold rounded-lg hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Revoke Consent
             </button>
           </div>
+
+          {agreed.length < 3 && (
+            <p className="text-xs text-orange-700 mt-3">
+              Complete all acknowledgment checkboxes before granting consent.
+            </p>
+          )}
         </div>
         
         <div className="mt-6">
@@ -112,11 +196,28 @@ export default function ConsentManagement() {
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <table className="w-full text-xs text-left">
               <tbody className="divide-y divide-gray-100">
-                <tr className="hover:bg-gray-50">
-                  <td className="p-3 text-gray-500">Oct 12, 2023</td>
-                  <td className="p-3"><span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Granted</span></td>
-                  <td className="p-3 text-right"><Download size={14} className="inline text-gray-400 cursor-pointer hover:text-blue-600" /></td>
-                </tr>
+                {consentHistory.length === 0 ? (
+                  <tr>
+                    <td className="p-3 text-gray-500" colSpan={3}>
+                      No consent decisions logged yet.
+                    </td>
+                  </tr>
+                ) : (
+                  consentHistory
+                    .slice()
+                    .reverse()
+                    .map((entry, index) => (
+                      <tr className="hover:bg-gray-50" key={`${entry.timestamp}-${index}`}>
+                        <td className="p-3 text-gray-500">{formatTimestamp(entry.timestamp)}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${entry.granted ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
+                            {entry.granted ? 'Granted' : 'Revoked'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right text-gray-500">v{entry.version}</td>
+                      </tr>
+                    ))
+                )}
               </tbody>
             </table>
           </div>

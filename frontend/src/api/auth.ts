@@ -78,6 +78,10 @@ export interface RegisterCaregiverData {
   termsAccepted: boolean;
   privacyPolicyAccepted: boolean;
   videoRecordingConsentAccepted: boolean;
+  consentDecisionHistory?: Array<{
+    decision: "GRANTED" | "REVOKED";
+    timestamp: string;
+  }>;
   notificationPreferences?: {
     emailNotifications?: boolean;
     smsNotifications?: boolean;

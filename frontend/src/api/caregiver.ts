@@ -3,9 +3,10 @@ import { apiClient } from '../lib/apiClient';
 import { PATIENTS_ENDPOINTS } from '../config/apiConfig';
 import { Patient } from '../types';
 
-export const useCaregiverPatients = () => {
+export const useCaregiverPatients = (enabled = true) => {
   return useQuery({
     queryKey: ['caregiver-patients'],
+    enabled,
     queryFn: async (): Promise<{ patients: Patient[] }> => {
       return apiClient.get<{ patients: Patient[] }>(PATIENTS_ENDPOINTS.GET_CAREGIVER_PATIENTS);
     },
