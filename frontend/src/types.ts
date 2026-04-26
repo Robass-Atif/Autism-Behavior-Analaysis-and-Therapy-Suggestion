@@ -529,6 +529,8 @@ export interface VideoSession {
   qualityScore: "high" | "medium" | "low";
   status: SessionStatus;
   uploadedBy?: "therapist" | "caregiver";
+  isApprovedForTherapy?: boolean;
+  isUsedForTherapy?: boolean;
 
   // AI results
   aiConfidence?: number;

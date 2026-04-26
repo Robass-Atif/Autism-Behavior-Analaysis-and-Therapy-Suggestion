@@ -365,6 +365,23 @@ export class ClinicalController {
     return this.clinicalService.cancelAIAnalysis(id, user.sub);
   }
 
+  @Post("video-sessions/:id/approve-therapy")
+  @Roles(Role.THERAPIST, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Approve analysis for therapy recommendation",
+    description: "Marks a completed/published analysis as approved to be included in the next therapy generation."
+  })
+  @ApiResponse({ status: 200, description: "Analysis approved for therapy" })
+  async approveTherapyAnalysis(
+    @Param("id") id: string, 
+    @CurrentUser() user: any,
+    @Body() data: { approved: boolean }
+  ) {
+    return this.clinicalService.approveTherapyAnalysis(id, user.sub, data.approved);
+  }
+
+
   // ========== THERAPY RECOMMENDATION (ON-DEMAND) ==========
 
   @Post("video-sessions/:id/therapy-recommend")

@@ -864,6 +864,32 @@ export class ClinicalService {
     };
   }
 
+  async approveTherapyAnalysis(sessionId: string, therapistId: string, approved: boolean) {
+    const session = await this.videoSessionModel.findById(sessionId);
+
+    if (!session || session.deleted) {
+      throw new NotFoundException("Video session not found");
+    }
+
+    if (session.therapistId.toString() !== therapistId) {
+      throw new ForbiddenException("You can only approve your own sessions");
+    }
+
+    if (session.status !== "completed" && session.status !== "published") {
+      throw new BadRequestException("Analysis must be completed or published before it can be approved for therapy.");
+    }
+
+    session.isApprovedForTherapy = approved;
+    session.updatedAt = new Date();
+    await session.save();
+
+    return {
+      success: true,
+      message: approved ? "Analysis approved for therapy recommendation." : "Analysis approval revoked.",
+      isApprovedForTherapy: session.isApprovedForTherapy
+    };
+  }
+
   // ========== THERAPY RECOMMENDATION (ON-DEMAND) ==========
 
   async generateTherapyRecommendation(sessionId: string, therapistId: string) {
@@ -1360,6 +1386,8 @@ export class ClinicalService {
       therapistNotes: session.therapistNotes,
       reviewed: session.reviewed,
       reviewedAt: session.reviewedAt,
+      isApprovedForTherapy: session.isApprovedForTherapy,
+      isUsedForTherapy: session.isUsedForTherapy,
       createdAt: session.createdAt,
     };
 

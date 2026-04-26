@@ -416,6 +416,8 @@ export class AiAnalysisService {
       .find({
         patientId: patientId,
         status: { $in: ['completed', 'published'] },
+        isApprovedForTherapy: true,
+        isUsedForTherapy: { $ne: true },
         deleted: false
       })
       .sort({ recordedAt: 1 }) // Chronological order
@@ -485,6 +487,13 @@ export class AiAnalysisService {
 
       patient.latestClinicalReport = report
       await patient.save()
+
+      // Mark sessions as used so they are not included in the next generation
+      const sessionIds = sessions.map(s => s._id)
+      await this.videoSessionModel.updateMany(
+        { _id: { $in: sessionIds } },
+        { $set: { isUsedForTherapy: true } }
+      )
 
       return report
     } catch (error: any) {

@@ -37,6 +37,7 @@ import {
   useGenerateReport,
   useIndividualReport,
   useTriggerAIAnalysis,
+  useApproveTherapyAnalysis,
 } from "../../../api/clinical";
 import {
   Screen,
@@ -430,6 +431,7 @@ export default function TherapyRecommendations({
     useGeneratePatientTherapyRecommendation();
   const generateReport = useGenerateReport();
   const triggerAI = useTriggerAIAnalysis();
+  const approveTherapy = useApproveTherapyAnalysis();
 
   const patients = patientsData?.patients || [];
   const selectedPatient = useMemo(
@@ -494,7 +496,23 @@ export default function TherapyRecommendations({
     setAnalysisProgress(0);
 
     try {
-      // Step 1: Trigger AI for all sessions that are not processing/completed/failed/published
+      // Step 1: Check for approved sessions
+      const approvedSessions = sessions.filter(
+        (s) => (s.isApprovedForTherapy || s.status === "published") && !s.isUsedForTherapy
+      );
+
+      if (approvedSessions.length === 0) {
+        // If no approved sessions, check if there are pending ones that COULD be approved
+        const pendingSessions = sessions.filter(s => s.status === "completed" || s.status === "published");
+        if (pendingSessions.length > 0) {
+          toast.error("Please approve at least one analysis for therapy generation.");
+          setIsBulkAnalyzing(false);
+          setCurrentStage(AnalysisFlowStage.QUEUE);
+          return;
+        }
+      }
+
+      // Step 2: Trigger AI for all sessions that are not processing/completed/failed/published
       const sessionsToTrigger = sessions.filter(
         (s) => s.status === "approved_for_ai" || s.status === "pending_review",
       );
@@ -769,14 +787,51 @@ export default function TherapyRecommendations({
 
             <div className="flex-1 overflow-y-auto p-10">
               {currentStage === AnalysisFlowStage.QUEUE && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 max-w-5xl mx-auto px-4">
-                  <div className="lg:col-span-7 space-y-6">
+                <div className="max-w-[1000px] mx-auto space-y-10 pb-20">
+                  {/* Action Panel at Top */}
+                  <div className="bg-zinc-900 text-white p-8 border-4 border-zinc-900 shadow-[12px_12px_0px_0px_rgba(245,158,11,1)] relative overflow-hidden group">
+                    <div className="absolute -right-4 -top-8 text-[120px] font-black text-white/5 pointer-events-none italic select-none">
+                      SYNC
+                    </div>
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-8">
+                        <div className="space-y-2">
+                          <h2 className="text-xs font-black uppercase text-amber-400 flex items-center gap-2 tracking-[0.2em] italic">
+                            <Sparkles size={16} /> Diagnostic Aggregation
+                          </h2>
+                          <p className="text-xl font-black uppercase tracking-tighter italic">
+                            Clinical Evidence Synthesis
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center border-4 border-zinc-900 font-black text-lg text-zinc-950 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]">
+                          {sessions.length}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <p className="text-xs font-medium uppercase leading-relaxed text-zinc-400 tracking-tight max-w-md">
+                          Synthesize kinematic markers and behavioral benchmarks
+                          from all queued sessions into a consolidated EBM
+                          clinical pathway.
+                        </p>
+                        <button
+                          onClick={handleStartAnalysis}
+                          disabled={!sessions.length || isBulkAnalyzing}
+                          className="w-full py-5 bg-amber-400 text-zinc-900 font-black uppercase text-xs border-4 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-50 tracking-tighter"
+                        >
+                          {isBulkAnalyzing ? "Processing..." : "Execute Analysis Flow"} <ArrowRight size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
                     <div className="flex items-center gap-3 border-l-4 border-amber-400 pl-4 mb-4">
                       <h2 className="text-base font-black uppercase tracking-tighter italic">
                         Diagnostic Queue
                       </h2>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {sessions.map((s: any, i: number) => (
                         <div
                           key={s.id || s._id}
@@ -790,7 +845,7 @@ export default function TherapyRecommendations({
                               <p className="text-xs font-black uppercase tracking-tighter truncate leading-none">
                                 {s.actionType || "Behavioral Evaluation"}
                               </p>
-                              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1.5 opacity-60">
+                              <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1 opacity-60">
                                 {new Date(s.recordedAt).toLocaleDateString()} •{" "}
                                 {new Date(s.recordedAt).toLocaleTimeString([], {
                                   hour: "2-digit",
@@ -799,7 +854,39 @@ export default function TherapyRecommendations({
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 shrink-0">
+                          <div className="flex flex-wrap items-center justify-end gap-3 shrink-0 ml-4">
+                            {/* Therapy Approval Toggle */}
+                            {(s.status === "completed" || s.status === "published") && !s.isUsedForTherapy && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  approveTherapy.mutate({ 
+                                    id: (s.id || s._id) as string, 
+                                    approved: !s.isApprovedForTherapy 
+                                  });
+                                }}
+                                disabled={approveTherapy.isPending}
+                                className={`px-2 py-1 text-[8px] font-black border-2 uppercase tracking-tight transition-all flex items-center gap-1.5 ${
+                                  s.isApprovedForTherapy 
+                                    ? "bg-amber-400 border-zinc-900 text-zinc-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" 
+                                    : "bg-white border-zinc-200 text-zinc-400 hover:border-zinc-900 hover:text-zinc-900 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                                }`}
+                              >
+                                {approveTherapy.isPending && approveTherapy.variables?.id === (s.id || s._id) ? (
+                                  <Loader2 size={10} className="animate-spin" />
+                                ) : s.isApprovedForTherapy ? (
+                                  <CheckCircle2 size={10} />
+                                ) : null}
+                                {s.isApprovedForTherapy ? "Approved for Therapy" : "Approve for Therapy"}
+                              </button>
+                            )}
+                            
+                            {s.isUsedForTherapy && (
+                              <span className="px-2 py-1 bg-zinc-100 border-2 border-zinc-200 text-zinc-400 text-[8px] font-black uppercase tracking-tight italic">
+                                Discarded (Used)
+                              </span>
+                            )}
+
                             <span
                               className={`px-3 py-1 text-[8px] font-black border-2 uppercase tracking-tight ${s.status === "completed" || s.status === "published" ? "bg-emerald-400 border-zinc-900 text-zinc-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" : s.status === "failed" ? "bg-red-400 border-zinc-900 text-zinc-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" : "bg-white border-zinc-200 text-zinc-400"}`}
                             >
@@ -808,30 +895,6 @@ export default function TherapyRecommendations({
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                  <div className="lg:col-span-5">
-                    <div className="bg-zinc-900 text-white p-8 border-4 border-zinc-900 shadow-[12px_12px_0px_0px_rgba(245,158,11,1)] sticky top-6">
-                      <div className="flex justify-between items-start mb-6">
-                        <h2 className="text-xs font-black uppercase text-amber-400 flex items-center gap-2 tracking-[0.2em] italic">
-                          <Sparkles size={16} /> Deep Analysis
-                        </h2>
-                        <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center border-2 border-zinc-900 font-black text-[10px] text-zinc-950">
-                          {sessions.length}
-                        </div>
-                      </div>
-                      <p className="text-[10px] font-black uppercase leading-[1.5] mb-8 text-zinc-400 tracking-tight">
-                        Synthesize kinematic markers and behavioral benchmarks
-                        from all queued sessions into a consolidated EBM
-                        clinical pathway.
-                      </p>
-                      <button
-                        onClick={handleStartAnalysis}
-                        disabled={!sessions.length || isBulkAnalyzing}
-                        className="w-full py-4 bg-amber-400 text-zinc-900 font-black uppercase text-[10px] border-4 border-zinc-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 tracking-tighter"
-                      >
-                        Execute Analysis Flow <ArrowRight size={14} />
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -844,7 +907,7 @@ export default function TherapyRecommendations({
                   </div>
                   <div className="space-y-6">
                     <h2 className="text-4xl font-black uppercase tracking-tighter italic">
-                      Mapping Neural Phenotypes
+                      Analyzing Behavior Patterns
                     </h2>
                     <div className="h-10 bg-white border-4 border-zinc-900 p-1.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
                       <div

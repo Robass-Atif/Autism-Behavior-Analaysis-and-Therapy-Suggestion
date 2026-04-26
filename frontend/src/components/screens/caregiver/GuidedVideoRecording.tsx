@@ -277,7 +277,8 @@ export default function GuidedVideoRecording({
                   <select
                     value={selectedPatient}
                     onChange={(e) => setSelectedPatient(e.target.value)}
-                    className="w-full bg-zinc-50 border-b-2 border-zinc-200 px-6 py-4 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none cursor-pointer font-bold uppercase tracking-widest"
+                    disabled={!!patientId}
+                    className={`w-full bg-zinc-50 border-b-2 border-zinc-200 px-6 py-4 text-sm focus:outline-none focus:border-zinc-900 focus:bg-white transition-all appearance-none font-bold uppercase tracking-widest ${!!patientId ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                   >
                     <option value="">-- SELECT SUBJECT ID --</option>
                     {patients.map((patient: any) => (
@@ -309,11 +310,14 @@ export default function GuidedVideoRecording({
                   {GUIDED_ACTIONS.map((action) => (
                     <button
                       key={action.id}
-                      onClick={() => setSelectedAction(action)}
+                      onClick={() => !actionType && setSelectedAction(action)}
+                      disabled={!!actionType && selectedAction.id !== action.id}
                       className={`p-6 border-r border-b border-zinc-100 text-left transition-all relative group ${
                         selectedAction.id === action.id
                           ? "bg-zinc-900 text-white"
-                          : "bg-white hover:bg-zinc-50"
+                          : !!actionType 
+                            ? "bg-zinc-50 opacity-20 grayscale cursor-not-allowed" 
+                            : "bg-white hover:bg-zinc-50"
                       }`}
                     >
                       <div className="flex flex-col gap-4">

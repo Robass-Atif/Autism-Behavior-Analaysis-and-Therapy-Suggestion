@@ -435,6 +435,35 @@ export const usePublishReport = () => {
   });
 };
 
+export const useApproveTherapyAnalysis = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      approved,
+    }: {
+      id: string;
+      approved: boolean;
+    }): Promise<{
+      success: boolean;
+      message: string;
+      isApprovedForTherapy: boolean;
+    }> => {
+      return apiClient.post<{
+        success: boolean;
+        message: string;
+        isApprovedForTherapy: boolean;
+      }>(`/clinical/video-sessions/${id}/approve-therapy`, { approved });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["video-session", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["video-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-sessions"] });
+    },
+  });
+};
+
 // ============ THERAPY RECOMMENDATION (ON-DEMAND) ============
 
 export const useGenerateTherapyRecommendation = () => {

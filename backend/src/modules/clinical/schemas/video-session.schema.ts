@@ -155,6 +155,12 @@ export class VideoSession extends Document {
   // ========== SOFT DELETE ==========
 
   @Prop({ type: Boolean, default: false })
+  isApprovedForTherapy: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  isUsedForTherapy: boolean;
+
+  @Prop({ type: Boolean, default: false })
   deleted: boolean;
 
   createdAt: Date;
