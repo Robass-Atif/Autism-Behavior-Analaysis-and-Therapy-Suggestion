@@ -36,7 +36,15 @@ class VideoProcessingService:
         
         # Get video properties
         original_fps = cap.get(cv2.CAP_PROP_FPS)
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        total_frames_raw = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        
+        # Guard against garbled frame counts (common in some .webm or streaming formats)
+        if total_frames_raw < 0 or total_frames_raw > 1e9:
+            logger.warning(f"Unreliable frame count detected ({total_frames_raw}). Setting to 0.")
+            total_frames = 0
+        else:
+            total_frames = int(total_frames_raw)
+            
         duration = total_frames / original_fps if original_fps > 0 else 0
         
         logger.info(f"Video properties: {original_fps:.2f} FPS, {total_frames} frames, {duration:.2f}s")
@@ -98,7 +106,14 @@ class VideoProcessingService:
         
         # Check duration
         fps = cap.get(cv2.CAP_PROP_FPS)
-        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        frame_count_raw = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        
+        # Guard against garbled frame counts
+        if frame_count_raw < 0 or frame_count_raw > 1e9:
+            frame_count = 0
+        else:
+            frame_count = int(frame_count_raw)
+            
         duration = frame_count / fps if fps > 0 else 0
         
         cap.release()

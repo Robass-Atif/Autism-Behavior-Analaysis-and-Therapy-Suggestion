@@ -76,6 +76,9 @@ class PredictionService:
                 apply_defensive_preprocessing=apply_defensive_preprocessing
             )
             logger.info("✅ 2D model prediction complete")
+        except ValueError as e:
+            # Re-raise validation errors to be handled as 400 Bad Request in main.py
+            raise
         except Exception as e:
             logger.error(f"❌ 2D model prediction failed: {e}")
             results["predictions_2d"] = {"error": str(e)}
@@ -93,6 +96,9 @@ class PredictionService:
                     apply_defensive_preprocessing=apply_defensive_preprocessing
                 )
                 logger.info("✅ 3D model prediction complete")
+            except ValueError as e:
+                # Re-raise validation errors
+                raise
             except Exception as e:
                 logger.error(f"❌ 3D model prediction failed: {e}")
                 results["predictions_3d"] = {"error": str(e)}

@@ -271,7 +271,14 @@ export class PredictService {
                 };
             } catch (error: any) {
                 lastError = error;
-                const errorMsg = error?.message || error?.toString() || 'Unknown error';
+                // Extract detailed error message from response if available (FastAPI uses .detail)
+                const errorMsg = 
+                    error.response?.data?.detail || 
+                    (typeof error.response?.data === 'string' ? error.response.data : null) ||
+                    error.response?.data?.message ||
+                    error.message || 
+                    'Unknown analysis error';
+                
                 console.error(`❌ AI analysis attempt ${attempt}/${maxRetries} failed for session ${sessionId}: ${errorMsg}`);
 
                 session.retryCount = attempt;
@@ -289,7 +296,11 @@ export class PredictService {
 
         // All attempts exhausted
         session.status = 'failed';
-        session.lastError = lastError?.message || 'All retry attempts exhausted';
+        session.lastError = 
+            lastError?.response?.data?.detail || 
+            (typeof lastError?.response?.data === 'string' ? lastError.response.data : null) ||
+            lastError?.message || 
+            'All retry attempts exhausted';
         await session.save();
 
         console.error(`💀 AI analysis failed after ${maxRetries} attempts for session ${sessionId}`);

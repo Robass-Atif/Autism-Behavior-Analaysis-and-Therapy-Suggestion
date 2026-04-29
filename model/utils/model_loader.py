@@ -4,6 +4,11 @@ import json
 import logging
 from pathlib import Path
 import sys
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+# Suppress scikit-learn version warnings for loaded models
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).resolve().parent.parent))

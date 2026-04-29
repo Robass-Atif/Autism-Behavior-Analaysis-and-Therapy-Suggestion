@@ -94,7 +94,8 @@ export default function PendingReviewScreen({
       });
     } catch (err: any) {
       const errorMsg =
-        err.response?.data?.message ||
+        err.response?.detail ||
+        err.response?.message ||
         err.message ||
         "Failed to approve session";
       toast.error(errorMsg, { id: `approve-${session.id}` });
@@ -109,11 +110,17 @@ export default function PendingReviewScreen({
         { id: `trigger-${session.id}` },
       );
     } catch (err: any) {
-      const errorMsg =
-        err.response?.data?.message ||
+      let errorMsg =
+        err.response?.detail ||
+        err.response?.message ||
         err.message ||
         "Failed to trigger AI analysis";
-      toast.error(errorMsg, { id: `trigger-${session.id}` });
+        
+      if (errorMsg.includes("Video is too dark") || errorMsg.includes("Person detected in only")) {
+        errorMsg = "⚠️ Video Rejected: Too dark or empty. Please record a clearer video.";
+      }
+      
+      toast.error(errorMsg, { id: `trigger-${session.id}`, duration: 5000 });
     }
   };
 
@@ -448,14 +455,13 @@ export default function PendingReviewScreen({
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-[10px] font-black text-red-700 uppercase tracking-widest mb-1 decoration-red-500/30 underline underline-offset-4">
-                                    NEURAL ENGINE ERROR —{" "}
-                                    {session.retryCount || 0}/
-                                    {session.maxRetries || 3} RETRIES FAILED
+                                    ANALYSIS BLOCKED — {session.retryCount || 0}/
+                                    {session.maxRetries || 3} ATTEMPTS FAILED
                                   </p>
-                                  <p className="text-xs text-red-900 font-mono leading-tight font-bold">
-                                    THE ANALYSIS ENGINE WAS UNABLE TO PROCESS
-                                    THIS TRANSMISSION. PLEASE INITIATE A RETRY
-                                    SEQUENCE.
+                                  <p className="text-xs text-red-900 font-mono leading-tight font-bold uppercase">
+                                    {session.lastError?.includes("Video is too dark") || session.lastError?.includes("Person detected in only")
+                                      ? "Video is too dark or empty. Please provide a clearer recording for analysis."
+                                      : session.lastError || "The analysis engine was unable to process this video. Please verify quality and retry."}
                                   </p>
                                 </div>
                               </div>

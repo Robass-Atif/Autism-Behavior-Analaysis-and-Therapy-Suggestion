@@ -658,6 +658,44 @@ class SkeletalInputValidator:
                 f"coords={coord_seq.shape}, action='{action_label}'"
             )
 
+            # 3b. Blank / empty-video guard.
+            #
+            # When a blank, fully dark, or subject-free video is submitted,
+            # MediaPipe produces all-zero coordinate arrays for every frame.
+            # All-zero sequences trivially pass every downstream check:
+            #   - bone CV  → std=0, mean=0, CV=0  (well below any threshold)
+            #   - angles   → degenerate vectors → all NaN → check skipped
+            #   - velocity → frame diff=0          (well below any threshold)
+            # So we must detect and reject this case explicitly here.
+            #
+            # A frame is "blank" when every spatial coordinate in that frame
+            # is exactly zero.  We tolerate up to 70% blank frames (e.g. a
+            # clip that briefly loses tracking), but reject beyond that.
+            blank_frames = int(np.sum(np.all(coord_seq == 0, axis=(1, 2))))
+            blank_ratio  = blank_frames / coord_seq.shape[0]
+            BLANK_FRAME_TOLERANCE = 0.70
+
+            if blank_ratio >= 1.0:
+                return False, (
+                    "All pose keypoints are zero across every frame — "
+                    "no person was detected in the video. "
+                    "The video may be blank, too dark, or contain no visible subject."
+                )
+
+            if blank_ratio > BLANK_FRAME_TOLERANCE:
+                return False, (
+                    f"{blank_ratio:.1%} of frames contain no detected pose "
+                    f"({blank_frames}/{coord_seq.shape[0]} frames). "
+                    f"Maximum allowed is {BLANK_FRAME_TOLERANCE:.0%}. "
+                    "The video appears to have the subject out of frame for most of its duration."
+                )
+
+            if blank_frames > 0:
+                logger.info(
+                    f"[{self.coord_space}] {blank_frames}/{coord_seq.shape[0]} frames "
+                    f"({blank_ratio:.1%}) are zero (no detection) — within tolerance."
+                )
+
             # 4. Keypoint confidence (MediaPipe visibility scores)
             if confidence is not None:
                 mean_conf = float(np.nanmean(confidence))
@@ -710,13 +748,20 @@ class SkeletalInputValidator:
 
             # 7. Frame-to-frame velocity
             if coord_seq.shape[0] > 1:
+                # Apply noise reduction (Median Filter) to suppress single-frame spikes
+                try:
+                    import scipy.signal
+                    cleaned_coords = scipy.signal.medfilt(coord_seq, kernel_size=(3, 1, 1))
+                except ImportError:
+                    cleaned_coords = coord_seq
+
                 frame_velocities = np.max(
-                    np.abs(np.diff(coord_seq, axis=0)), axis=(1, 2)
+                    np.abs(np.diff(cleaned_coords, axis=0)), axis=(1, 2)
                 )  # [seq_len - 1]
 
-                HARD_CAP               = 200.0
+                HARD_CAP               = 350.0
                 SOFT_THRESHOLD         = self.max_velocity
-                SPIKE_FRAME_TOLERANCE  = max(2, int(0.02 * len(frame_velocities)))
+                SPIKE_FRAME_TOLERANCE  = max(3, int(0.05 * len(frame_velocities)))
 
                 hard_violations = int(np.sum(frame_velocities > HARD_CAP))
                 soft_violations = int(np.sum(frame_velocities > SOFT_THRESHOLD))

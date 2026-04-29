@@ -108,7 +108,7 @@ async function fetchApi<T>(
 
     if (!response.ok) {
       throw new ApiError(
-        data.message || `HTTP Error: ${response.status}`,
+        data.detail || data.message || `HTTP Error: ${response.status}`,
         response.status,
         data
       );
@@ -236,7 +236,7 @@ export const apiClient = {
 
       if (!response.ok) {
         throw new ApiError(
-          data?.message || `HTTP Error: ${response.status}`,
+          data?.detail || data?.message || `HTTP Error: ${response.status}`,
           response.status,
           data
         );

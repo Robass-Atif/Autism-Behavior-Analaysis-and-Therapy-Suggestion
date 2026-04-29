@@ -138,11 +138,17 @@ export default function VideoReviewInterface() {
         { id: "trigger_toast" },
       );
     } catch (error: any) {
-      const errorMsg =
-        error.response?.data?.message ||
+      let errorMsg =
+        error.response?.detail ||
         error.message ||
         "Failed to trigger AI analysis.";
-      toast.error(errorMsg, { id: "trigger_toast" });
+      
+      // Clinical-specific user-friendly override
+      if (errorMsg.includes("Video is too dark") || errorMsg.includes("Person detected in only")) {
+        errorMsg = "⚠️ Video Rejected: The video is too dark or empty. Please record a clearer video and try again.";
+      }
+      
+      toast.error(errorMsg, { id: "trigger_toast", duration: 7000 });
       console.error("Failed to trigger AI analysis:", error);
     }
   };
@@ -158,11 +164,16 @@ export default function VideoReviewInterface() {
       });
     } catch (error: any) {
       console.error("Failed to retry AI analysis:", error);
-      const errorMsg =
-        error.response?.data?.message ||
+      let errorMsg =
+        error.response?.detail ||
         error.message ||
         "Failed to retry analysis.";
-      toast.error(errorMsg, { id: "retry_toast" });
+        
+      if (errorMsg.includes("Video is too dark") || errorMsg.includes("Person detected in only")) {
+        errorMsg = "⚠️ Video Rejected: This video is too dark or empty. Please provide a clearer recording.";
+      }
+      
+      toast.error(errorMsg, { id: "retry_toast", duration: 7000 });
       setIsRetrying(false);
     }
   };
@@ -555,9 +566,10 @@ export default function VideoReviewInterface() {
                     <h4 className="text-base font-black text-red-900 mb-2 uppercase tracking-tight">
                       Analysis Failed
                     </h4>
-                    <p className="text-red-700 text-xs mb-6 max-w-sm mx-auto font-bold">
-                      THE NEURAL ENGINE WAS UNABLE TO PROCESS THIS TRANSMISSION.
-                      PLEASE VERIFY DATA INTEGRITY AND RETRY.
+                    <p className="text-red-700 text-xs mb-6 max-w-sm mx-auto font-bold uppercase tracking-wider">
+                      {session.lastError?.includes("Person detected in only") 
+                        ? "⚠️ Subject Visibility Error: The AI cannot detect a person in this video. Please ensure the subject is clearly visible."
+                        : session.lastError || "The analysis engine was unable to process this video. Please verify the video quality and retry."}
                     </p>
                     <button
                       onClick={handleRetryAnalysis}

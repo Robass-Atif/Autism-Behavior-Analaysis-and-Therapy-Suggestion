@@ -90,6 +90,8 @@ class PoseEstimationService:
             min_tracking_confidence=0.5
         )
         
+        detected_count = 0
+
         with self.mp_vision.PoseLandmarker.create_from_options(options) as pose:
             
             for idx, frame_file in enumerate(frame_files):
@@ -124,8 +126,9 @@ class PoseEstimationService:
                                 frame.shape[1],  # width
                                 frame.shape[0]   # height
                             )
+                            detected_count += 1
                         else:
-                            # No person detected
+                            # No person detected in this frame
                             logger.debug(f"No pose detected in frame {idx}")
                             coords_2d = np.zeros((24, 2))
                 
@@ -136,9 +139,27 @@ class PoseEstimationService:
                 # Save as NPZ
                 npz_path = os.path.join(output_dir, f"frame_{idx:05d}.npz")
                 np.savez(npz_path, coordinates=coords_2d[np.newaxis, :, :])
-        
-        logger.info(f"✅ Extracted 2D poses for {len(frame_files)} frames")
-        return len(frame_files)
+
+        # Reject video if a person was detected in fewer than 30% of frames.
+        # This catches blank videos, fully dark footage, or recordings where
+        # the subject is never visible — all of which would otherwise produce
+        # all-zero pose sequences that silently pass downstream validation.
+        total_frames = len(frame_files)
+        detection_rate = detected_count / total_frames if total_frames > 0 else 0.0
+        MIN_DETECTION_RATE = 0.30
+
+        logger.info(
+            f"2D pose detection: {detected_count}/{total_frames} frames "
+            f"({detection_rate:.1%}) had a detected person"
+        )
+
+        if detection_rate < MIN_DETECTION_RATE:
+            raise ValueError(
+                f"Video is too dark, blank, or has no visible subject. Please provide a clearer recording."
+            )
+
+        logger.info(f"✅ Extracted 2D poses for {total_frames} frames")
+        return total_frames
     
     def _get_pose_landmarker_model(self) -> str:
         """

@@ -353,11 +353,14 @@ export class AiAnalysisService {
         }
       } catch (error: any) {
         lastError = error
-        const errorDataStr = error.response?.data
-          ? JSON.stringify(error.response.data)
-          : ''
-        const errorMsg =
-          errorDataStr || error?.message || error?.toString() || 'Unknown error'
+        const errorMsg = 
+          error.response?.data?.detail || 
+          (typeof error.response?.data === 'string' ? error.response.data : null) ||
+          error.response?.data?.message ||
+          error?.message || 
+          error?.toString() || 
+          'Unknown error';
+
         this.logger.error(
           `❌ AI Request attempt ${attempt}/${maxRetries} failed: ${errorMsg}`
         )
@@ -378,8 +381,11 @@ export class AiAnalysisService {
     const sessionToUpdate = await this.videoSessionModel.findById(sessionId)
     if (sessionToUpdate) {
       sessionToUpdate.status = 'failed'
-      sessionToUpdate.lastError =
-        lastError?.message || 'All retry attempts exhausted'
+      sessionToUpdate.lastError = 
+        lastError?.response?.data?.detail || 
+        (typeof lastError?.response?.data === 'string' ? lastError.response.data : null) ||
+        lastError?.message || 
+        'All retry attempts exhausted';
       await sessionToUpdate.save()
     }
   }

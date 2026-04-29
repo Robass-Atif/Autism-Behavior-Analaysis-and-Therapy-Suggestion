@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, Literal, Any
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import json
 from pathlib import Path
@@ -233,6 +233,13 @@ async def predict(
                     str(frames_dir),
                     str(npz_2d_dir)
                 )
+            except ValueError as e:
+                # Catch the blank video / low detection error and return as 400 Bad Request
+                logger.warning(f"Video validation failed: {e}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=str(e)
+                )
             except Exception as e:
                 logger.error(f"2D pose estimation failed: {e}")
                 raise HTTPException(
@@ -252,6 +259,13 @@ async def predict(
                     num_poses_3d = pose_service.estimate_3d_poses(
                         str(frames_dir),
                         str(npz_3d_dir)
+                    )
+                except ValueError as e:
+                    # Catch blank video / low detection error for 3D path
+                    logger.warning(f"Video validation failed (3D): {e}")
+                    raise HTTPException(
+                        status_code=400,
+                        detail=str(e)
                     )
                 except Exception as e:
                     logger.error(f"3D pose estimation failed: {e}")
@@ -333,7 +347,7 @@ async def predict(
         
         # Audit log
         audit_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user": current_user.get('name', 'api_user'),
             "input_type": "video" if is_video else "zip",
             "input_filename": input_file.filename,
