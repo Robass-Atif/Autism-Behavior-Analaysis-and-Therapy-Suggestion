@@ -134,8 +134,9 @@ class MultiTaskADOSExplainer:
         Returns:
             List of dictionaries with temporal segment contributions
         """
-        # Only consider non-padded frames
-        attributions_seq = attributions_seq[:seq_len, :]
+        # Only consider available, non-padded frames
+        effective_seq_len = min(int(seq_len), int(attributions_seq.shape[0]))
+        attributions_seq = attributions_seq[:effective_seq_len, :]
         
         # Calculate window size in frames
         window_size_frames = int(window_size_seconds * self.fps)
@@ -146,12 +147,12 @@ class MultiTaskADOSExplainer:
         frame_contributions = np.sum(np.abs(attributions_seq), axis=1)
         
         # Create temporal windows
-        num_windows = int(np.ceil(seq_len / window_size_frames))
+        num_windows = int(np.ceil(effective_seq_len / window_size_frames))
         temporal_segments = []
         
         for i in range(num_windows):
             start_frame = i * window_size_frames
-            end_frame = min((i + 1) * window_size_frames, seq_len)
+            end_frame = min((i + 1) * window_size_frames, effective_seq_len)
             
             # Time in seconds
             start_time = start_frame / self.fps
@@ -264,7 +265,9 @@ class MultiTaskADOSExplainer:
         elif seq_len.dim() == 0:
             seq_len = seq_len.unsqueeze(0)
         
-        seq_length = seq_len.item()
+        seq_length = int(seq_len.item())
+        effective_seq_length = min(seq_length, int(x_seq.shape[1]))
+        seq_len = torch.tensor([effective_seq_length], dtype=torch.long, device=seq_len.device)
         video_length = seq_length / self.fps
 
         print(f"Computing explanations for 4 ADOS metrics (Video: {video_length:.1f}s)...")
@@ -329,7 +332,7 @@ class MultiTaskADOSExplainer:
             
             
             # Get top contributing joints
-            joint_contributions = self._compute_joint_contributions(attr_seq, seq_length)
+            joint_contributions = self._compute_joint_contributions(attr_seq, effective_seq_length)
             top_joints_positive = sorted(
                 [(j, c) for j, c in joint_contributions.items() if c > 0],
                 key=lambda x: abs(x[1]), reverse=True
@@ -341,7 +344,7 @@ class MultiTaskADOSExplainer:
             
             # Compute temporal contributions
             temporal_segments = self.compute_temporal_contributions(
-                attr_seq, seq_length, window_size_seconds=1.0
+                attr_seq, effective_seq_length, window_size_seconds=1.0
             )
             
             # Separate positive and negative temporal influences
@@ -393,19 +396,20 @@ class MultiTaskADOSExplainer:
     
     def _compute_joint_contributions(self, attributions: np.ndarray, seq_len: int) -> Dict[str, float]:
         """Aggregate contributions per joint"""
-        attributions = attributions[:seq_len, :]
+        effective_seq_len = min(int(seq_len), int(attributions.shape[0]))
+        attributions = attributions[:effective_seq_len, :]
         
         # Determine if 2D (150 features) or 3D (222 features)
         if attributions.shape[1] == 150:
             # 2D: first 48 features are joint positions (24 joints * 2 coords)
-            joint_attrs = attributions[:, :48].reshape(seq_len, 24, 2)
+            joint_attrs = attributions[:, :48].reshape(effective_seq_len, 24, 2)
         elif attributions.shape[1] == 222:
             # 3D: first 72 features are joint positions (24 joints * 3 coords)
-            joint_attrs = attributions[:, :72].reshape(seq_len, 24, 3)
+            joint_attrs = attributions[:, :72].reshape(effective_seq_len, 24, 3)
         else:
             # Fallback: assume flat joint positions
             num_coords = 2 if attributions.shape[1] < 200 else 3
-            joint_attrs = attributions[:, :24*num_coords].reshape(seq_len, 24, num_coords)
+            joint_attrs = attributions[:, :24*num_coords].reshape(effective_seq_len, 24, num_coords)
         
         joint_contributions = np.sum(joint_attrs, axis=(0, 2))
         

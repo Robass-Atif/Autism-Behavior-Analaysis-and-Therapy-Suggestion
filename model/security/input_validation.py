@@ -759,7 +759,7 @@ class SkeletalInputValidator:
                     np.abs(np.diff(cleaned_coords, axis=0)), axis=(1, 2)
                 )  # [seq_len - 1]
 
-                HARD_CAP               = 350.0
+                HARD_CAP               = 35000.0
                 SOFT_THRESHOLD         = self.max_velocity
                 SPIKE_FRAME_TOLERANCE  = max(3, int(0.05 * len(frame_velocities)))
 
