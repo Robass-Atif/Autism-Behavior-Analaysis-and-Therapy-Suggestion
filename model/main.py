@@ -229,9 +229,11 @@ async def predict(
     
             logger.info("🦴 Step 2/5: Extracting 2D poses (OpenPose)...")
             try:
-                num_poses_2d = pose_service.estimate_2d_poses(
-                    str(frames_dir),
-                    str(npz_2d_dir)
+                num_poses_2d = pose_service.estimate_2d_poses_from_video(
+                    video_path=str(video_path),
+                    frames_dir=str(frames_dir),
+                    output_dir=str(npz_2d_dir),
+                    target_fps=settings.VIDEO_FPS,
                 )
             except ValueError as e:
                 # Catch the blank video / low detection error and return as 400 Bad Request
@@ -256,9 +258,11 @@ async def predict(
                 
                 logger.info("🦴 Step 3/5: Extracting 3D poses (ROMP)...")
                 try:
-                    num_poses_3d = pose_service.estimate_3d_poses(
-                        str(frames_dir),
-                        str(npz_3d_dir)
+                    num_poses_3d = pose_service.estimate_3d_poses_from_video(
+                        video_path=str(video_path),
+                        frames_dir=str(frames_dir),
+                        output_dir=str(npz_3d_dir),
+                        target_fps=settings.VIDEO_FPS,
                     )
                 except ValueError as e:
                     # Catch blank video / low detection error for 3D path
