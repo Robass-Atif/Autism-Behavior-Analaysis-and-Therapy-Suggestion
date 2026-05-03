@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     # uses the returned NPZ zip instead of running OpenPose/MediaPipe/ROMP
     # locally. Leave unset to run everything locally.
     REMOTE_POSE_URL: Optional[str] = None
-    REMOTE_POSE_TIMEOUT_SEC: int = 900
+    REMOTE_POSE_TIMEOUT_SEC: int = 90000
 
     # Feature Flags
     ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "true").lower() in ("true", "1", "yes")

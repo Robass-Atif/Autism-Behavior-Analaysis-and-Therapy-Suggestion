@@ -55,7 +55,7 @@ BONE_CV_THRESHOLD_2D: dict[Optional[ActionGroup], float] = {
     ActionGroup.LOW_FORESHORTEN:  0.35,
     ActionGroup.HIGH_FORESHORTEN: 2.50,
     ActionGroup.FULL_BODY_ROTATE: 1.80,
-    None:                         1.50,
+    None:                         5.0,
 }
 
 
