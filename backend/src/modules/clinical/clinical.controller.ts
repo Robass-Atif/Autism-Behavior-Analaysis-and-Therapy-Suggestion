@@ -13,6 +13,7 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  Req,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
@@ -26,6 +27,7 @@ import {
   ApiConsumes,
 } from "@nestjs/swagger";
 import { ClinicalService } from "./clinical.service";
+import { ThumbnailService } from "./services/thumbnail.service";
 import { CryptoService } from "../../common/services/crypto.service";
 import { BadRequestException } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
@@ -56,7 +58,8 @@ const videoFileFilter = (req: any, file: any, callback: any) => {
 export class ClinicalController {
   constructor(
     private readonly clinicalService: ClinicalService,
-    private readonly cryptoService: CryptoService
+    private readonly cryptoService: CryptoService,
+    private readonly thumbnailService: ThumbnailService,
   ) {}
 
   // ========== THERAPY GOALS ==========
@@ -182,7 +185,12 @@ export class ClinicalController {
     const encryptedKeyPattern = this.cryptoService.encryptFileKey(key);
 
     const videoUrl = `/uploads/videos/${filename}`;
-    
+
+    const thumb = await this.thumbnailService.generateFromBuffer(
+      file.buffer,
+      ext,
+    );
+
     return this.clinicalService.createVideoSession(
       user.sub,
       user.role,
@@ -190,23 +198,21 @@ export class ClinicalController {
       videoUrl,
       encryptedKeyPattern,
       iv.toString("base64"),
-      authTag.toString("base64")
+      authTag.toString("base64"),
+      thumb?.thumbnailUrl,
     );
   }
 
   @Get("/uploads/videos/:filename")
   @ApiOperation({ summary: "Stream a decrypted video file" })
   @ApiResponse({ status: 200, description: "Streamed video" })
-  async streamVideo(@Param("filename") filename: string, @Res() res: any) {
+  async streamVideo(
+    @Param("filename") filename: string,
+    @Res() res: any,
+    @Req() req: any,
+  ) {
     const videoUrl = `/uploads/videos/${filename}`;
-    
-    // We need to fetch the session to get the encryption keys
-    // Since we don't have the user object here easily if it's a raw video tag request without Auth headers,
-    // we bypass AuthGuard for this specific streaming route or require signed URLs. 
-    // Given the current architecture, passing JWT in video tag is hard, so we handle it generically here
-    // but in production, we should use a signed short-lived token in the query string.
-    
-    await this.clinicalService.streamDecryptedVideo(videoUrl, res);
+    await this.clinicalService.streamDecryptedVideo(videoUrl, res, req);
   }
 
   @Get("video-sessions")

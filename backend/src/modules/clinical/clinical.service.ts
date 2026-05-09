@@ -192,12 +192,14 @@ export class ClinicalService {
     videoUrl: string,
     encryptionKeyPattern?: string,
     encryptionIV?: string,
-    encryptionAuthTag?: string
+    encryptionAuthTag?: string,
+    thumbnailUrl?: string,
   ) {
     const sessionData: any = {
       ...dto,
       duration: parseFloat(dto.duration as any) || 0,
       videoUrl,
+      thumbnailUrl,
       encryptionKeyPattern,
       encryptionIV,
       encryptionAuthTag,
@@ -236,58 +238,71 @@ export class ClinicalService {
   }
 
   // ========== STREAM DECRYPTED VIDEO ==========
-  async streamDecryptedVideo(videoUrl: string, res: any) {
-    // 1. Find the session by URL to get encryption bounds
+  async streamDecryptedVideo(videoUrl: string, res: any, req?: any) {
     const session = await this.videoSessionModel.findOne({ videoUrl });
     if (!session || session.deleted) {
       throw new NotFoundException("Video not found");
     }
 
     const baseDir = path.join(__dirname, "..", "..", "..");
-    // videoUrl is something like /uploads/videos/video-xxx.webm
-    // The relative path from project root is just the URL without leading slash
     const filepath = path.join(baseDir, videoUrl.replace(/^\//, ""));
 
     if (!fs.existsSync(filepath)) {
       throw new NotFoundException("Physical video file not found on disk");
     }
 
-    // 2. Determine if it's encrypted
+    const ext = path.extname(filepath).toLowerCase();
+    const contentType =
+      ext === ".mp4" ? "video/mp4" :
+      ext === ".webm" ? "video/webm" :
+      ext === ".mov" ? "video/quicktime" :
+      ext === ".ogg" || ext === ".ogv" ? "video/ogg" :
+      "application/octet-stream";
+
+    let payload: Buffer;
     if (session.encryptionKeyPattern && session.encryptionIV && session.encryptionAuthTag) {
-      // It is encrypted, decrypt on the fly
       try {
         const fileKey = this.cryptoService.decryptFileKey(session.encryptionKeyPattern);
         const iv = Buffer.from(session.encryptionIV, "base64");
         const authTag = Buffer.from(session.encryptionAuthTag, "base64");
-
-        const decryptStream = this.cryptoService.createDecryptStream(fileKey, iv, authTag);
-        const readStream = fs.createReadStream(filepath);
-
-        // Required headers for video streaming
-        res.setHeader("Content-Type", "video/webm"); // Or dynamically determined by ext
-
-        // Pipe: File Stream -> Decrypt Stream -> Response Stream
-        readStream.pipe(decryptStream).pipe(res);
-
-        readStream.on("error", (err) => {
-          console.error("Error reading encrypted video stream", err);
-          if (!res.headersSent) res.status(500).send("Error reading video stream");
-        });
-
-        decryptStream.on("error", (err) => {
-          console.error("Error decrypting video stream", err);
-          if (!res.headersSent) res.status(500).send("Error decrypting video stream");
-        });
+        const cryptoMod = require("crypto");
+        const decipher = cryptoMod.createDecipheriv("aes-256-gcm", fileKey, iv);
+        decipher.setAuthTag(authTag);
+        const ciphertext = fs.readFileSync(filepath);
+        payload = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
       } catch (err) {
         console.error("Decryption key error:", err);
         throw new BadRequestException("Failed to unlock video file");
       }
     } else {
-      // Fallback for older plaintext videos
-      res.setHeader("Content-Type", "video/webm");
-      const readStream = fs.createReadStream(filepath);
-      readStream.pipe(res);
+      payload = fs.readFileSync(filepath);
     }
+
+    const total = payload.length;
+    const range = req?.headers?.range as string | undefined;
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Accept-Ranges", "bytes");
+    res.setHeader("Cache-Control", "private, max-age=300");
+
+    if (range) {
+      const match = /bytes=(\d*)-(\d*)/.exec(range);
+      const start = match && match[1] ? parseInt(match[1], 10) : 0;
+      const end = match && match[2] ? parseInt(match[2], 10) : total - 1;
+      if (isNaN(start) || isNaN(end) || start >= total || end >= total || start > end) {
+        res.status(416).setHeader("Content-Range", `bytes */${total}`);
+        return res.end();
+      }
+      const chunk = payload.slice(start, end + 1);
+      res.status(206);
+      res.setHeader("Content-Range", `bytes ${start}-${end}/${total}`);
+      res.setHeader("Content-Length", chunk.length);
+      return res.end(chunk);
+    }
+
+    res.status(200);
+    res.setHeader("Content-Length", total);
+    return res.end(payload);
   }
 
   // ========== NEW: APPROVE FOR AI ==========

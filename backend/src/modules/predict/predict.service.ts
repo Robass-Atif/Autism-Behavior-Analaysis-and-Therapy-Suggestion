@@ -37,12 +37,21 @@ export class PredictService {
     }
 
     private calculateAge(dateOfBirth: Date): number {
+        if (!dateOfBirth) return 0;
         const today = new Date();
         const birthDate = new Date(dateOfBirth);
+        if (Number.isNaN(birthDate.getTime())) {
+            console.warn('calculateAge: invalid date of birth', dateOfBirth);
+            return 0;
+        }
         let age = today.getFullYear() - birthDate.getFullYear();
         const month = today.getMonth() - birthDate.getMonth();
         if (month < 0 || (month === 0 && today.getDate() < birthDate.getDate())) {
             age--;
+        }
+        if (age < 0 || age > 120) {
+            console.warn(`calculateAge: out-of-range age ${age} from DOB ${birthDate.toISOString()}; clamping to 0`);
+            return 0;
         }
         return age;
     }

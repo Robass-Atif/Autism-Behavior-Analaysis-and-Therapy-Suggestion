@@ -11,6 +11,7 @@ import * as FormData from 'form-data'
 import * as fs from 'fs'
 import { CryptoService } from '../../../common/services/crypto.service'
 import * as crypto from 'crypto'
+import { mapSeverity, severityLabel as severityLabelFn } from '../../../common/utils/severity'
 
 @Injectable()
 export class AiAnalysisService {
@@ -94,6 +95,28 @@ export class AiAnalysisService {
   }
 
   /**
+   * Compute patient age from DOB. Returns a sensible fallback (5)
+   * when DOB is missing/invalid so FastAPI receives a non-empty value.
+   * Validates 0-120 range; values outside collapse to fallback.
+   */
+  private computePatientAge (patient: any): number {
+    const fallback = 5
+    const dob = patient?.dob || patient?.dateOfBirth
+    if (!dob) return fallback
+    const birth = new Date(dob)
+    if (Number.isNaN(birth.getTime())) return fallback
+    const today = new Date()
+    let age = today.getFullYear() - birth.getFullYear()
+    const m = today.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+    if (age < 0 || age > 120) {
+      this.logger.warn(`computePatientAge: out-of-range ${age}, using fallback`)
+      return fallback
+    }
+    return age
+  }
+
+  /**
    * Internal method to handle the actual HTTP request to FastAPI
    */
   private async performAnalysisRequest (session: any, videoPath: string) {
@@ -159,7 +182,7 @@ export class AiAnalysisService {
           contentType: 'video/mp4'
         })
 
-        payload.append('age', session.patientId?.age?.toString() || '5')
+        payload.append('age', this.computePatientAge(session.patientId).toString())
 
         let genderStr = session.patientId?.gender || 'M'
         // FastAPI requires strictly 'M' or 'F'
@@ -205,18 +228,9 @@ export class AiAnalysisService {
           const rrb = pred?.rrb ?? 0
           const comparisonScore = pred?.comparison_score ?? 0
 
-          // Map severity level to label based on clinical guidelines
-          const severityLabels = [
-            'Autism Spectrum Disorder (Mild)',
-            'Autism (Severe)'
-          ]
+          // Map severity level to label using shared SSoT helper
           const severityLabel =
-            severity !== null
-              ? severityLabels[severity] ||
-                (severity === 0
-                  ? 'Autism Spectrum Disorder (Mild)'
-                  : 'Autism (Severe)')
-              : 'Unknown'
+            severity !== null ? severityLabelFn(severity) : 'Unknown'
 
           // Generate meaningful behaviors from the model output
           const behaviors: any[] = []
@@ -315,10 +329,7 @@ export class AiAnalysisService {
           // Generate baseline clinical report (DSM-5 classification)
           session.clinicalReport = {
             dsm5_classification: {
-              level:
-                severity === 1
-                  ? 'Autism (Severe)'
-                  : 'Autism Spectrum Disorder (Mild)',
+              level: mapSeverity(severity).label,
               social_communication:
                 socialAffect >= 21
                   ? 'High (2)'

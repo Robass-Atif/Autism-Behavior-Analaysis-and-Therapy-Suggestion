@@ -1,6 +1,39 @@
 import { Injectable } from "@nestjs/common";
 import * as PDFDocument from "pdfkit";
 import { PDFDocument as PDFLib } from "pdf-lib";
+import * as fs from "fs";
+import * as path from "path";
+
+// Map of curly quotes / dashes / arrows / common typographic chars
+// to their ASCII / WinAnsi equivalents. PDFKit's default Helvetica uses
+// WinAnsi encoding which silently drops characters outside Latin-1, and
+// adjacent kerning then makes nearby letters look wrong (the famous
+// "DEMOGRAPHICS" -> "DENOGRAPHICS" / "ANKLE" -> "AMKLE" effect).
+const TYPOGRAPHIC_MAP: Record<string, string> = {
+  "\u2018": "'", "\u2019": "'", "\u201A": ",", "\u201B": "'",
+  "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
+  "\u2013": "-", "\u2014": "-", "\u2212": "-",
+  "\u2026": "...",
+  "\u2022": "*", "\u00B7": "*", "\u25CF": "*",
+  "\u2192": "->", "\u2190": "<-", "\u2194": "<->",
+  "\u00A0": " ", "\u200B": "", "\u200C": "", "\u200D": "", "\uFEFF": "",
+  "\u2122": "(TM)", "\u00AE": "(R)", "\u00A9": "(C)",
+};
+
+function sanitisePdfText(input: unknown): string {
+  if (input == null) return "";
+  let s = String(input);
+  // 1. Replace known typographic glyphs with ASCII
+  s = s.replace(/[\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7\u25CF\u2192\u2190\u2194\u00A0\u200B\u200C\u200D\uFEFF\u2122\u00AE\u00A9]/g,
+    (ch) => TYPOGRAPHIC_MAP[ch] ?? "");
+  // 2. Decompose remaining accented chars and strip combining marks so
+  //    "résumé" becomes "resume" rather than rendering as "rsum".
+  s = s.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  // 3. Drop anything still outside Latin-1 (WinAnsi) — replace with "?"
+  //    so we never silently lose a character mid-word.
+  s = s.replace(/[^\x00-\xFF]/g, "?");
+  return s;
+}
 
 export interface ReportOptions {
   patientId: string;
@@ -51,6 +84,34 @@ export class PdfGeneratorService {
           margins: { top: 40, bottom: 50, left: 45, right: 45 },
           bufferPages: true,
         });
+
+        // Register a TTF if bundled at backend/assets/fonts/. PDFKit's
+        // built-in Helvetica is WinAnsi-only; an embedded TTF gives full
+        // Unicode support and avoids glyph-substitution artefacts. We
+        // register under the same names ("Helvetica", "Helvetica-Bold")
+        // so existing .font() calls pick the embedded version up.
+        try {
+          const fontDir = path.resolve(__dirname, "../../../../assets/fonts");
+          const candidates = [
+            { name: "Helvetica", file: "Inter-Regular.ttf" },
+            { name: "Helvetica-Bold", file: "Inter-Bold.ttf" },
+          ];
+          for (const c of candidates) {
+            const p = path.join(fontDir, c.file);
+            if (fs.existsSync(p)) doc.registerFont(c.name, p);
+          }
+        } catch {
+          // fall back to PDFKit's built-in Helvetica
+        }
+
+        // Sanitise every string written to the document. This is a single
+        // chokepoint that removes the source of the "DENOGRAPHICS"/"AMKLE"
+        // visual corruption: non-Latin-1 codepoints leaking into headers
+        // and labels.
+        const originalText = doc.text.bind(doc);
+        (doc as any).text = function (text: any, ...rest: any[]) {
+          return originalText(sanitisePdfText(text), ...rest);
+        };
 
         const chunks: Buffer[] = [];
         doc.on("data", (chunk: any) => chunks.push(chunk));

@@ -17,6 +17,7 @@ import { Patient, PatientSchema } from "../patients/schemas/patient.schema";
 import { PatientCaregiver, PatientCaregiverSchema } from "../patients/schemas/patient-caregiver.schema";
 import { PatientsModule } from "../patients/patients.module";
 import { AiAnalysisService } from "./services/ai-analysis.service";
+import { ThumbnailService } from "./services/thumbnail.service";
 import { EmailModule } from "../email/email.module";
 import { User, UserSchema } from "../users/schemas/user.schema";
 
@@ -34,7 +35,7 @@ import { User, UserSchema } from "../users/schemas/user.schema";
     HttpModule,
   ],
   controllers: [ClinicalController],
-  providers: [ClinicalService, PdfGeneratorService, AiAnalysisService],
+  providers: [ClinicalService, PdfGeneratorService, AiAnalysisService, ThumbnailService],
   exports: [ClinicalService],
 })
 export class ClinicalModule {}

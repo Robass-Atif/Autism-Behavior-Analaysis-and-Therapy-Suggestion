@@ -29,6 +29,7 @@ import {
   useGenerateReport,
 } from "../../../api/clinical";
 import { getFileUrl } from "../../../config/apiConfig";
+import { mapSeverity } from "../../../lib/severity";
 
 interface SessionReportScreenProps {
   sessionId: string;
@@ -189,17 +190,8 @@ export default function SessionReportScreen({
     val: number | null | undefined,
   ): { label: string; color: string } => {
     if (val == null) return { label: "N/A", color: "text-zinc-400" };
-    if (val === 0)
-      return {
-        label: "Non-Spectrum (Not Affected)",
-        color: "text-emerald-600",
-      };
-    if (val === 1)
-      return {
-        label: "Autism Spectrum Disorder (Mild)",
-        color: "text-amber-600",
-      };
-    return { label: "Autism (Severe)", color: "text-red-600" };
+    const info = mapSeverity(val);
+    return { label: info.label, color: info.textClass };
   };
 
   const getSocialAffectClass = (
@@ -264,8 +256,8 @@ export default function SessionReportScreen({
     <div className="min-h-screen bg-zinc-50 font-mono pb-20">
       {/* ═══ HEADER ═══ */}
       <div className="bg-zinc-900 text-white border-b-4 border-zinc-800 sticky top-0 z-50">
-        <div className="max-w-[1800px] mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="max-w-[1800px] mx-auto px-6 py-4 md:h-20 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
             <button
               onClick={onBack}
               className="p-2 border-2 border-zinc-700 text-zinc-400 hover:text-white hover:border-white transition-all"
@@ -298,9 +290,33 @@ export default function SessionReportScreen({
         </div>
       </div>
 
+      {/* ═══ SECTION NAV ═══ */}
+      <div className="bg-white border-b-2 border-zinc-900 sticky top-20 z-40">
+        <div className="max-w-[1800px] mx-auto px-6 h-10 flex items-center gap-1 overflow-x-auto">
+          {[
+            { id: "section-overview", label: "Overview" },
+            { id: "section-metrics", label: "Metrics" },
+            { id: "section-explainability", label: "Explainability" },
+            { id: "section-temporal", label: "Temporal Analysis" },
+          ].map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="text-[10px] font-black uppercase tracking-widest px-3 py-1 border-2 border-transparent hover:border-zinc-900 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 transition-all"
+            >
+              {s.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-[1800px] mx-auto px-6 py-8 space-y-8">
-        {/* ═══ SECTION 1: VITAL METRICS ═══ */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {/* ═══ SECTION 1: OVERVIEW (vital metrics) ═══ */}
+        <section id="section-overview" className="scroll-mt-32 space-y-2">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+            1. Overview
+          </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <VitalCard
             label="Lifecycle"
             value={session.status.toUpperCase().replace(/_/g, " ")}
@@ -346,7 +362,13 @@ export default function SessionReportScreen({
           />
         </div>
 
-        {/* ═══ SECTION 2: ADOS-2 PREDICTION CARDS ═══ */}
+        </section>
+
+        {/* ═══ SECTION 2: METRICS (ADOS-2 prediction cards) ═══ */}
+        <section id="section-metrics" className="scroll-mt-32 space-y-2">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+            2. Metrics
+          </h2>
         {ensemble && !hasError && (
           <div className="space-y-4">
             <div className="bg-zinc-900 text-white p-4 flex items-center justify-between shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-2 border-zinc-900">
@@ -361,7 +383,7 @@ export default function SessionReportScreen({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Severity */}
               <div
                 className={`border-2 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${clsBg(severityCls)}`}
@@ -381,6 +403,13 @@ export default function SessionReportScreen({
                 </div>
                 <p className="text-[8px] font-bold text-zinc-400 uppercase mt-2">
                   Conf: {confidencePercent}%
+                </p>
+                <p className="text-[8px] font-medium text-zinc-500 mt-2 leading-snug normal-case">
+                  {ensemble.severity === 1
+                    ? "DSM-5 Level 3 indicators: requires very substantial support."
+                    : ensemble.severity === 0
+                      ? "DSM-5 Level 2 indicators: requires substantial support."
+                      : "Insufficient signal to classify severity reliably."}
                 </p>
               </div>
 
@@ -404,6 +433,13 @@ export default function SessionReportScreen({
                 <p className="text-[8px] font-bold text-zinc-400 uppercase mt-2">
                   5–14 Low · 15–20 Med · 21+ High
                 </p>
+                <p className="text-[8px] font-medium text-zinc-500 mt-2 leading-snug normal-case">
+                  {ensemble.social_affect != null && ensemble.social_affect >= 21
+                    ? "Marked social-communication impairment observed in this session."
+                    : ensemble.social_affect != null && ensemble.social_affect >= 15
+                      ? "Moderate social-communication concerns detected."
+                      : "Social-affect indicators within milder range for this sample."}
+                </p>
               </div>
 
               {/* RRB */}
@@ -411,7 +447,7 @@ export default function SessionReportScreen({
                 className={`border-2 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${clsBg(rrbCls)}`}
               >
                 <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                  Social Communication Impairment
+                  Restricted & Repetitive Behaviors (RRB)
                 </p>
                 <p
                   className={`text-4xl font-black tracking-tighter ${rrbCls.color}`}
@@ -426,12 +462,19 @@ export default function SessionReportScreen({
                 <p className="text-[8px] font-bold text-zinc-400 uppercase mt-2">
                   1–3 Low · 4–8 Med · 8+ High
                 </p>
+                <p className="text-[8px] font-medium text-zinc-500 mt-2 leading-snug normal-case">
+                  {ensemble.rrb != null && ensemble.rrb > 8
+                    ? "High frequency of restricted/repetitive behaviors observed."
+                    : ensemble.rrb != null && ensemble.rrb >= 4
+                      ? "Moderate restricted/repetitive behavior signal."
+                      : "Restricted/repetitive behaviors at low end of clinical range."}
+                </p>
               </div>
 
               {/* Comparison Score */}
               <div className="border-2 border-zinc-900 bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                  Comparison Score
+                 ADOS Comparison Score
                 </p>
                 <p className="text-4xl font-black tracking-tighter text-zinc-900">
                   {ensemble.comparison_score ?? "—"}
@@ -442,10 +485,14 @@ export default function SessionReportScreen({
                     ? (ensemble.comparison_confidence * 100).toFixed(0) + "%"
                     : "—"}
                 </p>
+                <p className="text-[8px] font-medium text-zinc-500 mt-2 leading-snug normal-case">
+                  Cohort comparison score (1–10). Higher values indicate greater
+                  symptom load relative to the reference cohort.
+                </p>
               </div>
 
               {/* ADOS Total */}
-              <div className="border-2 border-zinc-900 bg-zinc-900 text-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              {/* <div className="border-2 border-zinc-900 bg-zinc-900 text-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">
                   ADOS Total Score
                 </p>
@@ -456,7 +503,7 @@ export default function SessionReportScreen({
                   SA ({ensemble.social_affect?.toFixed(1)}) + RRB (
                   {ensemble.rrb?.toFixed(1)})
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
         )}
@@ -481,7 +528,13 @@ export default function SessionReportScreen({
           </div>
         )}
 
-        {/* ═══ SECTION 3: EXPLAINABILITY — All 4 Predictions ═══ */}
+        </section>
+
+        {/* ═══ SECTION 3: EXPLAINABILITY (4 model heads) ═══ */}
+        <section id="section-explainability" className="scroll-mt-32 space-y-2">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+            3. Explainability
+          </h2>
         {taskExplanations && tabs.length > 0 && (
           <div className="bg-white border-2 border-zinc-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
             <div className="p-4 border-b-2 border-zinc-900 bg-zinc-900 text-white flex items-center gap-2">
@@ -835,6 +888,13 @@ export default function SessionReportScreen({
           </div>
         )}
 
+        </section>
+
+        {/* ═══ SECTION 4: TEMPORAL ANALYSIS (video + behavior log + sidebar) ═══ */}
+        <section id="section-temporal" className="scroll-mt-32 space-y-2">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+            4. Temporal Analysis
+          </h2>
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* ═══ LEFT COLUMN ═══ */}
           <div className="xl:col-span-2 space-y-8">
@@ -892,11 +952,16 @@ export default function SessionReportScreen({
                             {b.type}
                           </h4>
                           <div className="flex items-center gap-2">
-                            <span
-                              className={`text-[8px] font-black px-2 py-0.5 border ${b.severity === "Severe" ? "bg-red-600 text-white border-red-600" : b.severity === "Mild" ? "bg-amber-100 text-amber-800 border-amber-300" : "bg-emerald-100 text-emerald-800 border-emerald-300"}`}
-                            >
-                              {b.severity}
-                            </span>
+                            {(() => {
+                              const sev = mapSeverity(b.severity);
+                              return (
+                                <span
+                                  className={`text-[8px] font-black px-2 py-0.5 border ${sev.badgeClass}`}
+                                >
+                                  {sev.label}
+                                </span>
+                              );
+                            })()}
                             <span className="text-[8px] font-black px-2 py-0.5 bg-zinc-900 text-white">
                               {Math.round(b.confidence * 100)}%
                             </span>
@@ -1300,6 +1365,7 @@ export default function SessionReportScreen({
             </div>
           </div>
         </div>
+        </section>
       </div>
     </div>
   );
