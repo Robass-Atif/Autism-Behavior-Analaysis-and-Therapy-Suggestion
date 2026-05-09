@@ -40,7 +40,10 @@ class InferencePipeline:
             self.pad_func = pad_sequence_3d
             self.feature_func = compute_enhanced_features_3d
         
-        self.max_len = 500
+        # Must match the value used at training time. The trained feature
+        # scaler was fit on length-100 sequences; padding to 500 here pushes
+        # 80% of frames to zero and drives predictions out of distribution.
+        self.max_len = self.config.get('max_sequence_length', 100)
     
     def predict(self, video_folder_path: str, age: float, gender: str,
                 include_explainability: bool = True,

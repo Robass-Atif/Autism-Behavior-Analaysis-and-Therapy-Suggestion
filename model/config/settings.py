@@ -34,7 +34,14 @@ class Settings(BaseSettings):
     MODEL_3D_PATH: str = str(BASE_DIR / "3d model")
     MAX_SEQUENCE_LENGTH: int = 100
     OPENPOSE_DIR: Optional[str] = None
-    
+
+    # Remote pose-estimation service (Colab GPU notebook).
+    # When set, the local pipeline POSTs the source video to this URL and
+    # uses the returned NPZ zip instead of running OpenPose/MediaPipe/ROMP
+    # locally. Leave unset to run everything locally.
+    REMOTE_POSE_URL: Optional[str] = None
+    REMOTE_POSE_TIMEOUT_SEC: int = 90000
+
     # Feature Flags
     ENABLE_3D_PROCESSING: bool = os.getenv("ENABLE_3D_PROCESSING", "true").lower() in ("true", "1", "yes")
 
@@ -50,8 +57,8 @@ class Settings(BaseSettings):
     MAX_BONE_LENGTH_VARIATION_3D: float = 0.8   # ROMP metric (more stable but occlusion adds variance)
     
     # Velocity — max joint displacement per frame
-    MAX_MOVEMENT_VELOCITY_2D: float = 200       # MediaPipe: full frame ~1.0, fast motion ~0.10–0.25
-    MAX_MOVEMENT_VELOCITY_3D: float = 200       # ROMP: meters/frame at 25–30fps, fast arm ~0.5–0.7
+    MAX_MOVEMENT_VELOCITY_2D: float = 20000       # MediaPipe: full frame ~1.0, fast motion ~0.10–0.25
+    MAX_MOVEMENT_VELOCITY_3D: float = 20000       # ROMP: meters/frame at 25–30fps, fast arm ~0.5–0.7
     
     # Confidence — MediaPipe visibility score
     MIN_KEYPOINT_CONFIDENCE_MEAN: float = 0.20   # Mean across all joints

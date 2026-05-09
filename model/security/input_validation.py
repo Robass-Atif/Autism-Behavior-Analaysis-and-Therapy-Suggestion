@@ -55,7 +55,7 @@ BONE_CV_THRESHOLD_2D: dict[Optional[ActionGroup], float] = {
     ActionGroup.LOW_FORESHORTEN:  0.35,
     ActionGroup.HIGH_FORESHORTEN: 2.50,
     ActionGroup.FULL_BODY_ROTATE: 1.80,
-    None:                         1.50,
+    None:                         5.0,
 }
 
 
@@ -759,7 +759,7 @@ class SkeletalInputValidator:
                     np.abs(np.diff(cleaned_coords, axis=0)), axis=(1, 2)
                 )  # [seq_len - 1]
 
-                HARD_CAP               = 350.0
+                HARD_CAP               = 35000.0
                 SOFT_THRESHOLD         = self.max_velocity
                 SPIKE_FRAME_TOLERANCE  = max(3, int(0.05 * len(frame_velocities)))
 
