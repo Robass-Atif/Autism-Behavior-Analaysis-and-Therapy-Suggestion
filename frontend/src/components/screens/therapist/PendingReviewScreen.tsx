@@ -5,6 +5,7 @@ import {
   useTriggerAIAnalysis,
   useCancelAIAnalysis,
   useRetryAIAnalysis,
+  useDeleteVideoSession,
 } from "../../../api/clinical";
 import { usePatients } from "../../../api/patient";
 import { getFileUrl } from "../../../config/apiConfig";
@@ -31,6 +32,7 @@ import {
   AlertOctagon,
   RotateCcw,
   BookOpen,
+  Trash2,
 } from "lucide-react";
 import { VideoSession, Screen } from "../../../types";
 import toast from "../../../lib/toast";
@@ -48,6 +50,7 @@ export default function PendingReviewScreen({
   const triggerAI = useTriggerAIAnalysis();
   const cancelAI = useCancelAIAnalysis();
   const retryAI = useRetryAIAnalysis();
+  const deleteSession = useDeleteVideoSession();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPatient, setFilterPatient] = useState<string>("all");
@@ -55,6 +58,7 @@ export default function PendingReviewScreen({
     null,
   );
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const sessions = sessionsData?.sessions || [];
 
@@ -149,6 +153,22 @@ export default function PendingReviewScreen({
       const errorMsg =
         err.response?.data?.message || err.message || "Failed to retry";
       toast.error(errorMsg, { id: `retry-${session.id}` });
+    }
+  };
+
+  const handleDelete = async (session: VideoSession) => {
+    try {
+      await deleteSession.mutateAsync(session.id);
+      toast.success("Session deleted successfully", {
+        id: `delete-${session.id}`,
+      });
+      setConfirmDelete(null);
+    } catch (err: any) {
+      const errorMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to delete session";
+      toast.error(errorMsg, { id: `delete-${session.id}` });
     }
   };
 
@@ -577,6 +597,24 @@ export default function PendingReviewScreen({
                                 <XCircle size={16} />
                               </button>
                             )}
+
+                            <button
+                              onClick={() =>
+                                setConfirmDelete(
+                                  confirmDelete === session.id
+                                    ? null
+                                    : session.id,
+                                )
+                              }
+                              className={`p-3 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${
+                                confirmDelete === session.id
+                                  ? "bg-red-600 text-white border-2 border-zinc-900"
+                                  : "bg-white text-red-600 border-2 border-red-200 hover:border-red-600"
+                              }`}
+                              title="Delete Session"
+                            >
+                              <Trash2 size={16} />
+                            </button>
                           </div>
 
                           {confirmCancel === session.id && (
@@ -589,6 +627,26 @@ export default function PendingReviewScreen({
                                 className="px-3 py-1 bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest border border-zinc-900"
                               >
                                 YES
+                              </button>
+                            </div>
+                          )}
+
+                          {confirmDelete === session.id && (
+                            <div className="flex items-center gap-2 mt-2 bg-red-50 p-2 border-2 border-red-600 shadow-[2px_2px_0px_0px_rgba(220,38,38,1)]">
+                              <span className="text-[9px] font-black uppercase text-red-700 flex-1">
+                                PERMANENT DELETE?
+                              </span>
+                              <button
+                                onClick={() => handleDelete(session)}
+                                className="px-3 py-1 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest border border-zinc-900 hover:bg-red-700"
+                              >
+                                DELETE
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(null)}
+                                className="px-2 py-1 bg-white text-zinc-900 text-[9px] font-bold uppercase border border-zinc-200"
+                              >
+                                NO
                               </button>
                             </div>
                           )}
